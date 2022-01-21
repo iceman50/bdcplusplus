@@ -34,6 +34,8 @@
 #include "HubFrame.h"
 #include "DirectoryListingFrame.h"
 
+#include "InfoFrame.h"
+
 void UserInfoBase::matchQueue() {
 	try {
 		QueueManager::getInstance()->addList(user, QueueItem::FLAG_MATCH_QUEUE);
@@ -90,6 +92,25 @@ void UserInfoBase::connectFav(TabViewPtr parent) {
 
 void UserInfoBase::ignoreChat(bool ignore) {
 	UserMatchManager::getInstance()->ignoreChat(user, ignore);
+}
+//DiCe Edit Possibly just piggyback getInfo?
+void UserInfoBase::showInfo(TabViewPtr parent) {
+	auto nick = Text::fromT(WinUtil::getNick(user));
+	InfoFrame::InfoMap userInfo;
+	string hub;
+	
+	{
+		auto lock = ClientManager::getInstance()->lock();
+		auto ou = ClientManager::getInstance()->findOnlineUser(user);
+		if (!ou)
+			return;
+
+		const Identity& id = ou->getIdentity();
+		userInfo = id.getInfo();
+		hub = ou->getClient().getHubUrl();
+	}
+
+	InfoFrame::openWindow(parent, nick + " - " + hub, userInfo);
 }
 
 tstring UserInfoBase::getInfo(int flags) const {

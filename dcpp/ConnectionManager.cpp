@@ -556,23 +556,44 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 }
 
 void ConnectionManager::on(UserConnectionListener::CLock, UserConnection* aSource, const string& aLock, const string& aPk) noexcept {
-	if(aSource->getState() != UserConnection::STATE_LOCK) {
+	if (aSource->getState() != UserConnection::STATE_LOCK) {
 		dcdebug("CM::onLock %p received lock twice, ignoring\n", (void*)aSource);
 		return;
 	}
 
-	if( CryptoManager::getInstance()->isExtended(aLock) ) {
+	string supports;
+
+	if (CryptoManager::getInstance()->isExtended(aLock)) {
 		StringList defFeatures = features;
-		if(SETTING(COMPRESS_TRANSFERS)) {
+		if (SETTING(COMPRESS_TRANSFERS)) {
 			defFeatures.push_back(UserConnection::FEATURE_ZLIB_GET);
+		}
+		
+		for (auto& i : defFeatures) {
+			supports += i + ' ';
 		}
 
 		aSource->supports(defFeatures);
 	}
 
+	//DiCe edits
+	const auto& key = CryptoManager::getInstance()->makeKey(aLock);
+
+	{
+		auto lock = ClientManager::getInstance()->lock();
+		auto ou = ClientManager::getInstance()->findOnlineUser(aSource->getHintedUser());
+		if (!ou)
+			return;
+		Identity& id = ou->getIdentity();
+		id.set("SP", supports);
+		id.set("LK", aLock);
+		id.set("PK", aPk);
+		id.set("KY", key);
+	}
+
 	aSource->setState(UserConnection::STATE_DIRECTION);
 	aSource->direction(aSource->getDirectionString(), aSource->getNumber());
-	aSource->key(CryptoManager::getInstance()->makeKey(aLock));
+	aSource->key(key);
 }
 
 void ConnectionManager::on(UserConnectionListener::Direction, UserConnection* aSource, const string& dir, const string& num) noexcept {
@@ -741,8 +762,8 @@ void ConnectionManager::on(AdcCommand::INF, UserConnection* aSource, const AdcCo
 		type = tokCheck.second;
 
 		// set the PM flag now in order to send a INF with PM1
-		if(type == CONNECTION_TYPE_PM || cmd.hasFlag("PM", 0)) {
-			if(!aSource->isSet(UserConnection::FLAG_PM)) {
+		if (type == CONNECTION_TYPE_PM || cmd.hasFlag("PM", 0)) {
+			if (!aSource->isSet(UserConnection::FLAG_PM)) {
 				aSource->setFlag(UserConnection::FLAG_PM);
 			}
 

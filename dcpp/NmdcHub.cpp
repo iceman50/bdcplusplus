@@ -791,14 +791,14 @@ void NmdcHub::myInfo(bool alwaysSend) {
 
 	reloadSettings(false);
 
-	string tmp1 = ";**\x1fU9";
+	string tmp1 = ";ACB**\x1fU9";
 	string tmp2 = "+L9";
 	string tmp3 = "+G9";
 	string tmp4 = "+R9";
 	string tmp5 = "+N9";
 	string::size_type i;
 
-	for(i = 0; i < 6; i++) {
+	for(i = 0; i < 9; i++) {
 		tmp1[i]++;
 	}
 	for(i = 0; i < 3; i++) {
@@ -823,7 +823,9 @@ void NmdcHub::myInfo(bool alwaysSend) {
 	string uMin = (SETTING(MIN_UPLOAD_SPEED) == 0) ? Util::emptyString : tmp5 + Util::toString(SETTING(MIN_UPLOAD_SPEED));
 	string myInfoA =
 		"$MyINFO $ALL " + fromUtf8(getMyNick()) + " " + fromUtf8(escape(get(Description))) +
-		tmp1 + VERSIONSTRING + tmp2 + modeChar + tmp3 + getCounts();
+//DiCe Edit
+//		tmp1 + VERSIONSTRING + tmp2 + modeChar + tmp3 + getCounts();
+		tmp1 + MODVER + tmp2 + modeChar + tmp3 + getCounts();
 	string myInfoB = tmp4 + Util::toString(SETTING(SLOTS));
 	string myInfoC = uMin +
 		">$ $" + uploadSpeed + "\x01$" + fromUtf8(escape(get(Email))) + '$';

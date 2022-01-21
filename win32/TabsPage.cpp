@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright (C) 2001-2021 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
@@ -46,7 +46,7 @@ PropPage::ListItem TabsPage::listItems[] = {
 };
 
 TabsPage::TabsPage(dwt::Widget* parent) :
-PropPage(parent, 4, 1),
+PropPage(parent, 5, 1),
 dcppDraw(0),
 buttonStyle(0),
 themeGroup(0),
@@ -58,8 +58,19 @@ options(0)
 	setHelpId(IDH_TABSPAGE);
 
 	grid->column(0).mode = GridInfo::FILL;
-	grid->row(3).mode = GridInfo::FILL;
-	grid->row(3).align = GridInfo::STRETCH;
+	grid->row(4).mode = GridInfo::FILL;
+	grid->row(4).align = GridInfo::STRETCH;
+
+	//DiCe Addon
+	{
+		auto optionsGroup = grid->addChild(GroupBox::Seed(T_("Options")));
+
+		// dummy grid so that the check-box doesn't fill the whole row.
+		tabsOnBottom = optionsGroup->addChild(Grid::Seed(1, 1))->addChild(CheckBox::Seed(T_("Show tabs on bottom (Requires restart to take effect)")));
+		items.emplace_back(tabsOnBottom, SettingsManager::TABS_ON_BOTTOM, PropPage::T_BOOL);
+		tabsOnBottom->setHelpId(0);
+	}
+
 
 	{
 		GridPtr cur = grid->addChild(Grid::Seed(1, 3));
@@ -138,6 +149,7 @@ options(0)
 	options = grid->addChild(GroupBox::Seed(T_("Tab highlight on content change")))->addChild(WinUtil::Seeds::Dialog::optionsTable);
 
 	PropPage::read(listItems, options);
+	PropPage::read(items);
 }
 
 TabsPage::~TabsPage() {
@@ -156,6 +168,7 @@ void TabsPage::write() {
 	SettingsManager::getInstance()->set(SettingsManager::TAB_WIDTH, tabWidth->getPosition());
 
 	PropPage::write(options);
+	PropPage::write(items);
 }
 
 void TabsPage::createPreview() {
@@ -176,6 +189,11 @@ void TabsPage::createPreview() {
 	}
 	if(buttonStyle->getChecked())
 		seed.style |= TCS_BUTTONS;
+
+	//DiCe addon
+	if(tabsOnBottom->getChecked())
+		seed.style |= TCS_BOTTOM;
+
 	seed.closeIcon = WinUtil::tabIcon(IDI_EXIT);
 	TabViewPtr tabs = previewGrid->addChild(seed);
 

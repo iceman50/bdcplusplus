@@ -49,6 +49,8 @@ public:
 	virtual void connectFav(TabViewPtr);
 	virtual void ignoreChat(bool ignore);
 
+	virtual void showInfo(TabViewPtr);
+
 	enum {
 		INFO_WITH_CID = 1 << 0,
 		INFO_ALL = INFO_WITH_CID
@@ -135,6 +137,11 @@ protected:
 	void handleIgnoreChat(bool ignore) {
 		handleUserFunction([ignore](UserInfoBase* u) { u->ignoreChat(ignore); });
 	}
+
+	void handleShowInfo(TabViewPtr parent) {
+		handleUserFunction([&](UserInfoBase* u) { u->showInfo(parent);  });
+	}
+
 	void handleCopyUserInfo() {
 		tstring text;
 		handleUserFunction([&](UserInfoBase* u) {
@@ -173,6 +180,8 @@ protected:
 
 		menu->appendSeparator();
 		menu->appendItem(T_("Copy user information"), [this] { this->t().handleCopyUserInfo(); });
+
+		menu->appendItem(T_("Show user information"), [this, parent] { this->t().handleShowInfo(parent); });
 	}
 };
 

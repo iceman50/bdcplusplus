@@ -64,6 +64,9 @@
 #include "FinishedULFrame.h"
 #include "HashProgressDlg.h"
 #include "HubFrame.h"
+//DiCe Addon
+#include "InfoFrame.h"
+//
 #include "NotepadFrame.h"
 #include "ParamDlg.h"
 #include "PluginApiWin.h"
@@ -272,7 +275,9 @@ void MainWindow::initWindow() {
 	// Create main window
 	dcdebug("initWindow\n");
 
-	Seed cs(_T(APPNAME) _T(" ") _T(VERSIONSTRING));
+//DiCe
+//	Seed cs(_T(APPNAME) _T(" ") _T(VERSIONSTRING));
+	Seed cs(_T(MODNAME) _T(" ") _T(MODVER));
 
 	cs.style &= ~WS_VISIBLE;
 	cs.exStyle |= WS_EX_APPWINDOW;
@@ -357,6 +362,8 @@ void MainWindow::initMenu() {
 			[this] { SystemFrame::openWindow(getTabView()); });
 		viewIndexes[StatsFrame::id] = viewMenu->appendItem(T_("Network Statistics"),
 			[this] { StatsFrame::openWindow(getTabView()); }, WinUtil::menuIcon(IDI_NET_STATS));
+
+		//DiCe Addon
 		viewIndexes[ACFrame::id] = viewMenu->appendItem(T_("About:config"),
 			[this] { ACFrame::openWindow(getTabView()); }, WinUtil::menuIcon(IDI_DCPP));
 
@@ -608,6 +615,11 @@ void MainWindow::initTabs() {
 	}
 	if(SETTING(TAB_STYLE) & SettingsManager::TAB_STYLE_BUTTONS)
 		seed.style |= TCS_BUTTONS;
+
+	//DiCe addon
+	if(SETTING(TABS_ON_BOTTOM))
+		seed.style |= TCS_BOTTOM;
+
 	seed.closeIcon = WinUtil::tabIcon(IDI_EXIT);
 	seed.toggleActive = SETTING(TOGGLE_ACTIVE_WINDOW);
 	seed.ctrlTab = true;
@@ -781,7 +793,9 @@ UserConnection* MainWindow::getPMConn(const UserPtr& user, UserConnectionListene
 }
 
 void MainWindow::handleTabsTitleChanged(const tstring& title) {
-	setText(title.empty() ? _T(APPNAME) _T(" ") _T(VERSIONSTRING) : _T(APPNAME) _T(" ") _T(VERSIONSTRING) _T(" - [") + title + _T("]"));
+//DiCe
+//	setText(title.empty() ? _T(APPNAME) _T(" ") _T(VERSIONSTRING) : _T(APPNAME) _T(" ") _T(VERSIONSTRING) _T(" - [") + title + _T("]"));
+	setText(title.empty() ? _T(MODNAME) _T(" ") _T(MODVER) : _T(MODNAME) _T(" ") _T(MODVER) _T(" - [") + title + _T("]"));
 }
 
 static void multiConnect(const string& group, TabViewPtr parent) {
@@ -2129,6 +2143,7 @@ void MainWindow::openWindow(const string& id, const WindowParams& params) {
 	compare_id(SystemFrame);
 	compare_id(StatsFrame);
 	compare_id(TextFrame);
+	//DiCe Addon
 	compare_id(ACFrame);
 #undef compare_id
 }

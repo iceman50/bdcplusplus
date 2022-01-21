@@ -24,6 +24,10 @@
 #define VERSIONSTRING "0.870"
 #define VERSIONFLOAT 0.870
 
+//DiCe Edits
+#define MODNAME "BDC++"
+#define MODVER "0.870.1"
+
 namespace dcpp {
 extern const std::string fullVersionString;
 }
