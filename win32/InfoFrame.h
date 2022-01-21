@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 iceman50
+ * Copyright (C) 2022 iceman50
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,7 +46,6 @@ private:
 	virtual ~InfoFrame() { }
 
 	void layout();
-//	void postClosing();
 
 	void handleFontChange();
 

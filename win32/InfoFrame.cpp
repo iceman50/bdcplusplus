@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 iceman50
+ * Copyright (C) 2022 iceman50
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -156,8 +156,6 @@ temporary(temporary)
 	auto text = displayInfo(userInfo);
 	pad->setText(text);
 
-	//TODO Add File loading if we decide on saving
-
 	layout();
 }
 
@@ -169,15 +167,6 @@ void InfoFrame::layout() {
 	r.size.y -= grid->getSpacing(); // add a bottom margin not to be too stuck to the status bar.
 	grid->resize(r);
 }
-
-//TODO Add File saving
-/*
-void InfoFrame::postClosing() {
-	if (temporary && !WinUtil::mainWindow->closing()) {
-//		File::deleteFile(path);
-	}
-}
-*/
 
 void InfoFrame::handleFontChange() {
 	LOGFONT logFont;
