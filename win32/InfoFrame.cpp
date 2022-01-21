@@ -103,19 +103,18 @@ static tstring displayInfo(const InfoFrame::InfoMap& userInfo) {
 	return ret;
 }
 
-void InfoFrame::openWindow(TabViewPtr parent, const string& userName, const InfoFrame::InfoMap& userInfo, bool activate, bool temporary) {
-	auto window = new InfoFrame(parent, userName, userInfo, temporary);
+void InfoFrame::openWindow(TabViewPtr parent, const string& userName, const InfoFrame::InfoMap& userInfo, bool activate) {
+	auto window = new InfoFrame(parent, userName, userInfo);
 	if(activate) //TODO WindowParams?
 		window->activate();
 }
 
-InfoFrame::InfoFrame(TabViewPtr parent, const string& userName, const InfoFrame::InfoMap& userInfo, bool temporary) :
+InfoFrame::InfoFrame(TabViewPtr parent, const string& userName, const InfoFrame::InfoMap& userInfo) :
 BaseType(parent, Text::toT(userName), 0),//IDH_INFO_VIEWER
 grid(0),
 pad(0),
 userName(userName),
-userInfo(userInfo),
-temporary(temporary)
+userInfo(userInfo)
 {
 	setIcon(WinUtil::userImages->getIcon(0));
 

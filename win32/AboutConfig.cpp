@@ -322,7 +322,7 @@ int ACFrame::SettingInfo::getStyle(HFONT& font, COLORREF& textColor, COLORREF& b
 		LOGFONT lf;
 		WinUtil::decodeFont(Text::toT(SETTING(MAIN_FONT)), lf);
 		//set FW_BOLD while we already have a LOGFONT rather than firing off dwt::Font::makeBold() which just calls getLogFont() anyways...
-		lf.lfWeight = FW_BOLD;
+		lf.lfWeight = FW_EXTRABOLD; // Easier to see for people with darker background colors
 		auto boldFont = new dwt::Font(lf);
 		font = boldFont->handle();
 	}
