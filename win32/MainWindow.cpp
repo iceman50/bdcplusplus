@@ -54,7 +54,7 @@
 #include <dwt/widgets/SplitterContainer.h>
 #include <dwt/widgets/ToolBar.h>
 
-#include "AboutConfig.h"
+#include "ACFrame.h"
 #include "AboutDlg.h"
 #include "ADLSearchFrame.h"
 #include "CrashLogger.h"

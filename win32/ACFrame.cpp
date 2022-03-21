@@ -18,7 +18,7 @@
 
 #include "stdafx.h"
 
-#include "AboutConfig.h"
+#include "ACFrame.h"
 
 #include <dwt/widgets/Grid.h>
 #include <dwt/widgets/SaveDialog.h>
@@ -122,18 +122,22 @@ ACFrame::ACFrame(TabViewPtr parent) :
 		gs.caption = T_("F&ilter");
 		filterGroup = lower->addChild(gs);
 		lower->setWidget(filterGroup, 0, 1);
+		filterGroup->setHelpId(IDH_ABOUT_CONFIG_FILTER); 
 
 		auto filGrid = filterGroup->addChild(Grid::Seed(1, 3));
 		filGrid->column(0).mode = GridInfo::FILL;
 
 		filter.createTextBox(filGrid);
+		filter.text->setHelpId(IDH_ABOUT_CONFIG_FILTER); 
 		filter.text->setCue(T_("Filter settings"));
 		addWidget(filter.text);
 
 		filter.createColumnBox(filGrid);
+		filter.column->setHelpId(IDH_ABOUT_CONFIG_FILTER); 
 		addWidget(filter.column);
 
 		filter.createMethodBox(filGrid);
+		filter.method->setHelpId(IDH_ABOUT_CONFIG_FILTER); 
 		addWidget(filter.method);
 
 		gs.caption = T_("Options");
@@ -152,26 +156,31 @@ ACFrame::ACFrame(TabViewPtr parent) :
 
 		cs.caption = T_("Modify value");
 		modify = options->addChild(cs);
+		modify->setHelpId(IDH_ABOUT_CONFIG_MODIFY); 
 		modify->onClicked([this] { this->modify(); });
 		addWidget(modify);
 
 		cs.caption = T_("Set default value");
 		setDefault = options->addChild(cs);
+		setDefault->setHelpId(IDH_ABOUT_CONFIG_SET_DEFAULT); 
 		setDefault->onClicked([this] { setDefaultValue(); });
 		addWidget(setDefault);
 
 		cs.caption = T_("Save settings now");
 		saveFull = options->addChild(cs);
+		saveFull->setHelpId(IDH_ABOUT_CONFIG_SAVE); 
 		saveFull->onClicked([this] { SettingsManager::getInstance()->save(); updateStatus(T_("Settings saved")); });
 		addWidget(saveFull);
 
 		cs.caption = T_("Export settings");
 		saveChanged = options->addChild(cs);
+		saveChanged->setHelpId(IDH_ABOUT_CONFIG_EXPORT); 
 		saveChanged->onClicked([this] { exportSettings(); });
 		addWidget(saveChanged);
 
 		cs.caption = T_("Refresh settings");
 		refresh = options->addChild(cs);
+		refresh->setHelpId(IDH_ABOUT_CONFIG_REFRESH); 
 		refresh->onClicked([this] { fillList(); });
 		addWidget(refresh);
 	}
@@ -179,6 +188,7 @@ ACFrame::ACFrame(TabViewPtr parent) :
 	initStatus();
 
 	addAccel(0, VK_RETURN, [this] { modify(); });
+	addAccel(FALT, 'I', [this] { filter.text->setFocus(); }); 
 	initAccels();
 
 	layout();
@@ -259,7 +269,7 @@ void ACFrame::fillList() {
 			upper->layout();
 		} else {
 			disclaimer->setText(T_("Warning!\r\n"
-				"Changing these settings can be harmful to the stability, security, and performance of this application.\r\n"
+				"Changing these settings can be harmful to the stability, security and performance of this application.\r\n"
 				"You should only continue if you know what you're doing!\r\n"
 				"Click here to proceed."
 			));
@@ -273,6 +283,8 @@ void ACFrame::fillList() {
 		}
 	}
 
+	auto filterPrep = filter.prepare();
+
 	HoldRedraw hold(settings);
 	settings->clear();
 
@@ -284,7 +296,6 @@ void ACFrame::fillList() {
 			continue;
 
 		auto si = new SettingInfo(i);
-		auto filterPrep = filter.prepare();
 		auto filterInfoF = [this, &si](int column) { return Text::fromT(si->getText(column)); };
 
 		if(filter.empty() || filter.match(filterPrep, filterInfoF)) {
@@ -293,6 +304,8 @@ void ACFrame::fillList() {
 		}
 	}
 	settings->resort();
+
+	if (settings->size() == 1) settings->setSelected(0);
 
 	updateStatus();
 }
@@ -322,7 +335,7 @@ int ACFrame::SettingInfo::getStyle(HFONT& font, COLORREF& textColor, COLORREF& b
 		LOGFONT lf;
 		WinUtil::decodeFont(Text::toT(SETTING(MAIN_FONT)), lf);
 		//set FW_BOLD while we already have a LOGFONT rather than firing off dwt::Font::makeBold() which just calls getLogFont() anyways...
-		lf.lfWeight = FW_EXTRABOLD; // Easier to see for people with darker background colors
+		lf.lfWeight = FW_BOLD;
 		auto boldFont = new dwt::Font(lf);
 		font = boldFont->handle();
 	}

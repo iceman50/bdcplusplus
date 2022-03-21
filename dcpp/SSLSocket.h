@@ -48,9 +48,9 @@ public:
 class SSLSocket : public Socket 
 {
 public:
-	SSLSocket(CryptoManager::SSLContext context, bool allowUntrusted, const string& expKP);
+	SSLSocket(CryptoManager::SSLContext context, bool allowUntrusted, const string& expKP, const string& hostName_);
 	/** Creates an SSL socket without any verification */
-	SSLSocket(CryptoManager::SSLContext context);
+	SSLSocket(CryptoManager::SSLContext context, const string& hostName_);
 
 	virtual ~SSLSocket() { verifyData.reset(); }
 
@@ -80,6 +80,7 @@ private:
 
 	int checkSSL(int ret);
 	bool waitWant(int ret, uint32_t millis);
+	string hostName;
 };
 
 } // namespace dcpp

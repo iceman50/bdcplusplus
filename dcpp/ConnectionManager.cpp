@@ -763,7 +763,7 @@ void ConnectionManager::on(AdcCommand::INF, UserConnection* aSource, const AdcCo
 
 		// set the PM flag now in order to send a INF with PM1
 		if (type == CONNECTION_TYPE_PM || cmd.hasFlag("PM", 0)) {
-			if (!aSource->isSet(UserConnection::FLAG_PM)) {
+			if(!aSource->isSet(UserConnection::FLAG_PM)) {
 				aSource->setFlag(UserConnection::FLAG_PM);
 			}
 
