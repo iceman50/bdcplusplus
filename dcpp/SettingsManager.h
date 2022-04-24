@@ -319,7 +319,6 @@ public:
 	bool getType(const char* name, int& n, Types& type) const;
 	bool getType(const int& n, Types& type) const;
 
-	//DiCe Addon
 	const string(&getSettingTags() const)[SETTINGS_LAST + 1]{
 		return settingTags;
 	}

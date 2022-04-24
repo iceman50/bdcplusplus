@@ -26,7 +26,7 @@
 
 //DiCe Edits
 #define MODNAME "BDC++"
-#define MODVER "0.870.1"
+#define MODVER "0.871.1"
 
 namespace dcpp {
 extern const std::string fullVersionString;

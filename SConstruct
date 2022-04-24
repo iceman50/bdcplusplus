@@ -58,7 +58,7 @@ msvc_flags = {
         '/W4', '/EHsc', '/Zi', '/Zm200', '/GR', '/FC', '/wd4100', '/wd4121',
         '/wd4127', '/wd4189', '/wd4244', '/wd4290', '/wd4307', '/wd4324',
         '/wd4355', '/wd4510', '/wd4512', '/wd4610', '/wd4706', '/wd4800',
-        '/wd4996'
+        '/wd4996', '/wd4005'
     ],
     'debug': ['/MDd'],
     'release': ['/MD', '/O2']
@@ -94,7 +94,7 @@ msvc_link_flags = {
 msvc_defs = {
     'common': [
         '_REENTRANT', 'BOOST_MOVE_USE_STANDARD_LIBRARY_MOVE',
-        'snprintf=_snprintf',
+#        'snprintf=_snprintf',
     ],
     'debug': ['_DEBUG', '_HAS_ITERATOR_DEBUGGING=0', '_SECURE_SCL=0'],
     'release': ['NDEBUG']
