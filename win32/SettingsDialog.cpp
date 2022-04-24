@@ -212,6 +212,10 @@ bool SettingsDialog::initDialog() {
 		help = helpGrid->addChild(ts);
 		help->onRaw([this](WPARAM w, LPARAM) { return helpDlgCode(w); }, dwt::Message(WM_GETDLGCODE));
 
+		//DiCe Addon
+		//help->setColor(WinUtil::textColor, WinUtil::bgColor);
+		//helpGrid->setColor(WinUtil::textColor, WinUtil::bgColor);
+
 		cur = cur->addChild(Grid::Seed(1, 3));
 		cur->column(0).mode = GridInfo::FILL;
 		cur->column(0).align = GridInfo::BOTTOM_RIGHT;
@@ -304,6 +308,17 @@ BOOL CALLBACK SettingsDialog::EnumChildProc(HWND hwnd, LPARAM lParam) {
 			});
 		}
 	}
+	//DiCe - Let's try to colorize everything
+	/*
+	{
+		TreePtr fTree = dynamic_cast<TreePtr>(widget);
+		if (fTree) {
+			fTree->setColor(WinUtil::textColor, WinUtil::bgColor);
+		}
+		dialog->setColor(WinUtil::textColor, WinUtil::bgColor);
+	}
+	*/
+
 	return TRUE;
 }
 

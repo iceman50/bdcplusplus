@@ -100,6 +100,38 @@ decltype(MainWindow::pluginCommands) MainWindow::pluginCommands;
 static dwt::IconPtr mainIcon(WinUtil::createIcon(IDI_DCPP, 32));
 static dwt::IconPtr mainSmallIcon(WinUtil::createIcon(IDI_DCPP, 16));
 
+
+//DiCe Addon
+/*
+namespace {
+
+#include <dwmapi.h>
+
+	enum : WORD {
+		DwmwaUseImmersiveDarkMode = 20,
+		DwmwaUseImmersiveDarkModeBefore20h1 = 19
+	};
+
+	bool useDarkMode(HWND hwnd) {
+		BOOL useDarkMode = true;
+		BOOL success = SUCCEEDED(::DwmSetWindowAttribute(hwnd, DwmwaUseImmersiveDarkMode, &useDarkMode, sizeof(useDarkMode)));
+		if (!success) {
+			return false;
+		}
+		return true;
+	}
+
+	bool setDarkMode(HWND hwnd) {
+		COLORREF DARK_COLOR = 0x00505050;
+		BOOL success = SUCCEEDED(::DwmSetWindowAttribute(hwnd, DWMWA_BORDER_COLOR, &DARK_COLOR, sizeof(DARK_COLOR)));
+		if (!success) {
+			return false;
+		}
+		return true;
+	}
+}
+*/
+
 MainWindow::MainWindow() :
 dwt::Window(0, dwt::NormalDispatcher::newClass<MainWindow>(mainIcon, mainSmallIcon)),
 rebar(0),
@@ -269,6 +301,10 @@ fullSlots(false)
 
 	if(SETTING(SETTINGS_SAVE_INTERVAL) > 0)
 		setSaveTimer();
+
+	//DiCe Addon
+//	useDarkMode(this->getParentHandle());
+//	setDarkMode(this->getParentHandle());
 }
 
 void MainWindow::initWindow() {
