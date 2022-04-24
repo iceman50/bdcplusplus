@@ -64,7 +64,8 @@ private:
 	enum SupportFlags {
 		SUPPORTS_USERCOMMAND = 0x01,
 		SUPPORTS_NOGETINFO = 0x02,
-		SUPPORTS_USERIP2 = 0x04
+		SUPPORTS_USERIP2 = 0x04,
+		SUPPORTS_TLS = 0x10
 	};
 
 	mutable CriticalSection cs;
@@ -88,7 +89,7 @@ private:
 	uint64_t lastProtectedIPsUpdate;
 	StringList protectedIPs;
 
-	NmdcHub(const string& aHubURL);
+	NmdcHub(const string& aHubURL, bool secure = false);
 	virtual ~NmdcHub();
 
 	void clearUsers();

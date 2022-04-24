@@ -47,6 +47,11 @@ public:
 		CT_HIDDEN = 64
 	};
 
+	enum StatusFlags {
+		NORMAL = 0x01,
+		TLS = 0x10
+	};
+
 	Identity() : sid(0) { }
 	Identity(const UserPtr& ptr, uint32_t aSID) : user(ptr), sid(aSID) { }
 	Identity(const Identity& rhs) : Flags(), sid(0) { *this = rhs; } // Use operator= since we have to lock before reading...
@@ -72,6 +77,9 @@ public:
 
 	void setBytesShared(const string& bs) { set("SS", bs); }
 	int64_t getBytesShared() const { return Util::toInt64(get("SS")); }
+
+	void setStatus(const string& st) { set("ST", st); }
+	StatusFlags getStatus() const { return static_cast<StatusFlags>(Util::toInt(get("ST"))); }
 
 	void setOp(bool op) { set("OP", op ? "1" : Util::emptyString); }
 	void setHub(bool hub) { set("HU", hub ? "1" : Util::emptyString); }

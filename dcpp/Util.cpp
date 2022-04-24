@@ -465,7 +465,7 @@ void Util::decodeUrl(const string& url, string& protocol, string& host, string& 
 				port = "80";
 			} else if(protocol == "https") {
 				port = "443";
-			} else if(protocol == "dchub"  || protocol.empty()) {
+			} else if(protocol == "dchub" || protocol == "nmdcs" || protocol.empty()) {
 				port = "411";
 			}
 		} else {
@@ -1265,6 +1265,9 @@ bool Util::isAdcsUrl(const string& aHubURL) {
 }
 bool Util::isNmdcUrl(const string& aHubURL) { 
 	return Util::strnicmp("dchub://", aHubURL.c_str(), 8) == 0; 
+}
+bool Util::isNmdcsUrl(const string& aHubURL) {
+	return Util::strnicmp("nmdcs://", aHubURL.c_str(), 8) == 0;
 }
 
 size_t noCaseStringHash::operator()(const string& s) const {

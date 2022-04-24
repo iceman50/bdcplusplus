@@ -1421,12 +1421,14 @@ void WinUtil::registerHubHandlers() {
 	if(SETTING(URL_HANDLER)) {
 		if(!urlDcADCRegistered) {
 			urlDcADCRegistered = registerHandler(_T("dchub"), _T("URL:Direct Connect Protocol"), true) &&
+				registerHandler(_T("nmdcs"), _T("URL:Direct Connect Protocol"), true) &&
 				registerHandler(_T("adc"), _T("URL:Direct Connect Protocol"), true) &&
 				registerHandler(_T("adcs"), _T("URL:Direct Connect Protocol"), true);
 		}
 	} else if(urlDcADCRegistered) {
 		urlDcADCRegistered =
 			::SHDeleteKey(HKEY_CURRENT_USER, _T("Software\\Classes\\dchub")) != ERROR_SUCCESS ||
+			::SHDeleteKey(HKEY_CURRENT_USER, _T("Software\\Classes\\nmdcs")) == ERROR_SUCCESS ||
 			::SHDeleteKey(HKEY_CURRENT_USER, _T("Software\\Classes\\adc")) == ERROR_SUCCESS ||
 			::SHDeleteKey(HKEY_CURRENT_USER, _T("Software\\Classes\\adcs")) == ERROR_SUCCESS;
 		regChanged();
@@ -1546,7 +1548,8 @@ bool WinUtil::parseLink(const tstring& str, bool followExternal) {
 
 	if(Util::stricmp(proto.c_str(), "adc") == 0 ||
 	   Util::stricmp(proto.c_str(), "adcs") == 0 ||
-	   Util::stricmp(proto.c_str(), "dchub") == 0 )
+	   Util::stricmp(proto.c_str(), "dchub") == 0 ||
+	   Util::stricmp(proto.c_str(), "nmdcs") == 0)
 	{
 		HubFrame::openWindow(mainWindow->getTabView(), url);
 

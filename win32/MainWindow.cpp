@@ -1792,6 +1792,7 @@ void MainWindow::parseCommandLine(const tstring& cmdLine) {
 	tstring::size_type i;
 
 	if( (i = cmdLine.find(_T("dchub://"))) != tstring::npos ||
+		(i = cmdLine.find(_T("nmdcs://"))) != tstring::npos ||
 		(i = cmdLine.find(_T("adc://"))) != tstring::npos ||
 		(i = cmdLine.find(_T("adcs://"))) != tstring::npos ||
 		(i = cmdLine.find(_T("magnet:?"))) != tstring::npos )

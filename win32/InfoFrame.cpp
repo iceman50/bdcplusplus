@@ -78,10 +78,11 @@ static const FieldName fields[] =
 	{ "CT", T_("Client type"), &Text::toT },
 	{ "TA", T_("Tag"), &Text::toT },
 	//DiCe Addon
-	{ "SP", T_("Supports"), &Text::toT },
-	{ "LK", T_("Lock"), &Text::toT },
-	{ "PK", T_("PK"), &Text::toT },
-	{ "KY", T_("Key"), &Text::toT },
+	{ "SP", T_("Supports(NMDC)"), &Text::toT },
+	{ "LK", T_("Lock(NMDC)"), &Text::toT },
+	{ "PK", T_("PK(NMDC)"), &Text::toT },
+	{ "KY", T_("Key(NMDC)"), &Text::toT },
+	{ "ST", T_("Status(NMDC)"), &Text::toT },
 
 	{ "", _T(""), 0 }
 };
