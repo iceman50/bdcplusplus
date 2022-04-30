@@ -44,15 +44,12 @@ directOut(0),
 socks5(0),
 socksSettings(0)
 {
-	setHelpId(IDH_PROXYPAGE);
-
 	grid->column(0).mode = GridInfo::FILL;
 	grid->row(1).mode = GridInfo::FILL;
 	grid->row(1).align = GridInfo::STRETCH;
 
 	{
 		autoGroup = grid->addChild(GroupBox::Seed(T_("Automatic connectivity setup")));
-		autoGroup->setHelpId(IDH_SETTINGS_CONNECTIVITY_AUTODETECT);
 
 		autoDetect = autoGroup->addChild(CheckBox::Seed(T_("Let DC++ determine the best connectivity settings")));
 		autoDetect->onClicked([this] { handleAutoClicked(); });
@@ -68,48 +65,41 @@ socksSettings(0)
 			GridPtr outChoice = cur->addChild(Grid::Seed(2, 1));
 
 			directOut = outChoice->addChild(RadioButton::Seed(T_("Direct connection")));
-			directOut->setHelpId(IDH_SETTINGS_PROXY_DIRECT_OUT);
 
 			socks5 = outChoice->addChild(RadioButton::Seed(T_("SOCKS5")));
-			socks5->setHelpId(IDH_SETTINGS_PROXY_SOCKS5);
 		}
 
 		socksSettings = cur->addChild(GroupBox::Seed(T_("SOCKS5")));
 		cur = socksSettings->addChild(Grid::Seed(5, 2));
 
-		cur->addChild(Label::Seed(T_("IP")))->setHelpId(IDH_SETTINGS_PROXY_SOCKS_SERVER);
+		cur->addChild(Label::Seed(T_("IP")));
 
-		cur->addChild(Label::Seed(T_("Port")))->setHelpId(IDH_SETTINGS_PROXY_SOCKS_PORT);
+		cur->addChild(Label::Seed(T_("Port")));
 
 		auto box = cur->addChild(WinUtil::Seeds::Dialog::textBox);
 		items.emplace_back(box, SettingsManager::SOCKS_SERVER, PropPage::T_STR);
-		box->setHelpId(IDH_SETTINGS_PROXY_SOCKS_SERVER);
 		box->setTextLimit(250);
 		WinUtil::preventSpaces(box);
 
 		box = cur->addChild(WinUtil::Seeds::Dialog::intTextBox);
 		items.emplace_back(box, SettingsManager::SOCKS_PORT, PropPage::T_INT);
-		box->setHelpId(IDH_SETTINGS_PROXY_SOCKS_PORT);
 		box->setTextLimit(250);
 
-		cur->addChild(Label::Seed(T_("Login")))->setHelpId(IDH_SETTINGS_PROXY_SOCKS_USER);
+		cur->addChild(Label::Seed(T_("Login")));
 
-		cur->addChild(Label::Seed(T_("Password")))->setHelpId(IDH_SETTINGS_PROXY_SOCKS_PASSWORD);
+		cur->addChild(Label::Seed(T_("Password")));
 
 		box = cur->addChild(WinUtil::Seeds::Dialog::textBox);
 		items.emplace_back(box, SettingsManager::SOCKS_USER, PropPage::T_STR);
-		box->setHelpId(IDH_SETTINGS_PROXY_SOCKS_USER);
 		box->setTextLimit(250);
 
 		box = cur->addChild(WinUtil::Seeds::Dialog::textBox);
 		items.emplace_back(box, SettingsManager::SOCKS_PASSWORD, PropPage::T_STR);
-		box->setHelpId(IDH_SETTINGS_PROXY_SOCKS_PASSWORD);
 		box->setTextLimit(250);
 
 		auto socksResolve = cur->addChild(CheckBox::Seed(T_("Use SOCKS5 server to resolve host names")));
 		cur->setWidget(socksResolve, 4, 0, 1, 2);
 		items.emplace_back(socksResolve, SettingsManager::SOCKS_RESOLVE, PropPage::T_BOOL);
-		socksResolve->setHelpId(IDH_SETTINGS_PROXY_SOCKS_RESOLVE);
 	}
 
 	read();

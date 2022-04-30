@@ -39,7 +39,7 @@ using dwt::RadioButton;
 
 CommandDlg::CommandDlg(dwt::Widget* parent, int type_, int ctx_, const tstring& name_, const tstring& command_,
 					   const tstring& to_, const tstring& hub_) :
-GridDialog(parent, 298, DS_CONTEXTHELP),
+GridDialog(parent, 298, DS_CENTERMOUSE),
 separator(0),
 raw(0),
 chat(0),
@@ -53,7 +53,6 @@ commandBox(0),
 hubBox(0),
 nick(0),
 once(0),
-openHelp(0),
 type(type_),
 ctx(ctx_),
 name(name_),
@@ -62,15 +61,12 @@ to(to_),
 hub(hub_)
 {
 	onInitDialog([this] { return handleInitDialog(); });
-	onHelp(&WinUtil::help);
 }
 
 CommandDlg::~CommandDlg() {
 }
 
 bool CommandDlg::handleInitDialog() {
-	setHelpId(IDH_USER_COMMAND);
-
 	grid = addChild(Grid::Seed(5, 3));
 	grid->column(0).mode = GridInfo::FILL;
 	grid->column(1).mode = GridInfo::FILL;
@@ -85,42 +81,30 @@ bool CommandDlg::handleInitDialog() {
 		cur->column(1).align = GridInfo::BOTTOM_RIGHT;
 
 		separator = cur->addChild(RadioButton::Seed(T_("Separator")));
-		separator->setHelpId(IDH_USER_COMMAND_SEPARATOR);
 		separator->onClicked([this] { handleTypeChanged(); });
 
 		chat = cur->addChild(RadioButton::Seed(T_("Chat")));
-		chat->setHelpId(IDH_USER_COMMAND_CHAT);
 		chat->onClicked([this] { handleTypeChanged(); });
 
 		raw = cur->addChild(RadioButton::Seed(T_("Raw")));
-		raw->setHelpId(IDH_USER_COMMAND_RAW);
 		raw->onClicked([this] { handleTypeChanged(); });
 
 		PM = cur->addChild(RadioButton::Seed(T_("PM")));
-		PM->setHelpId(IDH_USER_COMMAND_PM);
 		PM->onClicked([this] { handleTypeChanged(); });
 	}
 
 	{
 		GroupBoxPtr group = grid->addChild(GroupBox::Seed(T_("Context")));
 		grid->setWidget(group, 1, 0, 1, 3);
-		group->setHelpId(IDH_USER_COMMAND_CONTEXT);
 
 		GridPtr cur = group->addChild(Grid::Seed(2, 2));
 		cur->column(1).mode = GridInfo::FILL;
 		cur->column(1).align = GridInfo::BOTTOM_RIGHT;
 
 		hubMenu = cur->addChild(CheckBox::Seed(T_("Hub Menu")));
-		hubMenu->setHelpId(IDH_USER_COMMAND_HUB_MENU);
-
 		searchMenu = cur->addChild(CheckBox::Seed(T_("Search Menu")));
-		searchMenu->setHelpId(IDH_USER_COMMAND_SEARCH_MENU);
-
 		userMenu = cur->addChild(CheckBox::Seed(T_("User Menu")));
-		userMenu->setHelpId(IDH_USER_COMMAND_USER_MENU);
-
 		fileListMenu = cur->addChild(CheckBox::Seed(T_("Filelist Menu")));
-		fileListMenu->setHelpId(IDH_USER_COMMAND_FILELIST_MENU);
 	}
 
 	{
@@ -130,46 +114,29 @@ bool CommandDlg::handleInitDialog() {
 		GridPtr cur = group->addChild(Grid::Seed(9, 1));
 		cur->column(0).mode = GridInfo::FILL;
 
-		cur->addChild(Label::Seed(T_("Name")))->setHelpId(IDH_USER_COMMAND_NAME);
+		cur->addChild(Label::Seed(T_("Name")));
 		nameBox = cur->addChild(WinUtil::Seeds::Dialog::textBox);
-		nameBox->setHelpId(IDH_USER_COMMAND_NAME);
 
-		cur->addChild(Label::Seed(T_("Command")))->setHelpId(IDH_USER_COMMAND_COMMAND);
+		cur->addChild(Label::Seed(T_("Command")));
 		TextBox::Seed seed = WinUtil::Seeds::Dialog::textBox;
 		seed.style |= ES_MULTILINE | WS_VSCROLL | ES_WANTRETURN;
 		commandBox = cur->addChild(seed);
-		commandBox->setHelpId(IDH_USER_COMMAND_COMMAND);
 		commandBox->onUpdated([this] { updateCommand(); });
 
-		cur->addChild(Label::Seed(T_("Hub address (see help for usage)")))->setHelpId(IDH_USER_COMMAND_HUB);
+		cur->addChild(Label::Seed(T_("Hub address (see help for usage)")));
 		hubBox = cur->addChild(WinUtil::Seeds::Dialog::textBox);
-		hubBox->setHelpId(IDH_USER_COMMAND_HUB);
 		hubBox->onUpdated([this] { updateHub(); });
 
-		cur->addChild(Label::Seed(T_("To")))->setHelpId(IDH_USER_COMMAND_NICK);
+		cur->addChild(Label::Seed(T_("To")));
 		nick = cur->addChild(WinUtil::Seeds::Dialog::textBox);
-		nick->setHelpId(IDH_USER_COMMAND_NICK);
 		nick->onUpdated([this] { updateCommand(); });
 
 		once = cur->addChild(CheckBox::Seed(T_("Send once per nick")));
-		once->setHelpId(IDH_USER_COMMAND_ONCE);
 	}
-
-	openHelp = grid->addChild(CheckBox::Seed(T_("Always open help file with this dialog")));
-	grid->setWidget(openHelp, 3, 0, 1, 3);
-	bool bOpenHelp = SETTING(OPEN_USER_CMD_HELP);
-	openHelp->setChecked(bOpenHelp);
 
 	WinUtil::addDlgButtons(grid,
 		[this] { handleOKClicked(); },
 		[this] { endDialog(IDCANCEL); });
-
-	WinUtil::addHelpButton(grid)->onClicked([this] { WinUtil::help(this); });
-
-	if(bOpenHelp) {
-		// launch the help file, instead of having the help in the dialog
-		WinUtil::help(this);
-	}
 
 	int newType = -1;
 	if(type == UserCommand::TYPE_SEPARATOR) {
@@ -257,8 +224,6 @@ void CommandDlg::handleOKClicked() {
 		to = nick->getText();
 		break;
 	}
-
-	SettingsManager::getInstance()->set(SettingsManager::OPEN_USER_CMD_HELP, openHelp->getChecked());
 
 	endDialog(IDOK);
 }

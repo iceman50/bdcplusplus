@@ -68,8 +68,6 @@ TransferView::TransferView(dwt::Widget* parent, TabViewPtr mdi_) :
 	updateList(false)
 {
 	create();
-	setHelpId(IDH_TRANSFERS);
-
 	transfers = addChild(WidgetTransfers::Seed(WinUtil::Seeds::table));
 
 	transfers->setSmallImageList(WinUtil::fileImages);

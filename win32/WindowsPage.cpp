@@ -30,26 +30,26 @@ using dwt::Grid;
 using dwt::GridInfo;
 
 WindowsPage::ListItem WindowsPage::optionItems[] = {
-	{ SettingsManager::POPUP_PMS, N_("Open private messages in their own window"), IDH_SETTINGS_WINDOWS_POPUP_PMS },
-	{ SettingsManager::POPUP_HUB_PMS, N_("Open private messages from bots in their own window"), IDH_SETTINGS_WINDOWS_POPUP_HUB_PMS },
-	{ SettingsManager::POPUP_BOT_PMS, N_("Open private messages from the hub in their own window"), IDH_SETTINGS_WINDOWS_POPUP_BOT_PMS },
-	{ SettingsManager::POPUNDER_FILELIST, N_("Open new file list windows in the background"), IDH_SETTINGS_WINDOWS_POPUNDER_FILELIST },
-	{ SettingsManager::POPUNDER_PM, N_("Open new private message windows in the background"), IDH_SETTINGS_WINDOWS_POPUNDER_PM },
-	{ SettingsManager::JOIN_OPEN_NEW_WINDOW, N_("Open new window when using /join"), IDH_SETTINGS_WINDOWS_JOIN_OPEN_NEW_WINDOW },
-	{ SettingsManager::IGNORE_HUB_PMS, N_("Ignore private messages from the hub"), IDH_SETTINGS_WINDOWS_IGNORE_HUB_PMS },
-	{ SettingsManager::IGNORE_BOT_PMS, N_("Ignore private messages from bots"), IDH_SETTINGS_WINDOWS_IGNORE_BOT_PMS },
-	{ SettingsManager::TOGGLE_ACTIVE_WINDOW, N_("Toggle window when selecting an active tab"), IDH_SETTINGS_WINDOWS_TOGGLE_ACTIVE_WINDOW },
-	{ SettingsManager::PROMPT_PASSWORD, N_("Popup box to input password for hubs"), IDH_SETTINGS_WINDOWS_PROMPT_PASSWORD },
+	{ SettingsManager::POPUP_PMS, N_("Open private messages in their own window") },
+	{ SettingsManager::POPUP_HUB_PMS, N_("Open private messages from bots in their own window") },
+	{ SettingsManager::POPUP_BOT_PMS, N_("Open private messages from the hub in their own window") },
+	{ SettingsManager::POPUNDER_FILELIST, N_("Open new file list windows in the background") },
+	{ SettingsManager::POPUNDER_PM, N_("Open new private message windows in the background") },
+	{ SettingsManager::JOIN_OPEN_NEW_WINDOW, N_("Open new window when using /join") },
+	{ SettingsManager::IGNORE_HUB_PMS, N_("Ignore private messages from the hub") },
+	{ SettingsManager::IGNORE_BOT_PMS, N_("Ignore private messages from bots") },
+	{ SettingsManager::TOGGLE_ACTIVE_WINDOW, N_("Toggle window when selecting an active tab") },
+	{ SettingsManager::PROMPT_PASSWORD, N_("Popup box to input password for hubs") },
 	{ 0, 0 }
 };
 
 WindowsPage::ListItem WindowsPage::confirmItems[] = {
-	{ SettingsManager::CONFIRM_EXIT, N_("Confirm application exit"), IDH_SETTINGS_WINDOWS_CONFIRM_EXIT },
-	{ SettingsManager::CONFIRM_HUB_CLOSING, N_("Confirm hub closing"), IDH_SETTINGS_WINDOWS_CONFIRM_HUB_CLOSING },
-	{ SettingsManager::CONFIRM_HUB_REMOVAL, N_("Confirm favorite hub removal"), IDH_SETTINGS_WINDOWS_CONFIRM_HUB_REMOVAL },
-	{ SettingsManager::CONFIRM_USER_REMOVAL, N_("Confirm favorite user removal"), IDH_SETTINGS_WINDOWS_CONFIRM_USER_REMOVAL },
-	{ SettingsManager::CONFIRM_ITEM_REMOVAL, N_("Confirm item removal in download queue"), IDH_SETTINGS_WINDOWS_CONFIRM_ITEM_REMOVAL },
-	{ SettingsManager::CONFIRM_ADLS_REMOVAL, N_("Confirm ADL Search removal"), IDH_SETTINGS_WINDOWS_CONFIRM_ADLS_REMOVAL },
+	{ SettingsManager::CONFIRM_EXIT, N_("Confirm application exit") },
+	{ SettingsManager::CONFIRM_HUB_CLOSING, N_("Confirm hub closing") },
+	{ SettingsManager::CONFIRM_HUB_REMOVAL, N_("Confirm favorite hub removal") },
+	{ SettingsManager::CONFIRM_USER_REMOVAL, N_("Confirm favorite user removal") },
+	{ SettingsManager::CONFIRM_ITEM_REMOVAL, N_("Confirm item removal in download queue") },
+	{ SettingsManager::CONFIRM_ADLS_REMOVAL, N_("Confirm ADL Search removal") },
 	{ 0, 0 }
 };
 
@@ -58,8 +58,6 @@ PropPage(parent, 2, 1),
 options(0),
 confirm(0)
 {
-	setHelpId(IDH_WINDOWSPAGE);
-
 	grid->column(0).mode = GridInfo::FILL;
 	grid->row(0).mode = GridInfo::FILL;
 	grid->row(0).align = GridInfo::STRETCH;

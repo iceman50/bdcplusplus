@@ -34,14 +34,14 @@ using dwt::GridInfo;
 using dwt::Label;
 
 PropPage::ListItem LogPage::listItems[] = {
-	{ SettingsManager::LOG_MAIN_CHAT, N_("Log main chat"), IDH_SETTINGS_LOG_MAIN_CHAT },
-	{ SettingsManager::LOG_PRIVATE_CHAT, N_("Log private chat"), IDH_SETTINGS_LOG_PRIVATE_CHAT },
-	{ SettingsManager::LOG_DOWNLOADS, N_("Log downloaded segments"), IDH_SETTINGS_LOG_DOWNLOADS },
-	{ SettingsManager::LOG_FINISHED_DOWNLOADS, N_("Log finished downloads"), IDH_SETTINGS_LOG_FINISHED_DOWNLOADS },
-	{ SettingsManager::LOG_UPLOADS, N_("Log uploaded segments"), IDH_SETTINGS_LOG_UPLOADS },
-	{ SettingsManager::LOG_SYSTEM, N_("Log system messages"), IDH_SETTINGS_LOG_SYSTEM },
-	{ SettingsManager::LOG_STATUS_MESSAGES, N_("Log status messages"), IDH_SETTINGS_LOG_STATUS_MESSAGES },
-	{ SettingsManager::LOG_FILELIST_TRANSFERS, N_("Log filelist transfers"), IDH_SETTINGS_LOG_FILELIST_TRANSFERS },
+	{ SettingsManager::LOG_MAIN_CHAT, N_("Log main chat") },
+	{ SettingsManager::LOG_PRIVATE_CHAT, N_("Log private chat") },
+	{ SettingsManager::LOG_DOWNLOADS, N_("Log downloaded segments") },
+	{ SettingsManager::LOG_FINISHED_DOWNLOADS, N_("Log finished downloads") },
+	{ SettingsManager::LOG_UPLOADS, N_("Log uploaded segments") },
+	{ SettingsManager::LOG_SYSTEM, N_("Log system messages") },
+	{ SettingsManager::LOG_STATUS_MESSAGES, N_("Log status messages") },
+	{ SettingsManager::LOG_FILELIST_TRANSFERS, N_("Log filelist transfers") },
 	{ 0, 0 }
 };
 
@@ -54,8 +54,6 @@ logFile(0),
 dontLogCCPMCheckBox(0),
 oldSelection(-1)
 {
-	setHelpId(IDH_LOGPAGE);
-
 	grid->column(0).mode = GridInfo::FILL;
 	grid->row(0).mode = GridInfo::FILL;
 	grid->row(0).align = GridInfo::STRETCH;
@@ -72,14 +70,12 @@ oldSelection(-1)
 		cur->column(0).align = GridInfo::BOTTOM_RIGHT;
 		cur->column(1).mode = GridInfo::FILL;
 
-		cur->addChild(Label::Seed(T_("Directory")))->setHelpId(IDH_SETTINGS_LOG_DIRECTORY);
+		cur->addChild(Label::Seed(T_("Directory")));
 		dir = cur->addChild(WinUtil::Seeds::Dialog::textBox);
 		items.emplace_back(dir, SettingsManager::LOG_DIRECTORY, PropPage::T_STR);
-		dir->setHelpId(IDH_SETTINGS_LOG_DIRECTORY);
 
 		ButtonPtr browse = cur->addChild(Button::Seed(T_("&Browse...")));
 		browse->onClicked([this] { handleBrowseDir(dir, SettingsManager::LOG_DIRECTORY); });
-		browse->setHelpId(IDH_SETTINGS_LOG_DIRECTORY);
 	}
 
 	options = grid->addChild(WinUtil::Seeds::Dialog::optionsTable);
@@ -99,7 +95,6 @@ oldSelection(-1)
 	{
 		dontLogCCPMCheckBox = grid->addChild(Grid::Seed(1, 1))->addChild(CheckBox::Seed(T_("Do not log the direct encrypted secure private chat")));
 		items.emplace_back(dontLogCCPMCheckBox, SettingsManager::DONT_LOG_CCPM, PropPage::T_BOOL);
-		dontLogCCPMCheckBox->setHelpId(IDH_SETTINGS_DONT_LOG_CCPM_CHAT); 
 	}
 
 	PropPage::read(items);

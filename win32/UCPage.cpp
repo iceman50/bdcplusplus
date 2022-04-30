@@ -43,8 +43,6 @@ UCPage::UCPage(dwt::Widget* parent) :
 PropPage(parent, 2, 5),
 commands(0)
 {
-	setHelpId(IDH_UCPAGE);
-
 	grid->column(0).mode = GridInfo::FILL;
 	grid->column(1).mode = GridInfo::FILL;
 	grid->column(2).mode = GridInfo::FILL;
@@ -52,30 +50,24 @@ commands(0)
 	grid->column(4).mode = GridInfo::FILL;
 	grid->row(0).mode = GridInfo::FILL;
 	grid->row(0).align = GridInfo::STRETCH;
-	grid->setHelpId(IDH_SETTINGS_UC_LIST);
 
 	commands = grid->addChild(WinUtil::Seeds::Dialog::table);
 	grid->setWidget(commands, 0, 0, 1, 5);
 
 	auto button = grid->addChild(Button::Seed(T_("&Add")));
 	button->onClicked([this] { handleAddClicked(); });
-	button->setHelpId(IDH_SETTINGS_UC_ADD);
 
 	button = grid->addChild(Button::Seed(T_("&Change")));
 	button->onClicked([this] { handleChangeClicked(); });
-	button->setHelpId(IDH_SETTINGS_UC_CHANGE);
 
 	button = grid->addChild(Button::Seed(T_("Move &Up")));
 	button->onClicked([this] { handleMoveUpClicked(); });
-	button->setHelpId(IDH_SETTINGS_UC_MOVE_UP);
 
 	button = grid->addChild(Button::Seed(T_("Move &Down")));
 	button->onClicked([this] { handleMoveDownClicked(); });
-	button->setHelpId(IDH_SETTINGS_UC_MOVE_DOWN);
 
 	button = grid->addChild(Button::Seed(T_("&Remove")));
 	button->onClicked([this] { handleRemoveClicked(); });
-	button->setHelpId(IDH_SETTINGS_UC_REMOVE);
 
 	WinUtil::makeColumns(commands, columns, 3);
 

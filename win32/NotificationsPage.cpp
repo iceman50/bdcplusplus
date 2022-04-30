@@ -49,14 +49,6 @@ soundFile(0),
 balloonGroup(0),
 balloonBg(0)
 {
-	setHelpId(IDH_NOTIFICATIONSPAGE);
-
-	options[WinUtil::NOTIFICATION_FINISHED_DL].helpId = IDH_SETTINGS_NOTIFICATIONS_FINISHED_DL;
-	options[WinUtil::NOTIFICATION_FINISHED_FL].helpId = IDH_SETTINGS_NOTIFICATIONS_FINISHED_FL;
-	options[WinUtil::NOTIFICATION_MAIN_CHAT].helpId = IDH_SETTINGS_NOTIFICATIONS_MAIN_CHAT;
-	options[WinUtil::NOTIFICATION_PM].helpId = IDH_SETTINGS_NOTIFICATIONS_PM;
-	options[WinUtil::NOTIFICATION_PM_WINDOW].helpId = IDH_SETTINGS_NOTIFICATIONS_PM_WINDOW;
-
 	grid->column(0).mode = GridInfo::FILL;
 	grid->row(0).mode = GridInfo::FILL;
 	grid->row(0).align = GridInfo::STRETCH;
@@ -87,17 +79,14 @@ balloonBg(0)
 		cur->setSpacing(grid->getSpacing());
 
 		sound = cur->addChild(CheckBox::Seed(T_("Play a sound")));
-		sound->setHelpId(IDH_SETTINGS_NOTIFICATIONS_SOUND);
 		sound->onClicked([this] { handleSoundClicked(); });
 
 		balloon = cur->addChild(CheckBox::Seed(T_("Display a balloon popup")));
-		balloon->setHelpId(IDH_SETTINGS_NOTIFICATIONS_BALLOON);
 		balloon->onClicked([this] { handleBalloonClicked(); });
 	}
 
 	{
 		soundGroup = grid->addChild(GroupBox::Seed(T_("Sound settings")));
-		soundGroup->setHelpId(IDH_SETTINGS_NOTIFICATIONS_SOUND_FILE);
 
 		auto cur = soundGroup->addChild(Grid::Seed(1, 3));
 		cur->column(1).mode = GridInfo::FILL;
@@ -116,13 +105,11 @@ balloonBg(0)
 		balloonGroup = grid->addChild(GroupBox::Seed(T_("Balloon settings")));
 
 		balloonBg = balloonGroup->addChild(CheckBox::Seed(T_("Display the balloon only when DC++ is in the background")));
-		balloonBg->setHelpId(IDH_SETTINGS_NOTIFICATIONS_BALLOON_BG);
 		balloonBg->onClicked([this] { handleBalloonBgClicked(); });
 	}
 
 	{
 		auto button = grid->addChild(Grid::Seed(1, 1))->addChild(Button::Seed(T_("Fire a balloon popup example")));
-		button->setHelpId(IDH_SETTINGS_NOTIFICATIONS_BALLOON_EXAMPLE);
 		button->setImage(WinUtil::buttonIcon(IDI_BALLOON));
 		button->onClicked([this] { handleExampleClicked(); });
 	}
@@ -145,8 +132,6 @@ balloonBg(0)
 
 	table->onSelectionChanged([this] { handleSelectionChanged(); });
 	table->onDblClicked([this] { handleDblClicked(); });
-
-	table->setHelpId([this](unsigned& id) { handleTableHelpId(id); });
 }
 
 NotificationsPage::~NotificationsPage() {
@@ -164,14 +149,6 @@ void NotificationsPage::write() {
 		settings->set((SettingsManager::StrSetting)WinUtil::notifications[i].sound, Text::fromT(options[i].sound));
 		settings->set((SettingsManager::IntSetting)WinUtil::notifications[i].balloon, options[i].balloon);
 	}
-}
-
-void NotificationsPage::handleTableHelpId(unsigned& id) {
-	// same as PropPage::handleListHelpId
-	int item = isAnyKeyPressed() ? table->getSelected() :
-		table->hitTest(dwt::ScreenCoordinate(dwt::Point::fromLParam(::GetMessagePos()))).first;
-	if(item >= 0 && options[item].helpId)
-		id = options[item].helpId;
 }
 
 void NotificationsPage::handleSelectionChanged() {

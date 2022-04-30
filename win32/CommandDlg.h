@@ -52,7 +52,6 @@ private:
 	TextBoxPtr hubBox;
 	TextBoxPtr nick;
 	CheckBoxPtr once;
-	CheckBoxPtr openHelp;
 
 	int type;
 	int ctx;

@@ -248,7 +248,6 @@ public:
 		ret.second->onClicked(f_cancel);
 		return ret;
 	}
-	static ButtonPtr addHelpButton(GridPtr grid);
 	static void addSearchIcon(TextBoxPtr box);
 	static void addFilterMethods(ComboBoxPtr box);
 	static void fillTriboolCombo(ComboBoxPtr box);
@@ -292,12 +291,6 @@ public:
 
 	static bool parseLink(const tstring& str, bool followExternal = true);
 
-	static void help(dwt::Control* widget);
-	static void helpId(dwt::Control* widget, unsigned id);
-	static void helpTooltip(dwt::Control* widget, const dwt::Point& pos);
-	static void killHelpTooltip();
-	static pair<bool, string> getHelpText(unsigned id);
-
 	// file type & protocol associations
 	static void registerHubHandlers();
 	static void registerMagnetHandler();
@@ -324,11 +317,6 @@ public:
 
 private:
 	static void initUserMatching();
-	static void initHelpPath();
-
-	static DWORD helpCookie;
-	static tstring helpPath;
-	static StringList helpTexts;
 
 	static bool urlDcADCRegistered;
 	static bool urlMagnetRegistered;

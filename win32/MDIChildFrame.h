@@ -48,7 +48,7 @@ class MDIChildFrame :
 	T& t() { return *static_cast<T*>(this); }
 
 protected:
-	MDIChildFrame(TabViewPtr tabView, const tstring& title, unsigned helpId = 0, unsigned iconId = 0, bool manageAccels = true) :
+	MDIChildFrame(TabViewPtr tabView, const tstring& title, unsigned iconId = 0, bool manageAccels = true) :
 		BaseType(tabView),
 		lastFocus(NULL),
 		alwaysSameFocus(false),
@@ -59,9 +59,6 @@ protected:
 		cs.caption = title;
 		cs.location = tabView->getClientSize();
 		this->create(cs);
-
-		if(helpId)
-			setHelpId(helpId);
 
 		tabView->add(this, iconId ? WinUtil::tabIcon(iconId) : dwt::IconPtr());
 

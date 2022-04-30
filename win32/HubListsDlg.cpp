@@ -52,21 +52,6 @@ tstring HubListsDlg::getEditDescription() const {
 	return T_("Address");
 }
 
-unsigned HubListsDlg::getHelpId(HelpFields field) const {
-	switch(field) {
-		case HELP_DIALOG: return IDH_PUBLIC_HUB_LISTS;
-		case HELP_EDIT_BOX: return IDH_PUBLIC_HUB_LISTS_EDIT_BOX;
-		case HELP_LIST: return IDH_PUBLIC_HUB_LISTS_LIST;
-		case HELP_ADD: return IDH_PUBLIC_HUB_LISTS_ADD;
-		case HELP_MOVE_UP: return IDH_PUBLIC_HUB_LISTS_MOVE_UP;
-		case HELP_MOVE_DOWN: return IDH_PUBLIC_HUB_LISTS_MOVE_DOWN;
-		case HELP_EDIT: return IDH_PUBLIC_HUB_LISTS_EDIT;
-		case HELP_REMOVE: return IDH_PUBLIC_HUB_LISTS_REMOVE;
-	}
-
-	return 0;
-}
-
 void HubListsDlg::add(const tstring& s) {
 	StringTokenizer<tstring> t(s, ';');
 	for(auto& i: t.getTokens())

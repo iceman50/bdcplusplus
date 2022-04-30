@@ -57,15 +57,12 @@ groups(0),
 entry(_entry)
 {
 	onInitDialog([this] { return handleInitDialog(); });
-	onHelp(&WinUtil::help);
 }
 
 FavHubProperties::~FavHubProperties() {
 }
 
 bool FavHubProperties::handleInitDialog() {
-	setHelpId(IDH_FAVORITE_HUB);
-
 	grid = addChild(Grid::Seed(5, 2));
 	grid->column(0).mode = GridInfo::FILL;
 	grid->column(1).mode = GridInfo::FILL;
@@ -82,27 +79,23 @@ bool FavHubProperties::handleInitDialog() {
 		cur->column(0).align = GridInfo::BOTTOM_RIGHT;
 		cur->column(1).mode = GridInfo::FILL;
 
-		cur->addChild(Label::Seed(T_("Name")))->setHelpId(IDH_FAVORITE_HUB_NAME);
+		cur->addChild(Label::Seed(T_("Name")));
 		name = cur->addChild(WinUtil::Seeds::Dialog::textBox);
 		name->setText(Text::toT(entry->getName()));
-		name->setHelpId(IDH_FAVORITE_HUB_NAME);
 
-		cur->addChild(Label::Seed(T_("Address")))->setHelpId(IDH_FAVORITE_HUB_ADDRESS);
+		cur->addChild(Label::Seed(T_("Address")));
 		address = cur->addChild(WinUtil::Seeds::Dialog::textBox);
 		address->setText(Text::toT(entry->getServer()));
-		address->setHelpId(IDH_FAVORITE_HUB_ADDRESS);
 		WinUtil::preventSpaces(address);
 
-		cur->addChild(Label::Seed(T_("Description")))->setHelpId(IDH_FAVORITE_HUB_DESC);
+		cur->addChild(Label::Seed(T_("Description")));
 		hubDescription = cur->addChild(WinUtil::Seeds::Dialog::textBox);
 		hubDescription->setText(Text::toT(entry->getHubDescription()));
-		hubDescription->setHelpId(IDH_FAVORITE_HUB_DESC);
 
 		if(!isAdcHub)
 		{
-			cur->addChild(Label::Seed(T_("Encoding")))->setHelpId(IDH_FAVORITE_HUB_ENCODING);
+			cur->addChild(Label::Seed(T_("Encoding")));
 			encoding = cur->addChild(WinUtil::Seeds::Dialog::comboBox);
-			encoding->setHelpId(IDH_FAVORITE_HUB_ENCODING);
 
 			fillEncodings();
 		}
@@ -116,39 +109,33 @@ bool FavHubProperties::handleInitDialog() {
 		cur->column(0).align = GridInfo::BOTTOM_RIGHT;
 		cur->column(1).mode = GridInfo::FILL;
 
-		cur->addChild(Label::Seed(T_("Nick")))->setHelpId(IDH_FAVORITE_HUB_NICK);
+		cur->addChild(Label::Seed(T_("Nick")));
 		nick = cur->addChild(WinUtil::Seeds::Dialog::textBox);
 		nick->setText(Text::toT(entry->get(HubSettings::Nick)));
-		nick->setHelpId(IDH_FAVORITE_HUB_NICK);
 		WinUtil::preventSpaces(nick);
 
-		cur->addChild(Label::Seed(T_("Password")))->setHelpId(IDH_FAVORITE_HUB_PASSWORD);
+		cur->addChild(Label::Seed(T_("Password")));
 		password = cur->addChild(WinUtil::Seeds::Dialog::textBox);
 		password->setPassword();
 		password->setText(Text::toT(entry->getPassword()));
-		password->setHelpId(IDH_FAVORITE_HUB_PASSWORD);
 		WinUtil::preventSpaces(password);
 
-		cur->addChild(Label::Seed(T_("Description")))->setHelpId(IDH_FAVORITE_HUB_USER_DESC);
+		cur->addChild(Label::Seed(T_("Description")));
 		description = cur->addChild(WinUtil::Seeds::Dialog::textBox);
 		description->setText(Text::toT(entry->get(HubSettings::Description)));
-		description->setHelpId(IDH_FAVORITE_HUB_USER_DESC);
 
-		cur->addChild(Label::Seed(T_("Email")))->setHelpId(IDH_FAVORITE_HUB_EMAIL);
+		cur->addChild(Label::Seed(T_("Email")));
 		email = cur->addChild(WinUtil::Seeds::Dialog::textBox);
 		email->setText(Text::toT(entry->get(HubSettings::Email)));
-		email->setHelpId(IDH_FAVORITE_HUB_EMAIL);
 
-		cur->addChild(Label::Seed(T_("IPv4")))->setHelpId(IDH_FAVORITE_HUB_USER_IP);
+		cur->addChild(Label::Seed(T_("IPv4")));
 		userIp = cur->addChild(WinUtil::Seeds::Dialog::textBox);
 		userIp->setText(Text::toT(entry->get(HubSettings::UserIp)));
-		userIp->setHelpId(IDH_FAVORITE_HUB_USER_IP);
 		WinUtil::preventSpaces(userIp);
 
-		cur->addChild(Label::Seed(T_("IPv6")))->setHelpId(IDH_FAVORITE_HUB_USER_IP6);
+		cur->addChild(Label::Seed(T_("IPv6")));
 		userIp6 = cur->addChild(WinUtil::Seeds::Dialog::textBox);
 		userIp6->setText(Text::toT(entry->get(HubSettings::UserIp6)));
-		userIp6->setHelpId(IDH_FAVORITE_HUB_USER_IP6);
 		WinUtil::preventSpaces(userIp6);
 	}
 
@@ -184,10 +171,8 @@ bool FavHubProperties::handleInitDialog() {
 		auto seed = WinUtil::Seeds::Dialog::comboBox;
 		seed.style |= CBS_SORT;
 		groups = cur->addChild(seed);
-		groups->setHelpId(IDH_FAVORITE_HUB_GROUP);
 
 		auto manage = cur->addChild(Button::Seed(T_("Manage &groups")));
-		manage->setHelpId(IDH_FAVORITE_HUBS_MANAGE_GROUPS);
 		manage->onClicked([this] { handleGroups(); });
 	}
 

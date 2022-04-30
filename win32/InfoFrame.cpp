@@ -111,7 +111,7 @@ void InfoFrame::openWindow(TabViewPtr parent, const string& userName, const Info
 }
 
 InfoFrame::InfoFrame(TabViewPtr parent, const string& userName, const InfoFrame::InfoMap& userInfo) :
-BaseType(parent, Text::toT(userName), 0),//IDH_INFO_VIEWER
+BaseType(parent, Text::toT(userName), 0),
 grid(0),
 pad(0),
 userName(userName),
@@ -143,7 +143,6 @@ userInfo(userInfo)
 		Button::Seed seed = WinUtil::Seeds::button;
 		seed.caption = T_("Change the text viewer font");
 		auto changeFont = grid->addChild(Grid::Seed(1, 1))->addChild(seed);
-		changeFont->setHelpId(0); // Generic I'm too lazy to do this properly
 		changeFont->onClicked([this] { handleFontChange(); });
 		addWidget(changeFont);
 	}

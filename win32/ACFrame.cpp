@@ -56,7 +56,7 @@ ACFrame::SettingInfo::SettingInfo(const int index_) : index(index_) {
 }
 
 ACFrame::ACFrame(TabViewPtr parent) :
-	BaseType(parent, T_("About:config"), IDH_ABOUTCONFIG, IDI_DCPP, false),
+	BaseType(parent, T_("About:config"), IDI_DCPP, false),
 	grid(0),
 	disclaimer(0),
 	settings(0),
@@ -122,22 +122,18 @@ ACFrame::ACFrame(TabViewPtr parent) :
 		gs.caption = T_("F&ilter");
 		filterGroup = lower->addChild(gs);
 		lower->setWidget(filterGroup, 0, 1);
-		filterGroup->setHelpId(IDH_ABOUT_CONFIG_FILTER); 
 
 		auto filGrid = filterGroup->addChild(Grid::Seed(1, 3));
 		filGrid->column(0).mode = GridInfo::FILL;
 
 		filter.createTextBox(filGrid);
-		filter.text->setHelpId(IDH_ABOUT_CONFIG_FILTER); 
 		filter.text->setCue(T_("Filter settings"));
 		addWidget(filter.text);
 
 		filter.createColumnBox(filGrid);
-		filter.column->setHelpId(IDH_ABOUT_CONFIG_FILTER); 
 		addWidget(filter.column);
 
 		filter.createMethodBox(filGrid);
-		filter.method->setHelpId(IDH_ABOUT_CONFIG_FILTER); 
 		addWidget(filter.method);
 
 		gs.caption = T_("Options");
@@ -156,31 +152,26 @@ ACFrame::ACFrame(TabViewPtr parent) :
 
 		cs.caption = T_("Modify value");
 		modify = options->addChild(cs);
-		modify->setHelpId(IDH_ABOUT_CONFIG_MODIFY); 
 		modify->onClicked([this] { this->modify(); });
 		addWidget(modify);
 
 		cs.caption = T_("Set default value");
 		setDefault = options->addChild(cs);
-		setDefault->setHelpId(IDH_ABOUT_CONFIG_SET_DEFAULT); 
 		setDefault->onClicked([this] { setDefaultValue(); });
 		addWidget(setDefault);
 
 		cs.caption = T_("Save settings now");
 		saveFull = options->addChild(cs);
-		saveFull->setHelpId(IDH_ABOUT_CONFIG_SAVE); 
 		saveFull->onClicked([this] { SettingsManager::getInstance()->save(); updateStatus(T_("Settings saved")); });
 		addWidget(saveFull);
 
 		cs.caption = T_("Export settings");
 		saveChanged = options->addChild(cs);
-		saveChanged->setHelpId(IDH_ABOUT_CONFIG_EXPORT); 
 		saveChanged->onClicked([this] { exportSettings(); });
 		addWidget(saveChanged);
 
 		cs.caption = T_("Refresh settings");
 		refresh = options->addChild(cs);
-		refresh->setHelpId(IDH_ABOUT_CONFIG_REFRESH); 
 		refresh->onClicked([this] { fillList(); });
 		addWidget(refresh);
 	}

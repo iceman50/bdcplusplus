@@ -50,7 +50,7 @@ static const ColumnInfo itemsColumns[] = {
 };
 
 ADLSearchFrame::ADLSearchFrame(TabViewPtr parent) :
-BaseType(parent, T_("Automatic Directory Listing Search"), IDH_ADL_SEARCH, IDI_ADLSEARCH),
+BaseType(parent, T_("Automatic Directory Listing Search"), IDI_ADLSEARCH),
 grid(0),
 items(0)
 {
@@ -85,36 +85,27 @@ items(0)
 
 		cs.caption = T_("&New...");
 		auto button = grid->addChild(cs);
-		button->setHelpId(IDH_ADLS_NEW);
 		button->onClicked([this] { handleAdd(); });
 		addWidget(button);
 
 		cs.caption = T_("&Properties");
 		button = grid->addChild(cs);
-		button->setHelpId(IDH_ADLS_PROPERTIES);
 		button->onClicked([this] { handleProperties(); });
 		addWidget(button);
 
 		cs.caption = T_("Move &Up");
 		button = grid->addChild(cs);
-		button->setHelpId(IDH_ADLS_MOVE_UP);
 		button->onClicked([this] { handleUp(); });
 		addWidget(button);
 
 		cs.caption = T_("Move &Down");
 		button = grid->addChild(cs);
-		button->setHelpId(IDH_ADLS_MOVE_DOWN);
 		button->onClicked([this] { handleDown(); });
 		addWidget(button);
 
 		cs.caption = T_("&Remove");
 		button = grid->addChild(cs);
-		button->setHelpId(IDH_ADLS_REMOVE);
 		button->onClicked([this] { handleRemove(); });
-		addWidget(button);
-
-		button = WinUtil::addHelpButton(grid);
-		button->onClicked([this] { WinUtil::help(this); });
 		addWidget(button);
 	}
 

@@ -28,8 +28,8 @@ class StaticFrame : public MDIChildFrame<T> {
 	typedef MDIChildFrame<T> BaseType;
 
 public:
-	StaticFrame(TabViewPtr parent, const tstring& title, unsigned helpId, unsigned iconId, bool manageAccels = true) :
-		MDIChildFrame<T>(parent, title, helpId, iconId, manageAccels)
+	StaticFrame(TabViewPtr parent, const tstring& title, unsigned iconId, bool manageAccels = true) :
+		MDIChildFrame<T>(parent, title, iconId, manageAccels)
 	{
 		WinUtil::setStaticWindowState(T::id, true);
 	}

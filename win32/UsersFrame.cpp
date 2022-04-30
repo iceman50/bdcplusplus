@@ -110,7 +110,7 @@ static const FieldName fields[] =
 };
 
 UsersFrame::UsersFrame(TabViewPtr parent) :
-BaseType(parent, T_("Users"), IDH_USERS, IDI_USERS, false),
+BaseType(parent, T_("Users"), IDI_USERS, false),
 grid(0),
 splitter(0),
 users(0),
@@ -164,21 +164,17 @@ selected(-1)
 		cur->addChild(ls);
 
 		filter.createTextBox(cur);
-		filter.text->setHelpId(IDH_USERS_FILTER);
 		filter.text->setCue(T_("Filter users"));
 		addWidget(filter.text);
 
 		filter.createColumnBox(cur);
-		filter.column->setHelpId(IDH_USERS_FILTER);
 		addWidget(filter.column);
 
 		filter.createMethodBox(cur);
-		filter.method->setHelpId(IDH_USERS_FILTER);
 		addWidget(filter.method);
 
-		auto addFilterBox = [this, cur](const tstring& text, SettingsManager::BoolSetting setting, unsigned helpId) {
+		auto addFilterBox = [this, cur](const tstring& text, SettingsManager::BoolSetting setting) {
 			auto box = cur->addChild(WinUtil::Seeds::checkBox);
-			box->setHelpId(helpId);
 			addWidget(box);
 			box->setText(text);
 			box->setChecked(SettingsManager::getInstance()->get(setting, true));
@@ -188,10 +184,10 @@ selected(-1)
 			});
 		};
 
-		addFilterBox(T_("Online"), SettingsManager::USERS_FILTER_ONLINE, IDH_USERS_FILTER_ONLINE);
-		addFilterBox(T_("Favorite"), SettingsManager::USERS_FILTER_FAVORITE, IDH_USERS_FILTER_FAVORITE);
-		addFilterBox(T_("Pending download"), SettingsManager::USERS_FILTER_QUEUE, IDH_USERS_FILTER_QUEUE);
-		addFilterBox(T_("Pending upload"), SettingsManager::USERS_FILTER_WAITING, IDH_USERS_FILTER_WAITING);
+		addFilterBox(T_("Online"), SettingsManager::USERS_FILTER_ONLINE);
+		addFilterBox(T_("Favorite"), SettingsManager::USERS_FILTER_FAVORITE);
+		addFilterBox(T_("Pending download"), SettingsManager::USERS_FILTER_QUEUE);
+		addFilterBox(T_("Pending upload"), SettingsManager::USERS_FILTER_WAITING);
 	}
 
 	{

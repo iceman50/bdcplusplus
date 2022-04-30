@@ -41,8 +41,6 @@ secondaryToggle(0),
 secondary(0),
 throttleTime(0)
 {
-	setHelpId(IDH_BWLIMITPAGE);
-
 	grid->column(0).mode = GridInfo::FILL;
 	grid->row(0).mode = GridInfo::AUTO;
 	grid->row(0).align = GridInfo::STRETCH;
@@ -60,24 +58,20 @@ throttleTime(0)
 		cur->column(0).mode = GridInfo::STATIC;
 
 		TextBoxPtr box = cur->addChild(WinUtil::Seeds::Dialog::intTextBox);
-		box->setHelpId(IDH_SETTINGS_BWLIMIT_UPLOAD);
 		items.emplace_back(box, SettingsManager::MAX_UPLOAD_SPEED_MAIN, PropPage::T_INT_WITH_SPIN);
 
 		SpinnerPtr spin = cur->addChild(Spinner::Seed(0, ThrottleManager::MAX_LIMIT, box));
-		spin->setHelpId(IDH_SETTINGS_BWLIMIT_UPLOAD);
 		cur->setWidget(spin);
 
-		cur->addChild(Label::Seed(T_("Maximum Upload Rate (KiB/s) (0 = infinite)")))->setHelpId(IDH_SETTINGS_BWLIMIT_UPLOAD);
+		cur->addChild(Label::Seed(T_("Maximum Upload Rate (KiB/s) (0 = infinite)")));
 
 		box = cur->addChild(WinUtil::Seeds::Dialog::intTextBox);
-		box->setHelpId(IDH_SETTINGS_BWLIMIT_DOWNLOAD);
 		items.emplace_back(box, SettingsManager::MAX_DOWNLOAD_SPEED_MAIN, PropPage::T_INT_WITH_SPIN);
 
 		spin = cur->addChild(Spinner::Seed(0, ThrottleManager::MAX_LIMIT, box));
-		spin->setHelpId(IDH_SETTINGS_BWLIMIT_DOWNLOAD);
 		cur->setWidget(spin);
 
-		cur->addChild(Label::Seed(T_("Maximum Download Rate (KiB/s) (0 = infinite)")))->setHelpId(IDH_SETTINGS_BWLIMIT_DOWNLOAD);
+		cur->addChild(Label::Seed(T_("Maximum Download Rate (KiB/s) (0 = infinite)")));
 	}
 
 	{
@@ -92,12 +86,11 @@ throttleTime(0)
 		cur->column(3).align = GridInfo::CENTER;
 
 		throttleTime = cur->addChild(CheckBox::Seed(T_("Use second set of bandwidth limits from")));
-		throttleTime->setHelpId(IDH_SETTINGS_BWLIMIT_SECONDARY_ENABLE);
 		items.emplace_back(throttleTime, SettingsManager::TIME_DEPENDENT_THROTTLE, PropPage::T_BOOL);
 		throttleTime->onClicked([this] { fixControls(); });
 
 		timeBound[0] = cur->addChild(WinUtil::Seeds::Dialog::comboBox);
-		cur->addChild(Label::Seed(T_("to")))->setHelpId(IDH_SETTINGS_BWLIMIT_SECONDARY_ENABLE);
+		cur->addChild(Label::Seed(T_("to")));
 		timeBound[1] = cur->addChild(WinUtil::Seeds::Dialog::comboBox);
 	}
 
@@ -109,7 +102,6 @@ throttleTime(0)
 		for (int j = 1; j < 12; ++j)
 			timeBound[i]->addValue(Text::toT(Util::toString(j) +" PM").c_str()); ///@todo use the user locale
 		timeBound[i]->setSelected(i?SETTING(BANDWIDTH_LIMIT_END):SETTING(BANDWIDTH_LIMIT_START));
-		timeBound[i]->setHelpId(IDH_SETTINGS_BWLIMIT_SECONDARY_ENABLE);
 	}
 
 	{
@@ -119,34 +111,28 @@ throttleTime(0)
 		cur->column(0).mode = GridInfo::STATIC;
 
 		TextBoxPtr box = cur->addChild(WinUtil::Seeds::Dialog::intTextBox);
-		box->setHelpId(IDH_SETTINGS_BWLIMIT_SECONDARY_UPLOAD);
 		items.emplace_back(box, SettingsManager::MAX_UPLOAD_SPEED_ALTERNATE, PropPage::T_INT_WITH_SPIN);
 
 		SpinnerPtr spin = cur->addChild(Spinner::Seed(0, ThrottleManager::MAX_LIMIT, box));
-		spin->setHelpId(IDH_SETTINGS_BWLIMIT_SECONDARY_UPLOAD);
 		cur->setWidget(spin);
 
-		cur->addChild(Label::Seed(T_("Maximum Upload Rate (KiB/s) (0 = infinite)")))->setHelpId(IDH_SETTINGS_BWLIMIT_SECONDARY_UPLOAD);
+		cur->addChild(Label::Seed(T_("Maximum Upload Rate (KiB/s) (0 = infinite)")));
 
 		box = cur->addChild(WinUtil::Seeds::Dialog::intTextBox);
-		box->setHelpId(IDH_SETTINGS_BWLIMIT_SECONDARY_DOWNLOAD);
 		items.emplace_back(box, SettingsManager::MAX_DOWNLOAD_SPEED_ALTERNATE, PropPage::T_INT_WITH_SPIN);
 
 		spin = cur->addChild(Spinner::Seed(0, ThrottleManager::MAX_LIMIT, box));
-		spin->setHelpId(IDH_SETTINGS_BWLIMIT_SECONDARY_DOWNLOAD);
 		cur->setWidget(spin);
 
-		cur->addChild(Label::Seed(T_("Maximum Download Rate (KiB/s) (0 = infinite)")))->setHelpId(IDH_SETTINGS_BWLIMIT_SECONDARY_DOWNLOAD);
+		cur->addChild(Label::Seed(T_("Maximum Download Rate (KiB/s) (0 = infinite)")));
 
 		box = cur->addChild(WinUtil::Seeds::Dialog::intTextBox);
-		box->setHelpId(IDH_SETTINGS_BWLIMIT_SECONDARY_SLOTS);
 		items.emplace_back(box, SettingsManager::SLOTS_ALTERNATE_LIMITING, PropPage::T_INT_WITH_SPIN);
 
 		spin = cur->addChild(Spinner::Seed(0, UD_MAXVAL, box));
-		spin->setHelpId(IDH_SETTINGS_BWLIMIT_SECONDARY_SLOTS);
 		cur->setWidget(spin);
 
-		cur->addChild(Label::Seed(T_("Upload Slots")))->setHelpId(IDH_SETTINGS_BWLIMIT_SECONDARY_SLOTS);
+		cur->addChild(Label::Seed(T_("Upload Slots")));
 	}
 
 	PropPage::read(items);

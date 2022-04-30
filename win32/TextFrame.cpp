@@ -59,7 +59,7 @@ void TextFrame::parseWindowParams(TabViewPtr parent, const WindowParams& params)
 }
 
 TextFrame::TextFrame(TabViewPtr parent, const string& path, bool temporary) :
-BaseType(parent, Text::toT(Util::getFileName(path)), IDH_TEXT_VIEWER),
+BaseType(parent, Text::toT(Util::getFileName(path))),
 grid(0),
 pad(0),
 path(path),
@@ -90,7 +90,6 @@ temporary(temporary)
 		Button::Seed seed = WinUtil::Seeds::button;
 		seed.caption = T_("Change the text viewer font");
 		auto changeFont = grid->addChild(Grid::Seed(1, 1))->addChild(seed);
-		changeFont->setHelpId(IDH_TEXT_FONT);
 		changeFont->onClicked([this] { handleFontChange(); });
 		addWidget(changeFont);
 	}

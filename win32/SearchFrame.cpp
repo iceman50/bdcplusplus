@@ -122,7 +122,7 @@ void SearchFrame::closeAll() {
 }
 
 SearchFrame::SearchFrame(TabViewPtr parent, const tstring& initialString, SearchManager::TypeModes initialType_, const tstring& hubUrl) :
-BaseType(parent, T_("Search"), IDH_SEARCH, IDI_SEARCH, false),
+BaseType(parent, T_("Search"), IDI_SEARCH, false),
 paned(0),
 options(0),
 searchBox(0),
@@ -151,7 +151,6 @@ droppedResults(0)
 
 		gs.caption = T_("Search for");
 		auto group = options->addChild(gs);
-		group->setHelpId(IDH_SEARCH_SEARCH_FOR);
 
 		auto cur = group->addChild(Grid::Seed(2, 2));
 		cur->column(0).mode = GridInfo::FILL;
@@ -170,18 +169,15 @@ droppedResults(0)
 		Button::Seed bs = WinUtil::Seeds::button;
 		bs.caption = T_("Purge");
 		ButtonPtr button = cur->addChild(bs);
-		button->setHelpId(IDH_SEARCH_PURGE);
 		button->onClicked([this] { handlePurgeClicked(); });
 
 		bs.style |= BS_DEFPUSHBUTTON;
 		bs.caption = T_("Search");
 		button = cur->addChild(bs);
-		button->setHelpId(IDH_SEARCH_SEARCH);
 		button->onClicked([this] { runSearch(); });
 
 		gs.caption = T_("Size");
 		group = options->addChild(gs);
-		group->setHelpId(IDH_SEARCH_SIZE);
 
 		cur = group->addChild(Grid::Seed(1, 3));
 		cur->column(1).mode = GridInfo::FILL;
@@ -209,7 +205,6 @@ droppedResults(0)
 
 		gs.caption = T_("File type");
 		group = options->addChild(gs);
-		group->setHelpId(IDH_SEARCH_TYPE);
 
 		{
 			ComboBox::Seed cs = WinUtil::Seeds::comboBox;
@@ -226,19 +221,16 @@ droppedResults(0)
 		
 		cs.caption = T_("Only users with free slots");
 		auto box = cur->addChild(cs);
-		box->setHelpId(IDH_SEARCH_SLOTS);
 		box->setChecked(onlyFree);
 		box->onClicked([this, box] { onlyFree = box->getChecked(); });
 
 		cs.caption = T_("Hide files already in share");
 		box = cur->addChild(cs);
-		box->setHelpId(IDH_SEARCH_SHARE);
 		box->setChecked(hideShared);
 		box->onClicked([this, box] { hideShared = box->getChecked(); });
 
 		gs.caption = T_("Hubs");
 		group = options->addChild(gs);
-		group->setHelpId(IDH_SEARCH_HUBS);
 
 		WidgetHubs::Seed ls(WinUtil::Seeds::table);
 		ls.style |= LVS_NOCOLUMNHEADER;
@@ -276,7 +268,6 @@ droppedResults(0)
 
 		cur = cur->addChild(Grid::Seed(1, 4));
 		cur->column(1).mode = GridInfo::FILL;
-		cur->setHelpId(IDH_SEARCH_FILTER);
 
 		auto ls = WinUtil::Seeds::label;
 		ls.caption = T_("Filter search results:");

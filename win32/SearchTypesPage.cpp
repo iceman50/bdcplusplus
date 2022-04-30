@@ -49,15 +49,12 @@ rename(0),
 remove(0),
 modify(0)
 {
-	setHelpId(IDH_SEARCHTYPESPAGE);
-
 	grid->column(0).mode = GridInfo::FILL;
 	grid->row(0).mode = GridInfo::FILL;
 	grid->row(0).align = GridInfo::STRETCH;
 
 	{
 		auto group = grid->addChild(GroupBox::Seed(T_("Search types")));
-		group->setHelpId(IDH_SETTINGS_SEARCHTYPES_LIST);
 
 		auto cur = group->addChild(Grid::Seed(3, 1));
 		cur->column(0).mode = GridInfo::FILL;
@@ -80,23 +77,18 @@ modify(0)
 			row->column(4).mode = GridInfo::FILL;
 
 			ButtonPtr button = row->addChild(Button::Seed(T_("&Add")));
-			button->setHelpId(IDH_SETTINGS_SEARCHTYPES_ADD);
 			button->onClicked([this] { handleAddClicked(); });
 
 			modify = row->addChild(Button::Seed(T_("M&odify")));
-			modify->setHelpId(IDH_SETTINGS_SEARCHTYPES_MODIFY);
 			modify->onClicked([this] { handleModClicked(); });
 
 			rename = row->addChild(Button::Seed(T_("Re&name")));
-			rename->setHelpId(IDH_SETTINGS_SEARCHTYPES_RENAME);
 			rename->onClicked([this] { handleRenameClicked(); });
 
 			remove = row->addChild(Button::Seed(T_("&Remove")));
-			remove->setHelpId(IDH_SETTINGS_SEARCHTYPES_REMOVE);
 			remove->onClicked([this] { handleRemoveClicked(); });
 
 			button = row->addChild(Button::Seed(T_("&Defaults")));
-			button->setHelpId(IDH_SETTINGS_SEARCHTYPES_DEFAULTS);
 			button->onClicked([this] { handleDefaultsClicked(); });
 		}
 

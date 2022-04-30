@@ -167,7 +167,7 @@ bool HubFrame::isFavorite(const WindowParams& params) {
 }
 
 HubFrame::HubFrame(TabViewPtr parent, string&& url, bool connect) :
-BaseType(parent, Text::toT(url), IDH_HUB, IDI_HUB_OFF, false),
+BaseType(parent, Text::toT(url), IDI_HUB_OFF, false),
 paned(0),
 userGrid(0),
 users(0),
@@ -190,12 +190,10 @@ tabIcon(IDI_HUB)
 	paned = addChild(SplitterContainer::Seed(SETTING(HUB_PANED_POS)));
 
 	createChat(paned);
-	chat->setHelpId(IDH_HUB_CHAT);
 	addWidget(chat);
 	chat->onLink([this](const tstring& link) { return handleChatLink(link); });
 	chat->onContextMenu([this](const dwt::ScreenCoordinate &sc) { return handleChatContextMenu(sc); });
 
-	message->setHelpId(IDH_HUB_MESSAGE);
 	addWidget(message, ALWAYS_FOCUS, false);
 	message->onKeyDown([this](int c) { return handleMessageKeyDown(c); });
 	message->onSysKeyDown([this](int c) { return handleMessageKeyDown(c); });
@@ -220,7 +218,6 @@ tabIcon(IDI_HUB)
 		users->onContextMenu([this](const dwt::ScreenCoordinate &sc) { return handleUsersContextMenu(sc); });
 
 		filter.createTextBox(userGrid);
-		filter.text->setHelpId(IDH_HUB_FILTER);
 		filter.text->setCue(T_("Filter users"));
 		addWidget(filter.text);
 	}
@@ -229,7 +226,6 @@ tabIcon(IDI_HUB)
 		auto seed = Grid::Seed(1, 2);
 		seed.exStyle |= WS_EX_TRANSPARENT;
 		filterOpts = addChild(seed);
-		filterOpts->setHelpId(IDH_HUB_FILTER);
 
 		filter.createColumnBox(filterOpts);
 		addWidget(filter.column, AUTO_FOCUS, false);
@@ -252,15 +248,8 @@ tabIcon(IDI_HUB)
 	status->setIcon(STATUS_USERS, WinUtil::statusIcon(IDI_USERS));
 
 	showUsers = addChild(WinUtil::Seeds::splitCheckBox);
-	showUsers->setHelpId(IDH_HUB_SHOW_USERS);
 	showUsers->setChecked(SETTING(GET_USER_INFO));
 	status->setWidget(STATUS_SHOW_USERS, showUsers);
-
-	status->setHelpId(STATUS_STATUS, IDH_HUB_STATUS);
-	status->setHelpId(STATUS_SECURE, IDH_HUB_SECURE_STATUS);
-	status->setHelpId(STATUS_USERS, IDH_HUB_USERS_COUNT);
-	status->setHelpId(STATUS_SHARED, IDH_HUB_SHARED);
-	status->setHelpId(STATUS_AVERAGE_SHARED, IDH_HUB_AVERAGE_SHARED);
 
 	addAccel(FALT, 'G', [this] { handleGetList(getParent()); });
 	addAccel(FCONTROL, 'R', [this] { reconnect(); });

@@ -84,9 +84,6 @@
 #include "TransferView.h"
 #include "UsersFrame.h"
 
-#ifdef HAVE_HTMLHELP_H
-#include <htmlhelp.h>
-#endif
 #include <wtsapi32.h>
 
 using dwt::Container;
@@ -197,7 +194,6 @@ fullSlots(false)
 
 	onActivate([this](bool active) { handleActivate(active); });
 	onSized([this](const dwt::SizedEvent &se) { handleSized(se); });
-	onHelp(&WinUtil::help);
 
 	updateStatus();
 	setTimer([this]() -> bool { updateStatus(); return true; }, 1000, TIMER_STATUS);
@@ -291,8 +287,6 @@ fullSlots(false)
 	if(SETTING(NICK).empty()) {
 		callAsync([this] {
 			SystemFrame::openWindow(getTabView(), false, false);
-
-			WinUtil::helpId(this, IDH_GET_STARTED);
 			handleSettings();
 		});
 	}
@@ -321,8 +315,6 @@ void MainWindow::initWindow() {
 		cs.exStyle |= WS_EX_RTLREADING;
 
 	create(cs);
-
-	setHelpId(IDH_MAIN);
 
 	rebar = addChild(Rebar::Seed());
 
@@ -435,11 +427,6 @@ void MainWindow::initMenu() {
 
 	{
 		auto help = mainMenu->appendPopup(T_("&Help"));
-
-		help->appendItem(T_("Help &Contents\tF1"), [this] { WinUtil::helpId(this, IDH_INDEX); }, WinUtil::menuIcon(IDI_HELP));
-		help->appendItem(T_("Get started"), [this] { WinUtil::helpId(this, IDH_GET_STARTED); }, WinUtil::menuIcon(IDI_GET_STARTED));
-		help->appendSeparator();
-		help->appendItem(T_("Change Log"), [this] { WinUtil::helpId(this, IDH_CHANGELOG); }, WinUtil::menuIcon(IDI_CHANGELOG));
 		help->appendItem(T_("About DC++"), [this] { handleAbout(); }, WinUtil::menuIcon(IDI_DCPP));
 		help->appendSeparator();
 
@@ -483,45 +470,43 @@ void MainWindow::initToolbar() {
 	toolbar = addChild(ToolBar::Seed());
 
 	toolbar->addButton(PublicHubsFrame::id, WinUtil::toolbarIcon(IDI_PUBLICHUBS), 0, T_("Public Hubs"), false,
-		IDH_TOOLBAR_PUBLIC_HUBS, [this] { PublicHubsFrame::openWindow(getTabView()); });
+		0, [this] { PublicHubsFrame::openWindow(getTabView()); });
 	toolbar->addButton("Reconnect", WinUtil::toolbarIcon(IDI_RECONNECT), 0, T_("Reconnect"), false,
-		IDH_TOOLBAR_RECONNECT, [this] { handleReconnect(); });
+		0, [this] { handleReconnect(); });
 	toolbar->addButton(FavHubsFrame::id, WinUtil::toolbarIcon(IDI_FAVORITE_HUBS), 0, T_("Favorite Hubs"), false,
-		IDH_TOOLBAR_FAVORITE_HUBS, [this] { FavHubsFrame::openWindow(getTabView()); },
+		0, [this] { FavHubsFrame::openWindow(getTabView()); },
 		[this](const dwt::ScreenCoordinate& pt) { handleFavHubsDropDown(pt); });
 	toolbar->addButton(UsersFrame::id, WinUtil::toolbarIcon(IDI_USERS), 0, T_("Users"), false,
-		IDH_TOOLBAR_USERS, [this] { UsersFrame::openWindow(getTabView()); });
+		0, [this] { UsersFrame::openWindow(getTabView()); });
 	toolbar->addButton(QueueFrame::id, WinUtil::toolbarIcon(IDI_QUEUE), 0, T_("Download Queue"), false,
-		IDH_TOOLBAR_QUEUE, [this] { QueueFrame::openWindow(getTabView()); });
+		0, [this] { QueueFrame::openWindow(getTabView()); });
 	toolbar->addButton(FinishedDLFrame::id, WinUtil::toolbarIcon(IDI_FINISHED_DL), 0, T_("Finished Downloads"), false,
-		IDH_TOOLBAR_FINISHED_DL, [this] { FinishedDLFrame::openWindow(getTabView()); });
+		0, [this] { FinishedDLFrame::openWindow(getTabView()); });
 	toolbar->addButton(FinishedULFrame::id, WinUtil::toolbarIcon(IDI_FINISHED_UL), 0, T_("Finished Uploads"), false,
-		IDH_TOOLBAR_FINISHED_UL, [this] { FinishedULFrame::openWindow(getTabView()); });
+		0, [this] { FinishedULFrame::openWindow(getTabView()); });
 	toolbar->addButton(SearchFrame::id, WinUtil::toolbarIcon(IDI_SEARCH), 0, T_("Search"), false,
-		IDH_TOOLBAR_SEARCH, [this] { SearchFrame::openWindow(getTabView()); });
+		0, [this] { SearchFrame::openWindow(getTabView()); });
 	toolbar->addButton(ADLSearchFrame::id, WinUtil::toolbarIcon(IDI_ADLSEARCH), 0, T_("ADL Search"), false,
-		IDH_TOOLBAR_ADL_SEARCH, [this] { ADLSearchFrame::openWindow(getTabView()); });
+		0, [this] { ADLSearchFrame::openWindow(getTabView()); });
 	toolbar->addButton(StatsFrame::id, WinUtil::toolbarIcon(IDI_NET_STATS), 0, T_("Network Statistics"), false,
-		IDH_TOOLBAR_NET_STATS, [this] { StatsFrame::openWindow(getTabView()); });
+		0, [this] { StatsFrame::openWindow(getTabView()); });
 	toolbar->addButton("OpenDlDir", WinUtil::toolbarIcon(IDI_OPEN_DL_DIR), 0, T_("Open downloads directory"), false,
-		IDH_TOOLBAR_DOWNLOADS_DIR, [this] { handleOpenDownloadsDir(); });
+		0, [this] { handleOpenDownloadsDir(); });
 	toolbar->addButton("OpenFL", WinUtil::toolbarIcon(IDI_OPEN_FILE_LIST), 0, T_("Open file list..."), false,
-		IDH_TOOLBAR_FILE_LIST, [this] { handleOpenFileList(); });
+		0, [this] { handleOpenFileList(); });
 	toolbar->addButton("OpenOwnFL", WinUtil::toolbarIcon(IDI_OPEN_OWN_FILE_LIST), 0, T_("Open own list"), false,
-		IDH_TOOLBAR_OWN_FILE_LIST, [this] { DirectoryListingFrame::openOwnList(getTabView()); });
+		0, [this] { DirectoryListingFrame::openOwnList(getTabView()); });
 	toolbar->addButton("Recents", WinUtil::toolbarIcon(IDI_RECENTS), 0, T_("Recent windows"), false,
-		IDH_TOOLBAR_RECENT, nullptr, [this](const dwt::ScreenCoordinate& pt) { handleRecent(pt); });
+		0, nullptr, [this](const dwt::ScreenCoordinate& pt) { handleRecent(pt); });
 	toolbar->addButton("Settings", WinUtil::toolbarIcon(IDI_SETTINGS), 0, T_("Settings"), false,
-		IDH_TOOLBAR_SETTINGS, [this] { handleSettings(); });
+		0, [this] { handleSettings(); });
 	toolbar->addButton(NotepadFrame::id, WinUtil::toolbarIcon(IDI_NOTEPAD), 0, T_("Notepad"), false,
-		IDH_TOOLBAR_NOTEPAD, [this] { NotepadFrame::openWindow(getTabView()); });
+		0, [this] { NotepadFrame::openWindow(getTabView()); });
 	toolbar->addButton("Refresh", WinUtil::toolbarIcon(IDI_REFRESH), 0, T_("Refresh file list"), false,
-		IDH_TOOLBAR_REFRESH, [this] { handleRefreshFileList(); });
+		0, [this] { handleRefreshFileList(); });
 	toolbar->addButton("Plugins", WinUtil::toolbarIcon(IDI_PLUGINS), 0, T_("Plugins"), false,
-		IDH_TOOLBAR_PLUGINS, [this] { handlePluginSettings(); },
+		0, [this] { handlePluginSettings(); },
 		[this](const dwt::ScreenCoordinate& pt) { handlePlugins(pt); });
-	toolbar->addButton("CSHelp", WinUtil::toolbarIcon(IDI_WHATS_THIS), 0, T_("What's This?"), false,
-		IDH_TOOLBAR_WHATS_THIS, [this] { handleWhatsThis(); });
 
 	if(SettingsManager::getInstance()->isDefault(SettingsManager::TOOLBAR)) {
 		// gotta create a default layout for the toolbar
@@ -558,10 +543,7 @@ void MainWindow::initToolbar() {
 	}
 	toolbar->setLayout(StringTokenizer<string>(SETTING(TOOLBAR), ',').getTokens());
 	toolbar->onCustomized([this] { handleToolbarCustomized(); });
-	toolbar->onCustomizeHelp([this] { WinUtil::helpId(toolbar, IDH_CUSTOMIZE_TB); });
 	toolbar->onContextMenu([this](const dwt::ScreenCoordinate &sc) { return handleToolbarContextMenu(sc); });
-
-	toolbar->onHelp(&WinUtil::help);
 
 	rebar->add(toolbar);
 
@@ -623,18 +605,6 @@ void MainWindow::initStatusBar() {
 		status->onDblClicked(STATUS_DOWN_DIFF, f);
 		status->onDblClicked(STATUS_UP_DIFF, f);
 	}
-
-	status->setHelpId(STATUS_STATUS, IDH_MAIN_STATUS);
-	status->setHelpId(STATUS_AWAY, IDH_MAIN_AWAY);
-	status->setHelpId(STATUS_COUNTS, IDH_MAIN_HUBS);
-	status->setHelpId(STATUS_SLOTS, IDH_MAIN_SLOTS);
-	status->setHelpId(STATUS_DOWN_TOTAL, IDH_MAIN_DOWN_TOTAL);
-	status->setHelpId(STATUS_UP_TOTAL, IDH_MAIN_UP_TOTAL);
-	status->setHelpId(STATUS_DOWN_DIFF, IDH_MAIN_DOWN_DIFF);
-	status->setHelpId(STATUS_UP_DIFF, IDH_MAIN_UP_DIFF);
-	status->setHelpId(STATUS_DOWN_LIMIT, IDH_MAIN_DOWN_LIMIT);
-	status->setHelpId(STATUS_UP_LIMIT, IDH_MAIN_UP_LIMIT);
-
 	viewMenu->checkItem(viewIndexes["Status"], true);
 }
 
@@ -662,7 +632,6 @@ void MainWindow::initTabs() {
 	tabs = paned->addChild(seed);
 	tabs->initTaskbar(this);
 	tabs->onTitleChanged([this](const tstring &title) { handleTabsTitleChanged(title); });
-	tabs->onHelp(&WinUtil::help);
 }
 
 void MainWindow::initTransfers() {
@@ -709,12 +678,6 @@ bool MainWindow::filter(MSG& msg) {
 	if(tabs && tabs->filter(msg)) {
 		return true;
 	}
-
-#ifdef HAVE_HTMLHELP_H
-	if(::HtmlHelp(NULL, NULL, HH_PRETRANSLATEMESSAGE, reinterpret_cast<DWORD_PTR>(&msg))) {
-		return true;
-	}
-#endif
 
 	Container* active = getTabView()->getActive();
 	if(active) {
@@ -2019,10 +1982,6 @@ void MainWindow::handleTrayUpdate() {
 		DownloadManager::getInstance()->getDownloadCount() %
 		Util::formatBytes(UploadManager::getInstance()->getRunningAverage()) %
 		UploadManager::getInstance()->getUploadCount())));
-}
-
-void MainWindow::handleWhatsThis() {
-	sendMessage(WM_SYSCOMMAND, SC_CONTEXTHELP);
 }
 
 void MainWindow::on(ConnectionManagerListener::Connected, ConnectionQueueItem* cqi, UserConnection* uc) noexcept {

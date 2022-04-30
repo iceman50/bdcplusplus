@@ -198,7 +198,6 @@ private:
 	void handleCloseFavGroup(bool reversed);
 	void handleAbout();
 	void handleHashProgress();
-	void handleWhatsThis();
 	void handleSize();
 	void handleActivate(bool active);
 	LRESULT handleEndSession();

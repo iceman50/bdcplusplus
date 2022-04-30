@@ -53,15 +53,12 @@ down(0),
 remove(0),
 dirty(false)
 {
-	setHelpId(IDH_USERMATCHPAGE);
-
 	grid->column(0).mode = GridInfo::FILL;
 	grid->row(0).mode = GridInfo::FILL;
 	grid->row(0).align = GridInfo::STRETCH;
 
 	{
 		auto cur = grid->addChild(GroupBox::Seed(T_("User matching definitions")))->addChild(Grid::Seed(3, 1));
-		cur->setHelpId(IDH_SETTINGS_USER_MATCH_LIST);
 		cur->column(0).mode = GridInfo::FILL;
 		cur->row(0).mode = GridInfo::FILL;
 		cur->row(0).align = GridInfo::STRETCH;
@@ -80,28 +77,22 @@ dirty(false)
 		row->setSpacing(cur->getSpacing());
 
 		auto button = row->addChild(Button::Seed(T_("&Add")));
-		button->setHelpId(IDH_SETTINGS_USER_MATCH_ADD);
 		button->onClicked([this] { handleAddClicked(); });
 
 		edit = row->addChild(Button::Seed(T_("&Edit")));
-		edit->setHelpId(IDH_SETTINGS_USER_MATCH_EDIT);
 		edit->onClicked([this] { handleEditClicked(); });
 
 		up = row->addChild(Button::Seed(T_("Move &Up")));
-		up->setHelpId(IDH_SETTINGS_USER_MATCH_MOVE_UP);
 		up->onClicked([this] { handleMoveUpClicked(); });
 
 		down = row->addChild(Button::Seed(T_("Move &Down")));
-		down->setHelpId(IDH_SETTINGS_USER_MATCH_MOVE_DOWN);
 		down->onClicked([this] { handleMoveDownClicked(); });
 
 		remove = row->addChild(Button::Seed(T_("&Remove")));
-		remove->setHelpId(IDH_SETTINGS_USER_MATCH_REMOVE);
 		remove->onClicked([this] { handleRemoveClicked(); });
 
 		button = cur->addChild(Grid::Seed(1, 1))->addChild(
 			Button::Seed(T_("Configure styles (fonts / colors) for these user matching definitions")));
-		button->setHelpId(IDH_SETTINGS_USER_MATCH_STYLES);
 		button->setImage(WinUtil::buttonIcon(IDI_STYLES));
 		button->onClicked([this] { static_cast<SettingsDialog*>(getRoot())->activatePage<StylesPage>(); });
 	}

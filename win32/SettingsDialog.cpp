@@ -27,7 +27,6 @@
 #include <dwt/util/GDI.h>
 #include <dwt/widgets/Grid.h>
 #include <dwt/widgets/ScrolledContainer.h>
-#include <dwt/widgets/ToolTip.h>
 
 #include "WinUtil.h"
 
@@ -75,12 +74,9 @@ SettingsDialog::SettingsDialog(dwt::Widget* parent) :
 dwt::ModalDialog(parent),
 currentPage(0),
 grid(0),
-tree(0),
-help(0),
-tip(0)
+tree(0)
 {
 	onInitDialog([this] { return initDialog(); });
-	onHelp(&WinUtil::help);
 	onClosing([this] { return handleClosing(); });
 }
 
@@ -96,17 +92,7 @@ int SettingsDialog::run() {
 SettingsDialog::~SettingsDialog() {
 }
 
-static LRESULT helpDlgCode(WPARAM wParam) {
-	if(wParam == VK_TAB || wParam == VK_RETURN)
-		return 0;
-	return DLGC_WANTMESSAGE;
-}
-
 bool SettingsDialog::initDialog() {
-	/* set this to IDH_INDEX so that clicking in an empty space of the dialog generates a WM_HELP
-	message with no error; then SettingsDialog::helpImpl will convert IDH_INDEX to the current
-	page's help id. */
-	setHelpId(IDH_INDEX);
 
 	grid = addChild(Grid::Seed(1, 2));
 	grid->row(0).mode = GridInfo::FILL;
@@ -121,7 +107,6 @@ bool SettingsDialog::initDialog() {
 		auto seed = Tree::Seed();
 		seed.style |= WS_BORDER;
 		tree = grid->addChild(seed);
-		tree->setHelpId(IDH_SETTINGS_TREE);
 		tree->setItemHeight(tree->getItemHeight() * 5 / 4);
 		tree->onSelectionChanged([this] { handleSelectionChanged(); });
 	}
@@ -200,23 +185,7 @@ bool SettingsDialog::initDialog() {
 		addPage(T_("Plugins"), new PluginPage(container), IDI_PLUGINS, TVI_ROOT);
 		// remember to change pluginPagePos accordingly...
 
-		Grid::Seed gs(1, 1);
-		gs.style |= WS_BORDER;
-		auto helpGrid = cur->addChild(gs);
-		helpGrid->column(0).mode = GridInfo::FILL;
-
-		auto ts = WinUtil::Seeds::Dialog::richTextBox;
-		ts.style &= ~ES_SUNKEN;
-		ts.exStyle &= ~WS_EX_CLIENTEDGE;
-		ts.lines = 6;
-		help = helpGrid->addChild(ts);
-		help->onRaw([this](WPARAM w, LPARAM) { return helpDlgCode(w); }, dwt::Message(WM_GETDLGCODE));
-
-		//DiCe Addon
-		//help->setColor(WinUtil::textColor, WinUtil::bgColor);
-		//helpGrid->setColor(WinUtil::textColor, WinUtil::bgColor);
-
-		cur = cur->addChild(Grid::Seed(1, 3));
+		cur = cur->addChild(Grid::Seed(1, 2));
 		cur->column(0).mode = GridInfo::FILL;
 		cur->column(0).align = GridInfo::BOTTOM_RIGHT;
 		cur->setSpacing(grid->getSpacing());
@@ -224,38 +193,7 @@ bool SettingsDialog::initDialog() {
 		WinUtil::addDlgButtons(cur,
 			[this] { handleClosing(); handleOKClicked(); },
 			[this] { handleClosing(); endDialog(IDCANCEL); });
-
-		WinUtil::addHelpButton(cur)->onClicked([this] { WinUtil::help(this); });
 	}
-
-	/* use a hidden tooltip to determine when to show the help tooltip, so we don't have to manage
-	timers etc. */
-	tip = addChild(ToolTip::Seed());
-
-	// make tooltips last longer
-	tip->setDelay(TTDT_AUTOPOP, tip->getDelay(TTDT_AUTOPOP) * 3);
-
-	// wait more time before displaying tooltips
-	tip->setDelay(TTDT_INITIAL, tip->getDelay(TTDT_INITIAL) + 1000);
-	tip->setDelay(TTDT_RESHOW, tip->getDelay(TTDT_INITIAL));
-
-	// on TTN_SHOW, hide the actual tooltip and display our rich one in its place.
-	tip->onRaw([this](WPARAM, LPARAM lParam) -> LRESULT {
-		auto pos = tip->getWindowRect().pos;
-		::SetWindowPos(tip->handle(), 0, 0, 0, 0, 0, SWP_HIDEWINDOW | SWP_NOACTIVATE);
-		auto& ttdi = *reinterpret_cast<LPNMTTDISPINFO>(lParam);
-		auto widget = dwt::hwnd_cast<dwt::Control*>(reinterpret_cast<HWND>(ttdi.hdr.idFrom));
-		if(widget) {
-			WinUtil::helpTooltip(widget, pos);
-		}
-		return TRUE;
-	}, dwt::Message(WM_NOTIFY, TTN_SHOW));
-
-	// kill our rich tooltip on TTN_POP.
-	tip->onRaw([this](WPARAM, LPARAM) -> LRESULT {
-		WinUtil::killHelpTooltip();
-		return 0;
-	}, dwt::Message(WM_NOTIFY, TTN_POP));
 
 	/*
 	* catch WM_SETFOCUS messages (onFocus events) sent to every children of this dialog. the normal
@@ -278,36 +216,9 @@ bool SettingsDialog::initDialog() {
 }
 
 BOOL CALLBACK SettingsDialog::EnumChildProc(HWND hwnd, LPARAM lParam) {
-	SettingsDialog* dialog = reinterpret_cast<SettingsDialog*>(lParam);
-	dwt::Control* widget = dwt::hwnd_cast<dwt::Control*>(hwnd);
+//	SettingsDialog* dialog = reinterpret_cast<SettingsDialog*>(lParam);
+//	dwt::Control* widget = dwt::hwnd_cast<dwt::Control*>(hwnd);
 
-	if(widget && widget != dialog->help) {
-		// update the bottom help box on focus / sel change.
-		widget->onFocus([dialog, widget] { dialog->handleChildHelp(widget); });
-
-		TablePtr table = dynamic_cast<TablePtr>(widget);
-		if(table)
-			table->onSelectionChanged([dialog, widget] { dialog->handleChildHelp(widget); });
-
-		/* associate a tooltip callback with every widget; a tooltip will be shown for those that
-		provide a valid cshelp id; the tooltip will disappear when hovering others (to be as
-		discreet as possible). the tooltip is provided a random text to make it believe in its
-		usefulness (we will actually hide it and show our own rich one on top of it). */
-		dialog->tip->addTool(widget, const_cast<LPTSTR>(_T("M")));
-
-		// special refresh logic for tables as they may have different help ids for each item.
-		if(table) {
-			table->onMouseMove([dialog, table](const dwt::MouseEvent&) -> bool {
-				const auto id = table->getHelpId();
-				static int prevId = -1;
-				if(static_cast<int>(id) != prevId) {
-					prevId = static_cast<int>(id);
-					dialog->tip->refresh();
-				}
-				return false;
-			});
-		}
-	}
 	//DiCe - Let's try to colorize everything
 	/*
 	{
@@ -320,10 +231,6 @@ BOOL CALLBACK SettingsDialog::EnumChildProc(HWND hwnd, LPARAM lParam) {
 	*/
 
 	return TRUE;
-}
-
-void SettingsDialog::handleChildHelp(dwt::Control* widget) {
-	help->setText(Text::toT(WinUtil::getHelpText(widget->getHelpId()).second));
 }
 
 bool SettingsDialog::handleClosing() {
@@ -400,22 +307,5 @@ void SettingsDialog::layout() {
 
 	if(currentPage) {
 		currentPage->getParent()->layout();
-	}
-}
-
-void SettingsDialog::helpImpl(unsigned& id) {
-	if(id == IDH_INDEX && currentPage) {
-
-		/* when a control has no help id, it asks its parent and so on. here we go back to children
-		from the top parent, so there is a possibility of an infinite loop if a page has no help
-		id. */
-		static bool recursion = false;
-		if(recursion)
-			return;
-		recursion = true;
-
-		id = currentPage->getHelpId();
-
-		recursion = false;
 	}
 }

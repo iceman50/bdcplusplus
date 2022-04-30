@@ -30,7 +30,7 @@ const string NotepadFrame::id = "Notepad";
 const string& NotepadFrame::getId() const { return id; }
 
 NotepadFrame::NotepadFrame(TabViewPtr parent) :
-	BaseType(parent, T_("Notepad"), IDH_NOTEPAD, IDI_NOTEPAD),
+	BaseType(parent, T_("Notepad"), IDI_NOTEPAD),
 	pad(0)
 {
 	{

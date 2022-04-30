@@ -64,7 +64,7 @@ static const ColumnInfo filesColumns[] = {
 };
 
 QueueFrame::QueueFrame(TabViewPtr parent) :
-BaseType(parent, T_("Download Queue"), IDH_QUEUE, IDI_QUEUE),
+BaseType(parent, T_("Download Queue"), IDI_QUEUE),
 toolbar(0),
 rebar(0),
 paned(0),
@@ -121,17 +121,17 @@ fileLists(0)
 		toolbar = addChild(seed);
 
 		auto addButton = [this](unsigned icon, const tstring& text, bool showText,
-			unsigned helpId, const dwt::Dispatchers::VoidVoid<>::F& f)
+			const dwt::Dispatchers::VoidVoid<>::F& f)
 		{
 			toolbarIds.emplace_back(1, '0' + toolbarIds.size());
-			toolbar->addButton(toolbarIds.back(), icon ? WinUtil::toolbarIcon(icon) : 0, 0, text, showText, helpId, f);
+			toolbar->addButton(toolbarIds.back(), icon ? WinUtil::toolbarIcon(icon) : 0, 0, text, showText, 0, f);
 		};
 
-		addButton(IDI_PLAY, T_("Start"), false, IDH_QUEUE_TOOLBAR_START, [this] { handlePriority(QueueItem::NORMAL); });
-		addButton(IDI_PAUSE, T_("Pause"), false, IDH_QUEUE_TOOLBAR_PAUSE, [this] { handlePriority(QueueItem::PAUSED); });
-		addButton(IDI_INCREMENT, T_("Increase priority"), false, IDH_QUEUE_TOOLBAR_INCREASE_PRIO, [this] { changePriority(true); });
-		addButton(IDI_DECREMENT, T_("Decrease priority"), false, IDH_QUEUE_TOOLBAR_DECREASE_PRIO, [this] { changePriority(false); });
-		addButton(IDI_REMOVEQUEUE, T_("Remove file"), false, IDH_QUEUE_TOOLBAR_REMOVE_FILE, [this] { handleRemove(); });
+		addButton(IDI_PLAY, T_("Start"), false, [this] { handlePriority(QueueItem::NORMAL); });
+		addButton(IDI_PAUSE, T_("Pause"), false, [this] { handlePriority(QueueItem::PAUSED); });
+		addButton(IDI_INCREMENT, T_("Increase priority"), false, [this] { changePriority(true); });
+		addButton(IDI_DECREMENT, T_("Decrease priority"), false, [this] { changePriority(false); });
+		addButton(IDI_REMOVEQUEUE, T_("Remove file"), false, [this] { handleRemove(); });
 
 		toolbarIds.emplace_back();
 
@@ -145,7 +145,6 @@ fileLists(0)
 
 	{
 		auto showTree = addChild(WinUtil::Seeds::splitCheckBox);
-		showTree->setHelpId(IDH_QUEUE_SHOW_TREE);
 		showTree->setChecked(SETTING(QUEUEFRAME_SHOW_TREE));
 		showTree->onClicked([this, showTree] {
 			auto checked = showTree->getChecked();
@@ -154,11 +153,6 @@ fileLists(0)
 		});
 		status->setWidget(STATUS_SHOW_TREE, showTree);
 	}
-
-	status->setHelpId(STATUS_PARTIAL_COUNT, IDH_QUEUE_PARTIAL_COUNT);
-	status->setHelpId(STATUS_PARTIAL_BYTES, IDH_QUEUE_PARTIAL_BYTES);
-	status->setHelpId(STATUS_TOTAL_COUNT, IDH_QUEUE_TOTAL_COUNT);
-	status->setHelpId(STATUS_TOTAL_BYTES, IDH_QUEUE_TOTAL_BYTES);
 
 	setTimer([this]() -> bool { updateStatus(); return true; }, 500);
 

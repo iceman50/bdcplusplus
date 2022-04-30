@@ -39,7 +39,6 @@ protected:
 		dwt::StatusBar::Seed cs(WidgetType::STATUS_LAST, WidgetType::STATUS_STATUS, sizeGrip);
 		cs.font = WinUtil::font;
 		status = W().addChild(cs);
-		status->onHelp(&WinUtil::help);
 	}
 
 	dwt::StatusBarPtr status;

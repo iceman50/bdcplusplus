@@ -34,11 +34,11 @@ using dwt::GridInfo;
 using dwt::Label;
 
 PropPage::ListItem CertificatesPage::listItems[] = {
-	{ SettingsManager::REQUIRE_TLS, N_("Require TLS ADC client-client connections"), IDH_SETTINGS_CERTIFICATES_REQUIRE_TLS },
-	{ SettingsManager::ALLOW_UNTRUSTED_HUBS, N_("Allow TLS connections to hubs without trusted certificate"), IDH_SETTINGS_CERTIFICATES_ALLOW_UNTRUSTED_HUBS },
-	{ SettingsManager::ALLOW_UNTRUSTED_CLIENTS, N_("Allow TLS connections to clients without trusted certificate"), IDH_SETTINGS_CERTIFICATES_ALLOW_UNTRUSTED_CLIENTS },
-	{ SettingsManager::ENABLE_CCPM, N_("Support direct encrypted private message channels"), IDH_SETTINGS_CERTIFICATES_ENABLE_CCPM },
-	{ SettingsManager::ALWAYS_CCPM, N_("Always attempt to establish direct encrypted private message channels"), IDH_SETTINGS_CERTIFICATES_ALWAYS_CCPM },
+	{ SettingsManager::REQUIRE_TLS, N_("Require TLS ADC client-client connections") },
+	{ SettingsManager::ALLOW_UNTRUSTED_HUBS, N_("Allow TLS connections to hubs without trusted certificate") },
+	{ SettingsManager::ALLOW_UNTRUSTED_CLIENTS, N_("Allow TLS connections to clients without trusted certificate") },
+	{ SettingsManager::ENABLE_CCPM, N_("Support direct encrypted private message channels") },
+	{ SettingsManager::ALWAYS_CCPM, N_("Always attempt to establish direct encrypted private message channels") },
 	{ 0, 0 }
 };
 
@@ -46,16 +46,13 @@ CertificatesPage::CertificatesPage(dwt::Widget* parent) :
 PropPage(parent, 4, 1),
 options(0)
 {
-	setHelpId(IDH_CERTIFICATESPAGE);
-
 	grid->column(0).mode = GridInfo::FILL;
 	grid->row(1).mode = GridInfo::FILL;
 	grid->row(1).align = GridInfo::STRETCH;
 
 	{
 		GroupBoxPtr group = grid->addChild(GroupBox::Seed(T_("Security certificates")));
-		group->setHelpId(IDH_SETTINGS_CERTIFICATES_CERTIFICATES);
- 
+
 		GridPtr cert = group->addChild(Grid::Seed(2, 1));
 		cert->column(0).mode = GridInfo::FILL;
 
@@ -67,29 +64,23 @@ options(0)
 			Button::Seed dots(_T("..."));
 			dots.padding.x = 10;
 
-			cur->addChild(Label::Seed(T_("Private key file")))->setHelpId(IDH_SETTINGS_CERTIFICATES_PRIVATE_KEY_FILE);
+			cur->addChild(Label::Seed(T_("Private key file")));
 			TextBoxPtr box = cur->addChild(WinUtil::Seeds::Dialog::textBox);
 			items.emplace_back(box, SettingsManager::TLS_PRIVATE_KEY_FILE, PropPage::T_STR);
-			box->setHelpId(IDH_SETTINGS_CERTIFICATES_PRIVATE_KEY_FILE);
 			ButtonPtr button = cur->addChild(dots);
 			button->onClicked([this, box] { handleBrowseFile(box, SettingsManager::TLS_PRIVATE_KEY_FILE); });
-			button->setHelpId(IDH_SETTINGS_CERTIFICATES_PRIVATE_KEY_FILE);
 
-			cur->addChild(Label::Seed(T_("Own certificate file")))->setHelpId(IDH_SETTINGS_CERTIFICATES_CERTIFICATE_FILE);
+			cur->addChild(Label::Seed(T_("Own certificate file")));
 			box = cur->addChild(WinUtil::Seeds::Dialog::textBox);
 			items.emplace_back(box, SettingsManager::TLS_CERTIFICATE_FILE, PropPage::T_STR);
-			box->setHelpId(IDH_SETTINGS_CERTIFICATES_CERTIFICATE_FILE);
 			button = cur->addChild(dots);
 			button->onClicked([this, box] { handleBrowseFile(box, SettingsManager::TLS_CERTIFICATE_FILE); });
-			button->setHelpId(IDH_SETTINGS_CERTIFICATES_CERTIFICATE_FILE);
 
-			cur->addChild(Label::Seed(T_("Trusted certificates path")))->setHelpId(IDH_SETTINGS_CERTIFICATES_TRUSTED_CERTIFICATES_PATH);
+			cur->addChild(Label::Seed(T_("Trusted certificates path")));
 			box = cur->addChild(WinUtil::Seeds::Dialog::textBox);
 			items.emplace_back(box, SettingsManager::TLS_TRUSTED_CERTIFICATES_PATH, PropPage::T_STR);
-			box->setHelpId(IDH_SETTINGS_CERTIFICATES_TRUSTED_CERTIFICATES_PATH);
 			button = cur->addChild(dots);
 			button->onClicked([this, box] { handleBrowseDir(box, SettingsManager::TLS_TRUSTED_CERTIFICATES_PATH); });
-			button->setHelpId(IDH_SETTINGS_CERTIFICATES_TRUSTED_CERTIFICATES_PATH);
 
 			cur = cert->addChild(Grid::Seed(1, 1));
 			cur->column(0).mode = GridInfo::FILL;

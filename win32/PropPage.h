@@ -64,7 +64,6 @@ public:
 	struct ListItem {
 		int setting;
 		const char* desc;
-		unsigned helpId;
 		function<bool ()> readF; // optional function to implement custom reads.
 		function<void (bool)> writeF; // optional function to implement custom writes.
 	};
@@ -93,8 +92,6 @@ protected:
 
 private:
 	virtual dwt::Point getPreferredSize();
-
-	void handleListHelpId(TablePtr list, unsigned& id);
 
 	unordered_map<TablePtr, const ListItem*> lists;
 };

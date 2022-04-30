@@ -86,7 +86,7 @@ int PublicHubsFrame::HubInfo::compareItems(const HubInfo* a, const HubInfo* b, i
 }
 
 PublicHubsFrame::PublicHubsFrame(TabViewPtr parent) :
-BaseType(parent, T_("Public Hubs"), IDH_PUBLIC_HUBS, IDI_PUBLICHUBS, false),
+BaseType(parent, T_("Public Hubs"), IDI_PUBLICHUBS, false),
 grid(0),
 upper(0),
 blacklist(0),
@@ -161,7 +161,6 @@ users(0)
 		gs.caption = T_("F&ilter");
 		GroupBoxPtr group = lower->addChild(gs);
 		lower->setWidget(group, 0, 1);
-		group->setHelpId(IDH_PUBLIC_HUBS_FILTER);
 
 		GridPtr cur = group->addChild(Grid::Seed(1, 3));
 		cur->column(0).mode = GridInfo::FILL;
@@ -179,7 +178,6 @@ users(0)
 		gs.caption = T_("Configured Public Hub Lists");
 		group = lower->addChild(gs);
 		lower->setWidget(group, 0, 2);
-		group->setHelpId(IDH_PUBLIC_HUBS_LISTS);
 
 		listsGrid = group->addChild(Grid::Seed(1, 3));
 		listsGrid->column(0).mode = GridInfo::FILL;
@@ -197,16 +195,11 @@ users(0)
 
 		bs.caption = T_("&Refresh");
 		button = listsGrid->addChild(bs);
-		button->setHelpId(IDH_PUBLIC_HUBS_REFRESH);
 		addWidget(button);
 		button->onClicked([this] { handleRefresh(); });
 	}
 
 	initStatus();
-
-	status->setHelpId(STATUS_STATUS, IDH_PUBLIC_HUBS_STATUS);
-	status->setHelpId(STATUS_HUBS, IDH_PUBLIC_HUBS_HUBS);
-	status->setHelpId(STATUS_USERS, IDH_PUBLIC_HUBS_USERS);
 
 	FavoriteManager::getInstance()->addListener(this);
 	ClientManager::getInstance()->addListener(this);

@@ -134,18 +134,16 @@ bool PrivateFrame::isFavorite(const WindowParams& params) {
 }
 
 PrivateFrame::PrivateFrame(TabViewPtr parent, const HintedUser& replyTo_, const string& logPath) :
-BaseType(parent, _T(""), IDH_PM, IDI_PRIVATE_OFF, false),
+BaseType(parent, _T(""), IDI_PRIVATE_OFF, false),
 replyTo(replyTo_),
 online(false),
 conn(nullptr),
 lastMessageTime(time(NULL))
 {
 	createChat(this);
-	chat->setHelpId(IDH_PM_CHAT);
 	addWidget(chat);
 	chat->onContextMenu([this](const dwt::ScreenCoordinate &sc) { return handleChatContextMenu(sc); });
 
-	message->setHelpId(IDH_PM_MESSAGE);
 	addWidget(message, ALWAYS_FOCUS);
 	message->onKeyDown([this](int c) { return handleMessageKeyDown(c); });
 	message->onSysKeyDown([this](int c) { return handleMessageKeyDown(c); });
@@ -162,9 +160,6 @@ lastMessageTime(time(NULL))
 	}
 
 	status->setToolTip(STATUS_CHANNEL, T_("Current communication channel - click to change"));
-
-	status->setHelpId(STATUS_STATUS, IDH_PM_STATUS);
-	status->setHelpId(STATUS_CHANNEL, IDH_PM_CHANNEL);
 
 	initAccels();
 

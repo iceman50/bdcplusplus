@@ -47,14 +47,11 @@ directories(0),
 rename(0),
 remove(0)
 {
-	setHelpId(IDH_FAVORITE_DIRSPAGE);
-
 	grid->column(0).mode = GridInfo::FILL;
 	grid->row(0).mode = GridInfo::FILL;
 	grid->row(0).align = GridInfo::STRETCH;
 
 	auto group = grid->addChild(GroupBox::Seed(T_("Favorite download directories")));
-	group->setHelpId(IDH_SETTINGS_FAVORITE_DIRS_FAVORITE_DIRECTORIES);
 	GridPtr grid = group->addChild(Grid::Seed(2, 3));
 	grid->column(0).mode = dwt::GridInfo::FILL;
 	grid->column(1).mode = dwt::GridInfo::FILL;
@@ -71,13 +68,10 @@ remove(0)
 
 	ButtonPtr add = grid->addChild(Button::Seed(T_("&Add folder")));
 	add->onClicked([this] { handleAddClicked(); });
-	add->setHelpId(IDH_SETTINGS_FAVORITE_DIRS_ADD);
 	rename = grid->addChild(Button::Seed(T_("Re&name")));
 	rename->onClicked([this] { handleRenameClicked(); });
-	rename->setHelpId(IDH_SETTINGS_FAVORITE_DIRS_RENAME);
 	remove = grid->addChild(Button::Seed(T_("&Remove")));
 	remove->onClicked([this] { handleRemoveClicked(); });
-	remove->setHelpId(IDH_SETTINGS_FAVORITE_DIRS_REMOVE);
 
 	WinUtil::makeColumns(directories, columns, 2);
 

@@ -47,7 +47,6 @@ remove(0),
 unique(ensureUniqueness)
 {
 	onInitDialog([=] { return handleInitDialog(initialValues); });
-	onHelp(&WinUtil::help);
 }
 
 StringListDlg::~StringListDlg() {
@@ -85,20 +84,6 @@ tstring StringListDlg::getEditDescription() const {
 	return T_("Value");
 }
 
-unsigned StringListDlg::getHelpId(HelpFields field) const {
-	switch(field) {
-		case HELP_DIALOG: return IDH_STRING_LIST;
-		case HELP_EDIT_BOX: return IDH_STRING_LIST_EDIT_BOX;
-		case HELP_LIST: return IDH_STRING_LIST_LIST;
-		case HELP_ADD: return IDH_STRING_LIST_ADD;
-		case HELP_MOVE_UP: return IDH_STRING_LIST_MOVE_UP;
-		case HELP_MOVE_DOWN: return IDH_STRING_LIST_MOVE_DOWN;
-		case HELP_EDIT: return IDH_STRING_LIST_EDIT;
-		case HELP_REMOVE: return IDH_STRING_LIST_REMOVE;
-	}
-	return 0;
-}
-
 void StringListDlg::add(const tstring& s) {
 	insert(s);
 }
@@ -110,21 +95,17 @@ void StringListDlg::edit(unsigned row, const tstring& s) {
 }
 
 bool StringListDlg::handleInitDialog(const TStringList& initialValues) {
-	setHelpId(getHelpId(HELP_DIALOG));
-
 	grid = addChild(Grid::Seed(2, 2));
 	grid->column(0).mode = GridInfo::FILL;
 	grid->row(1).mode = GridInfo::FILL;
 	grid->row(1).align = GridInfo::STRETCH;
 
 	editBox = grid->addChild(WinUtil::Seeds::Dialog::textBox);
-	editBox->setHelpId(getHelpId(HELP_EDIT_BOX));
 
 	{
 		Button::Seed seed = Button::Seed(T_("&Add"));
 		seed.menuHandle = reinterpret_cast<HMENU>(IDOK);
 		addBtn = grid->addChild(seed);
-		addBtn->setHelpId(getHelpId(HELP_ADD));
 		addBtn->onClicked([this] { handleAddClicked(); });
 	}
 
@@ -132,7 +113,6 @@ bool StringListDlg::handleInitDialog(const TStringList& initialValues) {
 		Table::Seed seed = WinUtil::Seeds::Dialog::table;
 		seed.style |= LVS_NOCOLUMNHEADER;
 		list = grid->addChild(seed);
-		list->setHelpId(getHelpId(HELP_LIST));
 	}
 
 	{
@@ -144,22 +124,18 @@ bool StringListDlg::handleInitDialog(const TStringList& initialValues) {
 
 		seed.caption = T_("Move &Up");
 		up = cur->addChild(seed);
-		up->setHelpId(getHelpId(HELP_MOVE_UP));
 		up->onClicked([this] { handleMoveUpClicked(); });
 
 		seed.caption = T_("Move &Down");
 		down = cur->addChild(seed);
-		down->setHelpId(getHelpId(HELP_MOVE_DOWN));
 		down->onClicked([this] { handleMoveDownClicked(); });
 
 		seed.caption = T_("&Edit");
 		editBtn = cur->addChild(seed);
-		editBtn->setHelpId(getHelpId(HELP_EDIT));
 		editBtn->onClicked([this] { handleEditClicked(); });
 
 		seed.caption = T_("&Remove");
 		remove = cur->addChild(seed);
-		remove->setHelpId(getHelpId(HELP_REMOVE));
 		remove->onClicked([this] { handleRemoveClicked(); });
 
 		::SetWindowLongPtr(

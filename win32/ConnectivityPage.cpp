@@ -43,15 +43,12 @@ detectNow(0),
 log(0),
 edit(0)
 {
-	setHelpId(IDH_CONNECTIVITYPAGE);
-
 	grid->column(0).mode = GridInfo::FILL;
 	grid->row(0).mode = GridInfo::FILL;
 	grid->row(0).align = GridInfo::STRETCH;
 
 	{
 		auto group = grid->addChild(GroupBox::Seed(T_("Automatic connectivity setup")));
-		group->setHelpId(IDH_SETTINGS_CONNECTIVITY_AUTODETECT);
 
 		auto cur = group->addChild(Grid::Seed(3, 1));
 		cur->column(0).mode = GridInfo::FILL;
@@ -67,11 +64,9 @@ edit(0)
 		autoDetect->onClicked([this] { handleAutoClicked(); });
 
 		detectNow = cur2->addChild(Button::Seed(T_("Detect now")));
-		detectNow->setHelpId(IDH_SETTINGS_CONNECTIVITY_DETECT_NOW);
 		detectNow->onClicked([] { ConnectivityManager::getInstance()->detectConnection(); });
 
 		group = cur->addChild(GroupBox::Seed(T_("Detection log")));
-		group->setHelpId(IDH_SETTINGS_CONNECTIVITY_DETECTION_LOG);
 
 		log = group->addChild(WinUtil::Seeds::Dialog::richTextBox);
 
@@ -80,7 +75,6 @@ edit(0)
 		cur2->column(0).align = GridInfo::BOTTOM_RIGHT;
 
 		edit = cur2->addChild(Button::Seed(T_("Edit detected settings")));
-		edit->setHelpId(IDH_SETTINGS_CONNECTIVITY_EDIT);
 		edit->setImage(WinUtil::buttonIcon(IDI_CONN_GREY));
 		edit->onClicked([this] { handleEdit(); });
 	}

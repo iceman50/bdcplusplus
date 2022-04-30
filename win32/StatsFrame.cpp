@@ -29,7 +29,7 @@ const string StatsFrame::id = "Stats";
 const string& StatsFrame::getId() const { return id; }
 
 StatsFrame::StatsFrame(TabViewPtr parent) :
-	BaseType(parent, T_("Network Statistics"), IDH_NET_STATS, IDI_NET_STATS),
+	BaseType(parent, T_("Network Statistics"), IDI_NET_STATS),
 	pen(new dwt::Pen(WinUtil::textColor)),
 	upPen(new dwt::Pen(SETTING(UPLOAD_BG_COLOR))),
 	downPen(new dwt::Pen(SETTING(DOWNLOAD_BG_COLOR))),

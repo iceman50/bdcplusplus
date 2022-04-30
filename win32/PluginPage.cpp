@@ -59,8 +59,6 @@ moveDown(0),
 remove(0),
 pluginInfo(0)
 {
-	setHelpId(IDH_PLUGINPAGE);
-
 	grid->column(0).mode = GridInfo::FILL;
 	grid->row(0).mode = GridInfo::FILL;
 	grid->row(0).align = GridInfo::STRETCH;
@@ -75,7 +73,6 @@ pluginInfo(0)
 		cur->column(0).mode = GridInfo::FILL;
 		cur->row(0).mode = GridInfo::FILL;
 		cur->row(0).align = GridInfo::STRETCH;
-		cur->setHelpId(IDH_SETTINGS_PLUGINS_LIST);
 		cur->setSpacing(6);
 
 		auto seed = WinUtil::Seeds::Dialog::table;
@@ -93,40 +90,32 @@ pluginInfo(0)
 
 			add = buttons->addChild(Button::Seed(T_("&Add")));
 			add->onClicked([this] { handleAddPlugin(); });
-			add->setHelpId(IDH_SETTINGS_PLUGINS_ADD);
 
 			configure = buttons->addChild(Button::Seed(T_("&Configure")));
 			configure->onClicked([this] { handleConfigurePlugin(); });
-			configure->setHelpId(IDH_SETTINGS_PLUGINS_CONFIGURE);
 
 			enable = buttons->addChild(Button::Seed(T_("Enable")));
 			enable->onClicked([this] { handleEnable(); });
-			enable->setHelpId(IDH_SETTINGS_PLUGINS_ENABLE);
 
 			disable = buttons->addChild(Button::Seed(T_("Disable")));
 			disable->onClicked([this] { handleDisable(); });
-			disable->setHelpId(IDH_SETTINGS_PLUGINS_DISABLE);
 
 			moveUp = buttons->addChild(Button::Seed(T_("Move &Up")));
 			moveUp->onClicked([this] { handleMovePluginUp(); });
-			moveUp->setHelpId(IDH_SETTINGS_PLUGINS_MOVE_UP);
 			buttons->setWidget(moveUp, 1, 1);
 
 			moveDown = buttons->addChild(Button::Seed(T_("Move &Down")));
 			moveDown->onClicked([this] { handleMovePluginDown(); });
-			moveDown->setHelpId(IDH_SETTINGS_PLUGINS_MOVE_DOWN);
 			buttons->setWidget(moveDown, 1, 2);
 
 			remove = buttons->addChild(Button::Seed(T_("&Remove")));
 			remove->onClicked([this] { handleRemovePlugin(); });
-			remove->setHelpId(IDH_SETTINGS_PLUGINS_REMOVE);
 			buttons->setWidget(remove, 1, 3);
 		}
 	}
 
 	{
 		auto group = grid->addChild(GroupBox::Seed(T_("Plugin information")));
-		group->setHelpId(IDH_SETTINGS_PLUGINS_INFO);
 		pluginInfo = group->addChild(Grid::Seed(1, 1));
 		pluginInfo->column(0).mode = GridInfo::FILL;
 		pluginInfo->setSpacing(grid->getSpacing());

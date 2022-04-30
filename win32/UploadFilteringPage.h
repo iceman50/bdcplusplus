@@ -49,7 +49,7 @@ private:
 	ButtonPtr modifyExtensionsButton;
 	ButtonPtr modifyPathsButton;
 
-	void addItem(dwt::Grid* parent, dwt::Control*& control, const tstring& text, int setting, PropPage::Type t, unsigned helpId, const tstring& text2 = _T(""));
+	void addItem(dwt::Grid* parent, dwt::Control*& control, const tstring& text, int setting, PropPage::Type t, const tstring& text2 = _T(""));
 
 	void handleModButtonClicked(const tstring& strName, TextBoxPtr textBox );
 	void handleModButtonClicked(const tstring& strDialogName, const tstring& strTitle, const tstring& strDescription, const tstring& strEditTitle, TextBoxPtr textBox );

@@ -36,17 +36,17 @@ using dwt::Label;
 using dwt::Spinner;
 
 PropPage::ListItem AppearancePage::listItems[] = {
-	{ SettingsManager::MINIMIZE_TRAY, N_("Minimize to tray"), IDH_SETTINGS_APPEARANCE_MINIMIZE_TRAY },
-	{ SettingsManager::ALWAYS_TRAY, N_("Always display tray icon"), IDH_SETTINGS_APPEARANCE_ALWAYS_TRAY },
-	{ SettingsManager::TIME_STAMPS, N_("Show timestamps in chat by default"), IDH_SETTINGS_APPEARANCE_TIME_STAMPS },
-	{ SettingsManager::STATUS_IN_CHAT, N_("View status messages in chat"), IDH_SETTINGS_APPEARANCE_STATUS_IN_CHAT },
-	{ SettingsManager::FILTER_MESSAGES, N_("Filter spam messages"), IDH_SETTINGS_APPEARANCE_FILTER_MESSAGES },
-	{ SettingsManager::SHOW_JOINS, N_("Show joins / parts in chat by default"), IDH_SETTINGS_APPEARANCE_SHOW_JOINS },
-	{ SettingsManager::FAV_SHOW_JOINS, N_("Only show joins / parts for favorite users"), IDH_SETTINGS_APPEARANCE_FAV_SHOW_JOINS },
-	{ SettingsManager::SORT_FAVUSERS_FIRST, N_("Sort favorite users first"), IDH_SETTINGS_APPEARANCE_SORT_FAVUSERS_FIRST },
-	{ SettingsManager::GET_USER_COUNTRY, N_("Guess user country from IP"), IDH_SETTINGS_APPEARANCE_GET_USER_COUNTRY },
-	{ SettingsManager::GEO_CITY, N_("City-level geolocation database (allows parameters such as %[city])"), IDH_SETTINGS_APPEARANCE_GEO_CITY },
-	{ SettingsManager::GEO_REGION, N_("Region name geolocation database (allows %[region])"), IDH_SETTINGS_APPEARANCE_GEO_REGION },
+	{ SettingsManager::MINIMIZE_TRAY, N_("Minimize to tray") },
+	{ SettingsManager::ALWAYS_TRAY, N_("Always display tray icon") },
+	{ SettingsManager::TIME_STAMPS, N_("Show timestamps in chat by default") },
+	{ SettingsManager::STATUS_IN_CHAT, N_("View status messages in chat") },
+	{ SettingsManager::FILTER_MESSAGES, N_("Filter spam messages") },
+	{ SettingsManager::SHOW_JOINS, N_("Show joins / parts in chat by default") },
+	{ SettingsManager::FAV_SHOW_JOINS, N_("Only show joins / parts for favorite users") },
+	{ SettingsManager::SORT_FAVUSERS_FIRST, N_("Sort favorite users first") },
+	{ SettingsManager::GET_USER_COUNTRY, N_("Guess user country from IP") },
+	{ SettingsManager::GEO_CITY, N_("City-level geolocation database (allows parameters such as %[city])") },
+	{ SettingsManager::GEO_REGION, N_("Region name geolocation database (allows %[region])") },
 	{ 0, 0 }
 };
 
@@ -55,8 +55,6 @@ PropPage(parent, 5, 1),
 options(0),
 languages(0)
 {
-	setHelpId(IDH_APPEARANCEPAGE);
-
 	grid->column(0).mode = GridInfo::FILL;
 	grid->row(0).mode = GridInfo::FILL;
 	grid->row(0).align = GridInfo::STRETCH;
@@ -68,19 +66,14 @@ languages(0)
 		cur->setSpacing(grid->getSpacing());
 
 		auto group = cur->addChild(GroupBox::Seed(T_("Timestamp format")));
-		group->setHelpId(IDH_SETTINGS_APPEARANCE_TIMESTAMP_FORMAT);
-
 		items.emplace_back(group->addChild(WinUtil::Seeds::Dialog::textBox), SettingsManager::TIME_STAMPS_FORMAT, PropPage::T_STR);
 
 		group = cur->addChild(GroupBox::Seed(T_("Country format")));
-		group->setHelpId(IDH_SETTINGS_APPEARANCE_COUNTRY_FORMAT);
-
 		items.emplace_back(group->addChild(WinUtil::Seeds::Dialog::textBox), SettingsManager::COUNTRY_FORMAT, PropPage::T_STR);
 	}
 
 	{
 		auto group = grid->addChild(GroupBox::Seed(T_("Height of the message editing box")));
-		group->setHelpId(IDH_SETTINGS_APPEARANCE_MESSAGE_LINES);
 
 		auto cur = group->addChild(Grid::Seed(1, 5));
 		cur->column(1).size = 40;
@@ -107,14 +100,10 @@ languages(0)
 
 	{
 		auto group = grid->addChild(GroupBox::Seed(T_("Language")));
-		group->setHelpId(IDH_SETTINGS_APPEARANCE_LANGUAGE);
-
 		languages = group->addChild(WinUtil::Seeds::Dialog::comboBox);
-		languages->setHelpId(IDH_SETTINGS_APPEARANCE_LANGUAGE);
 	}
 
 	auto label = grid->addChild(Label::Seed(T_("Note: some of these options require that you restart DC++")));
-	label->setHelpId(IDH_SETTINGS_APPEARANCE_REQUIRES_RESTART);
 
 	PropPage::read(items);
 	PropPage::read(listItems, options);

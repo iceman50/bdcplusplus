@@ -59,28 +59,6 @@
 #include "PrivateFrame.h"
 #include "ACFrame.h"
 
-#ifdef HAVE_HTMLHELP_H
-#include <htmlhelp.h>
-
-#ifndef _MSC_VER
-// HTML Help libs from recent MS SDKs are compiled with /GS, so link in the following.
-#ifdef _WIN64
-#define HH_GS_CALL __cdecl
-#else
-#define HH_GS_CALL __fastcall
-#endif
-extern "C" {
-	void HH_GS_CALL __GSHandlerCheck() { }
-	void HH_GS_CALL __security_check_cookie(uintptr_t) { }
-#ifdef HAVE_OLD_MINGW
-	uintptr_t __security_cookie;
-#endif
-}
-#undef HH_GS_CALL
-#endif
-
-#endif
-
 using dwt::Container;
 using dwt::Grid;
 using dwt::GridInfo;
@@ -112,9 +90,6 @@ MainWindow* WinUtil::mainWindow = 0;
 bool WinUtil::urlDcADCRegistered = false;
 bool WinUtil::urlMagnetRegistered = false;
 bool WinUtil::dcextRegistered = false;
-DWORD WinUtil::helpCookie = 0;
-tstring WinUtil::helpPath;
-StringList WinUtil::helpTexts;
 
 const Button::Seed WinUtil::Seeds::button;
 const ComboBox::Seed WinUtil::Seeds::comboBox;
@@ -233,21 +208,6 @@ void WinUtil::init() {
 	registerHubHandlers();
 	registerMagnetHandler();
 	registerDcextHandler();
-
-	initHelpPath();
-
-	if(!helpPath.empty()) {
-		// load up context-sensitive help texts
-		try {
-			helpTexts = StringTokenizer<string> (File(Util::getFilePath(Text::fromT(helpPath)) + "cshelp.rtf",
-				File::READ, File::OPEN).read(), "\r\n").getTokens();
-		} catch (const FileException&) {
-		}
-	}
-
-#ifdef HAVE_HTMLHELP_H
-	::HtmlHelp(NULL, NULL, HH_INITIALIZE, reinterpret_cast<DWORD_PTR> (&helpCookie));
-#endif
 }
 
 void WinUtil::initSeeds() {
@@ -334,40 +294,8 @@ void WinUtil::initSeeds() {
 	xdRichTextBox.menuSeed = Seeds::menu;
 }
 
-void WinUtil::initHelpPath() {
-	// find the current locale
-	auto lang = Util::getIETFLang();
-
-	// find the path to the help file
-	string path;
-	if(lang != "en" && lang != "en-US") {
-		while(true) {
-			path = Util::getPath(Util::PATH_LOCALE) + lang
-				+ PATH_SEPARATOR_STR "help" PATH_SEPARATOR_STR "DCPlusPlus.chm";
-			if(File::getSize(path) != -1)
-				break;
-			// if the lang has extra information, try to remove it
-			string::size_type pos = lang.rfind('-');
-			if(pos == string::npos)
-				break;
-			lang = lang.substr(0, pos);
-		}
-	}
-	if(path.empty() || File::getSize(path) == -1) {
-		path = Util::getPath(Util::PATH_RESOURCES) + "DCPlusPlus.chm";
-		if(File::getSize(path) == -1) {
-			/// @todo also check that the file is up-to-date
-			/// @todo alert the user that the help file isn't found/up-to-date
-			return;
-		}
-	}
-	helpPath = Text::toT(path);
-}
-
 void WinUtil::uninit() {
-#ifdef HAVE_HTMLHELP_H
-	::HtmlHelp(NULL, NULL, HH_UNINITIALIZE, helpCookie);
-#endif
+
 }
 
 void WinUtil::initFont() {
@@ -960,171 +888,6 @@ bool WinUtil::getUCParams(dwt::Widget* parent, const UserCommand& uc, ParamMap& 
 	return false;
 }
 
-dwt::Control* helpPopup = nullptr; // only have 1 help popup at any given time.
-
-/** Display a help popup.
-Help popups display RTF text within a Rich Edit control. They visually look similar to a regular
-tooltip, but with a yellow background and thicker borders.
-@tparam tooltip Whether this help popup should act as an inactive tooltip that doesn't receive
-input but closes itself once its timer runs out. */
-template<bool tooltip>
-class HelpPopup : private RichTextBox {
-	typedef HelpPopup<tooltip> ThisType;
-	typedef RichTextBox BaseType;
-
-public:
-	HelpPopup(dwt::Widget* parent, const tstring& text, const dwt::Point& pos = dwt::Point(), bool multiline = false) :
-		BaseType(parent)
-	{
-		// create the box as an invisible popup window.
-		auto seed = WinUtil::Seeds::richTextBox;
-		seed.style = WS_POPUP | ES_READONLY;
-		if(multiline)
-			seed.style |= ES_MULTILINE;
-		seed.exStyle = WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE | WS_EX_CLIENTEDGE;
-		seed.location.size.x = std::min(getParent()->getDesktopSize().width(), static_cast<long>(maxWidth * dwt::util::dpiFactor()));
-		seed.location.size.y = 1; // so that Rich Edit 8 sends EN_REQUESTRESIZE
-		seed.events |= ENM_REQUESTRESIZE;
-		create(seed);
-
-		const auto margins = sendMessage(EM_GETMARGINS);
-		sendMessage(EM_SETMARGINS, EC_LEFTMARGIN | EC_RIGHTMARGIN, MAKELONG(LOWORD(margins) + margin, HIWORD(margins) + margin));
-
-		// let the control figure out what the best size is.
-		onRaw([this, text, pos](WPARAM, LPARAM l) { return this->resize(l, text, pos); }, dwt::Message(WM_NOTIFY, EN_REQUESTRESIZE));
-		setText(text);
-	}
-
-private:
-	LRESULT resize(LPARAM lParam, const tstring& text, dwt::Point pos) {
-		dwt::Rectangle rect { reinterpret_cast<REQRESIZE*>(lParam)->rc };
-
-		if(rect.width() > getWindowRect().width() && !hasStyle(ES_MULTILINE)) {
-			// can't add ES_MULTILINE at run time, so create the control again.
-			new ThisType(getParent(), text, pos, true);
-			close();
-			return 0;
-		}
-
-		// ok, ready to show the popup! make sure there's only 1 at any given time.
-		if(helpPopup) {
-			helpPopup->close();
-		}
-		helpPopup = this;
-		onDestroy([this] { if(this == helpPopup) helpPopup = nullptr; });
-
-		// where to position the popup.
-		if(!tooltip) {
-			if(isAnyKeyPressed()) {
-				auto rect = getParent()->getWindowRect();
-				pos.x = rect.left() + rect.width() / 2;
-				pos.y = rect.bottom() + margin;
-			} else {
-				pos = dwt::Point::fromLParam(::GetMessagePos());
-			}
-		}
-
-		// adjust the size to account for borders and margins.
-		rect.pos = pos;
-		rect.size.x += ::GetSystemMetrics(SM_CXEDGE) * 2;
-		rect.size.y += ::GetSystemMetrics(SM_CYEDGE) * 2 + margin;
-
-		// make sure the window fits in within the desktop of the parent widget.
-		rect.ensureVisibility(getParent());
-
-		setColor(dwt::Color::predefined(COLOR_INFOTEXT), dwt::Color::predefined(COLOR_INFOBK));
-
-		if(tooltip) {
-			// this help popup acts as a tooltip; it will close by itself.
-			onMouseMove([this](const dwt::MouseEvent&) { return this->close(); });
-
-		} else {
-			// capture the mouse.
-			onLeftMouseDown([this](const dwt::MouseEvent&) { return this->close(); });
-			::SetCapture(handle());
-			onDestroy([] { ::ReleaseCapture(); });
-
-			// capture the keyboard.
-			auto focus = dwt::hwnd_cast<dwt::Widget*>(::GetFocus());
-			if(focus) {
-				auto cb1 = focus->addCallback(dwt::Message(WM_KEYDOWN), [this](const MSG&, LRESULT&) { return this->close(); });
-				auto cb2 = focus->addCallback(dwt::Message(WM_HELP), [this](const MSG&, LRESULT&) { return this->close(); });
-				onDestroy([this, focus, cb1, cb2] {
-					auto cb1_ = cb1; focus->clearCallback(dwt::Message(WM_KEYDOWN), cb1_);
-					auto cb2_ = cb2; focus->clearCallback(dwt::Message(WM_HELP), cb2_);
-				});
-			}
-		}
-
-		// go live!
-		::SetWindowPos(handle(), 0, rect.left(), rect.top(), rect.width(), rect.height(),
-			SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_SHOWWINDOW);
-
-		return 0;
-	}
-
-	bool close() {
-		BaseType::close(true);
-		return true;
-	}
-
-	static const long margin = 6;
-	static const long maxWidth = 400;
-};
-
-void WinUtil::help(dwt::Control* widget) {
-	helpId(widget, widget->getHelpId());
-}
-
-void WinUtil::helpId(dwt::Control* widget, unsigned id) {
-	if(id >= IDH_CSHELP_BEGIN && id <= IDH_CSHELP_END) {
-		// context-sensitive help
-		new HelpPopup<false>(widget, Text::toT(getHelpText(id).second));
-
-	} else {
-#ifdef HAVE_HTMLHELP_H
-		if(id < IDH_BEGIN || id > IDH_END)
-			id = IDH_INDEX;
-		::HtmlHelp(widget->handle(), helpPath.c_str(), HH_HELP_CONTEXT, id);
-#endif
-	}
-}
-
-void WinUtil::helpTooltip(dwt::Control* widget, const dwt::Point& pos) {
-	killHelpTooltip();
-
-	auto id = widget->getHelpId();
-	if(id >= IDH_CSHELP_BEGIN && id <= IDH_CSHELP_END) {
-		// context-sensitive help
-		auto text = getHelpText(id);
-		if(text.first) {
-			new HelpPopup<true>(widget, Text::toT(text.second), pos);
-		}
-	}
-}
-
-void WinUtil::killHelpTooltip() {
-	if(helpPopup) {
-		helpPopup->close();
-		helpPopup = nullptr;
-	}
-}
-
-pair<bool, string> WinUtil::getHelpText(unsigned id) {
-	if(id >= IDH_CSHELP_BEGIN) {
-		id -= IDH_CSHELP_BEGIN;
-
-		if(id < helpTexts.size()) {
-			const auto& ret = helpTexts[id];
-			if(!ret.empty()) {
-				return make_pair(true, ret);
-			}
-		}
-	}
-
-	return make_pair(false, _("No help information available"));
-}
-
 void WinUtil::toInts(const string& str, std::vector<int>& array) {
 	StringTokenizer<string> t(str, _T(','));
 	StringList& l = t.getTokens();
@@ -1142,7 +905,6 @@ pair<ButtonPtr, ButtonPtr> WinUtil::addDlgButtons(GridPtr grid) {
 	seed.menuHandle = reinterpret_cast<HMENU> (IDOK);
 	seed.padding.x = 20;
 	ButtonPtr ok = grid->addChild(seed);
-	ok->setHelpId(IDH_DCPP_OK);
 	ok->setImage(buttonIcon(IDI_OK));
 
 	seed.caption = T_("Cancel");
@@ -1150,19 +912,9 @@ pair<ButtonPtr, ButtonPtr> WinUtil::addDlgButtons(GridPtr grid) {
 	seed.menuHandle = reinterpret_cast<HMENU> (IDCANCEL);
 	seed.padding.x = 10;
 	ButtonPtr cancel = grid->addChild(seed);
-	cancel->setHelpId(IDH_DCPP_CANCEL);
 	cancel->setImage(buttonIcon(IDI_CANCEL));
 
 	return make_pair(ok, cancel);
-}
-
-ButtonPtr WinUtil::addHelpButton(GridPtr grid) {
-	Button::Seed seed(T_("Help"));
-	seed.padding.x = 10;
-	ButtonPtr button = grid->addChild(seed);
-	button->setHelpId(IDH_DCPP_HELP);
-	button->setImage(buttonIcon(IDI_HELP));
-	return button;
 }
 
 void WinUtil::addSearchIcon(TextBoxPtr box) {

@@ -69,8 +69,6 @@ private:
 
 	GridPtr grid;
 	TreePtr tree;
-	RichTextBoxPtr help;
-	ToolTipPtr tip;
 
 	void updateTitle();
 	void write();
@@ -79,14 +77,12 @@ private:
 
 	bool initDialog();
 	static BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lParam);
-	void handleChildHelp(dwt::Control* widget);
+
 	bool handleClosing();
 	void handleSelectionChanged();
 	void handleOKClicked();
 	void handleCtrlTab(bool shift);
 
-	// aspects::Help
-	void helpImpl(unsigned& id);
 };
 
 #endif

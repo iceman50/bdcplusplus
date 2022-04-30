@@ -58,7 +58,6 @@ logMainChat(0),
 parentEntry(parentEntry_)
 {
 	onInitDialog([this] { return handleInitDialog(); });
-	onHelp(&WinUtil::help);
 }
 
 FavHubGroupsDlg::~FavHubGroupsDlg() {
@@ -82,32 +81,26 @@ int FavHubGroupsDlg::GroupInfo::compareItems(const GroupInfo* a, const GroupInfo
 }
 
 bool FavHubGroupsDlg::handleInitDialog() {
-	setHelpId(IDH_FAV_HUB_GROUPS);
-
 	grid = addChild(Grid::Seed(4, 1));
 	grid->column(0).mode = GridInfo::FILL;
 	grid->row(0).mode = GridInfo::FILL;
 	grid->row(0).align = GridInfo::STRETCH;
 
 	groups = grid->addChild(Groups::Seed(WinUtil::Seeds::Dialog::table));
-	groups->setHelpId(IDH_FAV_HUB_GROUPS_LIST);
 
 	{
 		auto cur = grid->addChild(Grid::Seed(1, 3));
 
 		Button::Seed seed(T_("&Add"));
 		auto add = cur->addChild(seed);
-		add->setHelpId(IDH_FAV_HUB_GROUPS_ADD);
 		add->onClicked([this] { handleAdd(); });
 
 		seed.caption = T_("&Update");
 		update = cur->addChild(seed);
-		update->setHelpId(IDH_FAV_HUB_GROUPS_UPDATE);
 		update->onClicked([this] { handleUpdate(); });
 
 		seed.caption = T_("&Remove");
 		remove = cur->addChild(seed);
-		remove->setHelpId(IDH_FAV_HUB_GROUPS_REMOVE);
 		remove->onClicked([this] { handleRemove(); });
 	}
 
@@ -119,7 +112,6 @@ bool FavHubGroupsDlg::handleInitDialog() {
 		{
 			auto cur2 = cur->addChild(Grid::Seed(1, 2));
 			cur2->column(1).mode = GridInfo::FILL;
-			cur2->setHelpId(IDH_FAV_HUB_GROUPS_NAME);
 
 			cur2->addChild(Label::Seed(T_("Name")));
 
@@ -133,27 +125,22 @@ bool FavHubGroupsDlg::handleInitDialog() {
 			cur2->column(0).align = GridInfo::BOTTOM_RIGHT;
 			cur2->column(1).mode = GridInfo::FILL;
 
-			cur2->addChild(Label::Seed(T_("Nick")))->setHelpId(IDH_FAVORITE_HUB_NICK);
+			cur2->addChild(Label::Seed(T_("Nick")));
 			nick = cur2->addChild(WinUtil::Seeds::Dialog::textBox);
-			nick->setHelpId(IDH_FAVORITE_HUB_NICK);
 			WinUtil::preventSpaces(nick);
 
-			cur2->addChild(Label::Seed(T_("Description")))->setHelpId(IDH_FAVORITE_HUB_USER_DESC);
+			cur2->addChild(Label::Seed(T_("Description")));
 			description = cur2->addChild(WinUtil::Seeds::Dialog::textBox);
-			description->setHelpId(IDH_FAVORITE_HUB_USER_DESC);
 
-			cur2->addChild(Label::Seed(T_("Email")))->setHelpId(IDH_FAVORITE_HUB_EMAIL);
+			cur2->addChild(Label::Seed(T_("Email")));
 			email = cur2->addChild(WinUtil::Seeds::Dialog::textBox);
-			email->setHelpId(IDH_FAVORITE_HUB_EMAIL);
 
-			cur2->addChild(Label::Seed(T_("IPv4")))->setHelpId(IDH_FAVORITE_HUB_USER_IP);
+			cur2->addChild(Label::Seed(T_("IPv4")));
 			userIp = cur2->addChild(WinUtil::Seeds::Dialog::textBox);
-			userIp->setHelpId(IDH_FAVORITE_HUB_USER_IP);
 			WinUtil::preventSpaces(userIp);
 
-			cur2->addChild(Label::Seed(T_("IPv6")))->setHelpId(IDH_FAVORITE_HUB_USER_IP6);
+			cur2->addChild(Label::Seed(T_("IPv6")));
 			userIp6 = cur2->addChild(WinUtil::Seeds::Dialog::textBox);
-			userIp6->setHelpId(IDH_FAVORITE_HUB_USER_IP6);
 			WinUtil::preventSpaces(userIp6);
 		}
 

@@ -32,7 +32,6 @@ private:
 	tstring getTitle() const;
 	tstring getEditTitle() const;
 	tstring getEditDescription() const;
-	unsigned getHelpId(HelpFields field) const;
 	void add(const tstring& s);
 	void edit(unsigned row, const tstring& s);
 

@@ -55,15 +55,12 @@ total(0),
 rename(0),
 remove(0)
 {
-	setHelpId(IDH_UPLOADPAGE);
-
 	grid->column(0).mode = GridInfo::FILL;
 	grid->row(0).mode = GridInfo::FILL;
 	grid->row(0).align = GridInfo::STRETCH;
 
 	{
 		auto group = grid->addChild(GroupBox::Seed(T_("Shared directories")));
-		group->setHelpId(IDH_SETTINGS_UPLOAD_DIRECTORIES);
 
 		auto cur = group->addChild(Grid::Seed(4, 1));
 		cur->column(0).mode = GridInfo::FILL;
@@ -102,39 +99,33 @@ remove(0)
 		cur->column(1).size = 40;
 		cur->column(1).mode = GridInfo::STATIC;
 
-		cur->addChild(Label::Seed(T_("Upload slots")))->setHelpId(IDH_SETTINGS_UPLOAD_SLOTS);
+		cur->addChild(Label::Seed(T_("Upload slots")));
 
 		TextBoxPtr box = cur->addChild(WinUtil::Seeds::Dialog::intTextBox);
 		items.emplace_back(box, SettingsManager::SLOTS_PRIMARY, PropPage::T_INT_WITH_SPIN);
-		box->setHelpId(IDH_SETTINGS_UPLOAD_SLOTS);
 
 		auto spin = cur->addChild(Spinner::Seed(1, UD_MAXVAL, box));
 		cur->setWidget(spin);
-		spin->setHelpId(IDH_SETTINGS_UPLOAD_SLOTS);
 
 		cur->addChild(Label::Seed(tstring()));
 
-		cur->addChild(Label::Seed(T_("Automatically open an extra slot if speed is below (0 = disable)")))->setHelpId(IDH_SETTINGS_UPLOAD_MIN_UPLOAD_SPEED);
+		cur->addChild(Label::Seed(T_("Automatically open an extra slot if speed is below (0 = disable)")));
 
 		box = cur->addChild(WinUtil::Seeds::Dialog::intTextBox);
 		items.emplace_back(box, SettingsManager::MIN_UPLOAD_SPEED, PropPage::T_INT_WITH_SPIN);
-		box->setHelpId(IDH_SETTINGS_UPLOAD_MIN_UPLOAD_SPEED);
 
 		spin = cur->addChild(Spinner::Seed(0, UD_MAXVAL, box));
 		cur->setWidget(spin);
-		spin->setHelpId(IDH_SETTINGS_UPLOAD_MIN_UPLOAD_SPEED);
 
-		cur->addChild(Label::Seed(T_("KiB/s")))->setHelpId(IDH_SETTINGS_UPLOAD_MIN_UPLOAD_SPEED);
+		cur->addChild(Label::Seed(T_("KiB/s")));
 
-		cur->addChild(Label::Seed(T_("Max extra upload slots")))->setHelpId(IDH_SETTINGS_MAX_EXTRA_UPLOAD_SLOTS);
+		cur->addChild(Label::Seed(T_("Max extra upload slots")));
 
 		box = cur->addChild(WinUtil::Seeds::Dialog::intTextBox);
 		items.emplace_back(box, SettingsManager::MAX_EXTRA_SLOTS, PropPage::T_INT_WITH_SPIN);
-		box->setHelpId(IDH_SETTINGS_MAX_EXTRA_UPLOAD_SLOTS);
 
 		spin = cur->addChild(Spinner::Seed(1, UD_MAXVAL, box));
 		cur->setWidget(spin);
-		spin->setHelpId(IDH_SETTINGS_MAX_EXTRA_UPLOAD_SLOTS);
 
 		cur->addChild(Label::Seed(tstring()));
 	}

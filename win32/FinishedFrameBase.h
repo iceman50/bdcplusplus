@@ -67,8 +67,8 @@ protected:
 	friend class StaticFrame<T>;
 	friend class MDIChildFrame<T>;
 
-	FinishedFrameBase(TabViewPtr parent, const tstring& title, unsigned helpId, unsigned resourceId) :
-		BaseType(parent, title, helpId, resourceId),
+	FinishedFrameBase(TabViewPtr parent, const tstring& title, unsigned resourceId) :
+		BaseType(parent, title, resourceId),
 		tabs(0),
 		files(0),
 		filesWindow(0),
@@ -90,14 +90,12 @@ protected:
 			cs.caption = T_("Grouped by files");
 			cs.location = tabs->getClientSize();
 			filesWindow = dwt::WidgetCreator<dwt::Container>::create(tabs, cs);
-			filesWindow->setHelpId(in_UL ? IDH_FINISHED_UL : IDH_FINISHED_DL);
 			filesWindow->onClosing(&noClose);
 			tabs->add(filesWindow, WinUtil::tabIcon(IDI_GROUPED_BY_FILES));
 
 			cs.style &= ~WS_VISIBLE;
 			cs.caption = T_("Grouped by users");
 			usersWindow = dwt::WidgetCreator<dwt::Container>::create(tabs, cs);
-			usersWindow->setHelpId(in_UL ? IDH_FINISHED_UL : IDH_FINISHED_DL);
 			usersWindow->onClosing(&noClose);
 			tabs->add(usersWindow, WinUtil::tabIcon(IDI_GROUPED_BY_USERS));
 		}
@@ -145,7 +143,6 @@ protected:
 				CheckBox::Seed seed = WinUtil::Seeds::checkBox;
 				seed.caption = T_("Only show fully downloaded files");
 				onlyFull = this->addChild(seed);
-				onlyFull->setHelpId(IDH_FINISHED_DL_ONLY_FULL);
 				onlyFull->setChecked(bOnlyFull);
 				onlyFull->onClicked([this] { this->handleOnlyFullClicked(); });
 				this->status->setWidget(STATUS_ONLY_FULL, onlyFull);
@@ -158,10 +155,6 @@ protected:
 			WinUtil::openFile(Text::toT(Util::validateFileName(LogManager::getInstance()->getPath(
 				in_UL ? LogManager::UPLOAD : LogManager::DOWNLOAD))));
 		});
-
-		this->status->setHelpId(STATUS_COUNT, in_UL ? IDH_FINISHED_UL_COUNT : IDH_FINISHED_DL_COUNT);
-		this->status->setHelpId(STATUS_BYTES, in_UL ? IDH_FINISHED_UL_BYTES : IDH_FINISHED_DL_BYTES);
-		this->status->setHelpId(STATUS_SPEED, in_UL ? IDH_FINISHED_UL_SPEED : IDH_FINISHED_DL_SPEED);
 
 		layout();
 

@@ -51,8 +51,6 @@ modifyRegExButton(0),
 modifyExtensionsButton(0),
 modifyPathsButton(0)
 {
-	setHelpId(IDH_UPLOADFILTERINGPAGE);
-
 	grid->column(0).mode = GridInfo::FILL;
 
 	{
@@ -61,7 +59,6 @@ modifyPathsButton(0)
 		// dummy grid so that the check-box doesn't fill the whole row.
 		shareHiddenCheckBox = optionsGroup->addChild(Grid::Seed(1, 1))->addChild(CheckBox::Seed(T_("Share hidden files")));
 		items.emplace_back(shareHiddenCheckBox, SettingsManager::SHARE_HIDDEN, PropPage::T_BOOL);
-		shareHiddenCheckBox->setHelpId(IDH_SETTINGS_UPLOAD_SHAREHIDDEN);
 	}
 
 	{
@@ -73,12 +70,12 @@ modifyPathsButton(0)
 
 		{
 			dwt::Control* ctrl;
-			addItem(fileSizeGrid, ctrl, T_("Above (minimum size)"), SettingsManager::SHARING_SKIPLIST_MINSIZE, PropPage::T_INT64, IDH_SETTINGS_UPLOAD_SKIPLIST_MINSIZE, T_("B"));
+			addItem(fileSizeGrid, ctrl, T_("Above (minimum size)"), SettingsManager::SHARING_SKIPLIST_MINSIZE, PropPage::T_INT64, T_("B"));
 			minSizeControl = dynamic_cast<TextBoxPtr>(ctrl);
 		}
 		{
 			dwt::Control* ctrl;
-			addItem(fileSizeGrid, ctrl, T_("Below (maximum size)"), SettingsManager::SHARING_SKIPLIST_MAXSIZE, PropPage::T_INT64, IDH_SETTINGS_UPLOAD_SKIPLIST_MAXSIZE, T_("B"));
+			addItem(fileSizeGrid, ctrl, T_("Below (maximum size)"), SettingsManager::SHARING_SKIPLIST_MAXSIZE, PropPage::T_INT64, T_("B"));
 			maxSizeControl = dynamic_cast<TextBoxPtr>(ctrl);
 		}
 	}
@@ -91,7 +88,6 @@ modifyPathsButton(0)
 
 		regexTextBox = regexGrid->addChild(WinUtil::Seeds::Dialog::textBox);
 		items.emplace_back(regexTextBox, SettingsManager::SHARING_SKIPLIST_REGEX, PropPage::T_STR);
-		regexTextBox->setHelpId(IDH_SETTINGS_UPLOAD_SKIPLIST_REGEX);
 
 		modifyRegExButton = regexGrid->addChild(Button::Seed(T_("M&odify")));
 		modifyRegExButton->onClicked([this] { handleModButtonClicked(T_("Regular expressions"), regexTextBox); });
@@ -107,7 +103,6 @@ modifyPathsButton(0)
 
 		extensionsTextBox = extensionsGrid->addChild(WinUtil::Seeds::Dialog::textBox);
 		items.emplace_back(extensionsTextBox, SettingsManager::SHARING_SKIPLIST_EXTENSIONS, PropPage::T_STR);
-		extensionsTextBox->setHelpId(IDH_SETTINGS_UPLOAD_SKIPLIST_EXTENSIONS);
 
 		modifyExtensionsButton = extensionsGrid->addChild(Button::Seed(T_("M&odify")));
 		modifyExtensionsButton->onClicked([this] { handleModButtonClicked(T_("File extensions"), extensionsTextBox); });
@@ -123,7 +118,6 @@ modifyPathsButton(0)
 
 		pathsTextBox = pathsGrid->addChild(WinUtil::Seeds::Dialog::textBox);
 		items.emplace_back(pathsTextBox, SettingsManager::SHARING_SKIPLIST_PATHS, PropPage::T_STR);
-		pathsTextBox->setHelpId(IDH_SETTINGS_UPLOAD_SKIPLIST_PATHS);
 
 		modifyPathsButton = pathsGrid->addChild(Button::Seed(T_("M&odify")));
 		modifyPathsButton->onClicked([this] { handleModButtonClicked(T_("Paths"), pathsTextBox); });
@@ -154,9 +148,8 @@ void UploadFilteringPage::write()
 	}
 }
 
-void UploadFilteringPage::addItem(dwt::Grid* parent, dwt::Control*& control, const tstring& text, int setting, PropPage::Type t, unsigned helpId, const tstring& text2) {
+void UploadFilteringPage::addItem(dwt::Grid* parent, dwt::Control*& control, const tstring& text, int setting, PropPage::Type t, const tstring& text2) {
 	auto group = parent->addChild(GroupBox::Seed(text));
-	group->setHelpId(helpId);
 
 	auto cur = group->addChild(Grid::Seed(1, 2));
 	if(!text.empty() && !text2.empty())

@@ -34,14 +34,14 @@ using dwt::RadioButton;
 using dwt::Slider;
 
 PropPage::ListItem TabsPage::listItems[] = {
-	{ SettingsManager::BOLD_HUB, N_("Hub"), IDH_SETTINGS_TABS_BOLD_HUB },
-	{ SettingsManager::BOLD_PM, N_("Private message"), IDH_SETTINGS_TABS_BOLD_PM },
-	{ SettingsManager::BOLD_FL, N_("File List"), IDH_SETTINGS_TABS_BOLD_FL },
-	{ SettingsManager::BOLD_SEARCH, N_("Search"), IDH_SETTINGS_TABS_BOLD_SEARCH },
-	{ SettingsManager::BOLD_SYSTEM_LOG, N_("System Log"), IDH_SETTINGS_TABS_BOLD_SYSTEM_LOG },
-	{ SettingsManager::BOLD_QUEUE, N_("Download Queue"), IDH_SETTINGS_TABS_BOLD_QUEUE },
-	{ SettingsManager::BOLD_FINISHED_DOWNLOADS, N_("Finished Downloads"), IDH_SETTINGS_TABS_BOLD_FINISHED_DOWNLOADS },
-	{ SettingsManager::BOLD_FINISHED_UPLOADS, N_("Finished Uploads"), IDH_SETTINGS_TABS_BOLD_FINISHED_UPLOADS },
+	{ SettingsManager::BOLD_HUB, N_("Hub") },
+	{ SettingsManager::BOLD_PM, N_("Private message") },
+	{ SettingsManager::BOLD_FL, N_("File List") },
+	{ SettingsManager::BOLD_SEARCH, N_("Search") },
+	{ SettingsManager::BOLD_SYSTEM_LOG, N_("System Log") },
+	{ SettingsManager::BOLD_QUEUE, N_("Download Queue") },
+	{ SettingsManager::BOLD_FINISHED_DOWNLOADS, N_("Finished Downloads") },
+	{ SettingsManager::BOLD_FINISHED_UPLOADS, N_("Finished Uploads") },
 	{ 0, 0 }
 };
 
@@ -55,8 +55,6 @@ tabWidth(0),
 previewGrid(0),
 options(0)
 {
-	setHelpId(IDH_TABSPAGE);
-
 	grid->column(0).mode = GridInfo::FILL;
 	grid->row(4).mode = GridInfo::FILL;
 	grid->row(4).align = GridInfo::STRETCH;
@@ -68,7 +66,6 @@ options(0)
 		// dummy grid so that the check-box doesn't fill the whole row.
 		tabsOnBottom = optionsGroup->addChild(Grid::Seed(1, 1))->addChild(CheckBox::Seed(T_("Show tabs on bottom (Requires restart to take effect)")));
 		items.emplace_back(tabsOnBottom, SettingsManager::TABS_ON_BOTTOM, PropPage::T_BOOL);
-		tabsOnBottom->setHelpId(0);
 	}
 
 
@@ -77,7 +74,6 @@ options(0)
 
 		auto cp = [this] { createPreview(); };
 		GroupBoxPtr group = cur->addChild(GroupBox::Seed());
-		group->setHelpId(IDH_SETTINGS_TABS_DRAW);
 		GridPtr cur2 = group->addChild(Grid::Seed(2, 1));
 		dcppDraw = cur2->addChild(RadioButton::Seed(T_("Let DC++ draw tabs")));
 		dcppDraw->onClicked(cp);
@@ -91,7 +87,6 @@ options(0)
 			button->setChecked();
 
 		group = cur->addChild(GroupBox::Seed());
-		group->setHelpId(IDH_SETTINGS_TABS_STYLE);
 		cur2 = group->addChild(Grid::Seed(2, 1));
 		button = cur2->addChild(RadioButton::Seed(T_("Tab style")));
 		button->onClicked(cp);
@@ -103,7 +98,6 @@ options(0)
 			button->setChecked();
 
 		themeGroup = cur->addChild(GroupBox::Seed());
-		themeGroup->setHelpId(IDH_SETTINGS_TABS_STYLE);
 		cur2 = themeGroup->addChild(Grid::Seed(2, 1));
 		button = cur2->addChild(RadioButton::Seed(T_("Default theme")));
 		button->onClicked(cp);
@@ -119,7 +113,6 @@ options(0)
 
 	{
 		GroupBoxPtr group = grid->addChild(GroupBox::Seed(T_("Tab width")));
-		group->setHelpId(IDH_SETTINGS_TAB_WIDTH);
 
 		GridPtr cur = group->addChild(Grid::Seed(1, 1));
 		cur->column(0).mode = GridInfo::FILL;
@@ -135,7 +128,6 @@ options(0)
 
 	{
 		GroupBoxPtr group = grid->addChild(GroupBox::Seed(T_("Preview")));
-		group->setHelpId(IDH_SETTINGS_TAB_PREVIEW);
 
 		previewGrid = group->addChild(Grid::Seed(1, 1));
 		previewGrid->column(0).mode = GridInfo::FILL;

@@ -34,7 +34,7 @@ const string SystemFrame::id = "SystemLog";
 const string& SystemFrame::getId() const { return id; }
 
 SystemFrame::SystemFrame(TabViewPtr parent) :
-	BaseType(parent, T_("System Log"), IDH_SYSTEM_LOG, IDI_DCPP),
+	BaseType(parent, T_("System Log"), IDI_DCPP),
 	log(0)
 {
 	{

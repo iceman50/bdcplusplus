@@ -37,24 +37,22 @@ ExpertsPage::ExpertsPage(dwt::Widget* parent) :
 PropPage(parent, 7, 2),
 modifyWhitelistButton(nullptr)
 {
-	setHelpId(IDH_EXPERTSPAGE);
-
 	grid->column(0).mode = GridInfo::FILL;
 	grid->column(1).mode = GridInfo::FILL;
 
-	addItem(T_("Max hash speed"), SettingsManager::MAX_HASH_SPEED, true, IDH_SETTINGS_EXPERT_MAX_HASH_SPEED, T_("MiB/s"));
-	addItem(T_("Write buffer size"), SettingsManager::BUFFER_SIZE, true, IDH_SETTINGS_EXPERT_BUFFERSIZE, T_("KiB"));
-	addItem(T_("Auto-search limit"), SettingsManager::AUTO_SEARCH_LIMIT, true, IDH_SETTINGS_EXPERT_AUTO_SEARCH_LIMIT);
-	addItem(T_("Auto-search interval"), SettingsManager::AUTO_SEARCH_INTERVAL, true, IDH_SETTINGS_EXPERT_AUTO_SEARCH_INTERVAL, T_("seconds"));
-	addItem(T_("Mini slot size"), SettingsManager::SET_MINISLOT_SIZE, true, IDH_SETTINGS_EXPERT_MINISLOT_SIZE, T_("KiB"));
-	addItem(T_("Max filelist size"), SettingsManager::MAX_FILELIST_SIZE, true, IDH_SETTINGS_EXPERT_MAX_FILELIST_SIZE, T_("MiB"));
-	addItem(T_("PID"), SettingsManager::PRIVATE_ID, false, IDH_SETTINGS_EXPERT_PRIVATE_ID);
-	addItem(T_("Auto refresh time"), SettingsManager::AUTO_REFRESH_TIME, true, IDH_SETTINGS_EXPERT_AUTO_REFRESH_TIME, T_("minutes"));
-	addItem(T_("Settings save interval"), SettingsManager::SETTINGS_SAVE_INTERVAL, true, IDH_SETTINGS_EXPERT_SETTINGS_SAVE_INTERVAL, T_("minutes"));
-	addItem(T_("Socket read buffer"), SettingsManager::SOCKET_IN_BUFFER, true, IDH_SETTINGS_EXPERT_SOCKET_IN_BUFFER, T_("B"));
-	addItem(T_("Socket write buffer"), SettingsManager::SOCKET_OUT_BUFFER, true, IDH_SETTINGS_EXPERT_SOCKET_OUT_BUFFER, T_("B"));
-	addItem(T_("Max PM windows"), SettingsManager::MAX_PM_WINDOWS, true, IDH_SETTINGS_EXPERT_MAX_PM_WINDOWS);
-	addItem(T_("Max protocol command length"), SettingsManager::MAX_COMMAND_LENGTH, true, IDH_SETTINGS_EXPERT_MAX_COMMAND_LENGTH, T_("B"));
+	addItem(T_("Max hash speed"), SettingsManager::MAX_HASH_SPEED, true, T_("MiB/s"));
+	addItem(T_("Write buffer size"), SettingsManager::BUFFER_SIZE, true, T_("KiB"));
+	addItem(T_("Auto-search limit"), SettingsManager::AUTO_SEARCH_LIMIT, true);
+	addItem(T_("Auto-search interval"), SettingsManager::AUTO_SEARCH_INTERVAL, true, T_("seconds"));
+	addItem(T_("Mini slot size"), SettingsManager::SET_MINISLOT_SIZE, true, T_("KiB"));
+	addItem(T_("Max filelist size"), SettingsManager::MAX_FILELIST_SIZE, true, T_("MiB"));
+	addItem(T_("PID"), SettingsManager::PRIVATE_ID, false);
+	addItem(T_("Auto refresh time"), SettingsManager::AUTO_REFRESH_TIME, true, T_("minutes"));
+	addItem(T_("Settings save interval"), SettingsManager::SETTINGS_SAVE_INTERVAL, true, T_("minutes"));
+	addItem(T_("Socket read buffer"), SettingsManager::SOCKET_IN_BUFFER, true, T_("B"));
+	addItem(T_("Socket write buffer"), SettingsManager::SOCKET_OUT_BUFFER, true, T_("B"));
+	addItem(T_("Max PM windows"), SettingsManager::MAX_PM_WINDOWS, true);
+	addItem(T_("Max protocol command length"), SettingsManager::MAX_COMMAND_LENGTH, true, T_("B"));
 
 	AddWhitelistUI();
 
@@ -79,9 +77,8 @@ void ExpertsPage::write() {
 		settings->set(SettingsManager::AUTO_SEARCH_INTERVAL, 120);
 }
 
-void ExpertsPage::addItem(const tstring& text, int setting, bool isInt, unsigned helpId, const tstring& text2) {
+void ExpertsPage::addItem(const tstring& text, int setting, bool isInt, const tstring& text2) {
 	auto group = grid->addChild(GroupBox::Seed(text));
-	group->setHelpId(helpId);
 
 	auto cur = group->addChild(Grid::Seed(1, 2));
 	cur->column(0).mode = GridInfo::FILL;
@@ -98,7 +95,6 @@ void ExpertsPage::addItem(const tstring& text, int setting, bool isInt, unsigned
 void ExpertsPage::AddWhitelistUI()
 {
 	auto group = grid->addChild(GroupBox::Seed(T_("Whitelisted URIs to open")));
-	group->setHelpId(IDH_SETTINGS_EXPERT_WHITELIST_OPEN_URIS);
 
 	auto cur = group->addChild(Grid::Seed(1, 2));
 	cur->column(0).mode = GridInfo::FILL;

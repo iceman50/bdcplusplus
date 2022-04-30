@@ -57,7 +57,7 @@ static const ColumnInfo hubsColumns[] = {
 };
 
 FavHubsFrame::FavHubsFrame(TabViewPtr parent) :
-BaseType(parent, T_("Favorite Hubs"), IDH_FAVORITE_HUBS, IDI_FAVORITE_HUBS),
+BaseType(parent, T_("Favorite Hubs"), IDI_FAVORITE_HUBS),
 grid(0),
 hubs(0)
 {
@@ -103,7 +103,6 @@ hubs(0)
 
 		cs.caption = T_("&Connect");
 		button = grid->addChild(cs);
-		button->setHelpId(IDH_FAVORITE_HUBS_CONNECT);
 		button->onClicked([this] { openSelected(); });
 		addWidget(button);
 		hubs->onSelectionChanged([this, button] { button->setEnabled(hubs->hasSelected()); });
@@ -112,41 +111,35 @@ hubs(0)
 		cs.style &= ~WS_DISABLED;
 		button = grid->addChild(cs);
 		cs.style |= WS_DISABLED;
-		button->setHelpId(IDH_FAVORITE_HUBS_NEW);
 		button->onClicked([this] { handleAdd(); });
 		addWidget(button);
 
 		cs.caption = T_("&Properties");
 		button = grid->addChild(cs);
-		button->setHelpId(IDH_FAVORITE_HUBS_PROPERTIES);
 		button->onClicked([this] { handleProperties(); });
 		addWidget(button);
 		hubs->onSelectionChanged([this, button] { button->setEnabled(hubs->countSelected() == 1); });
 
 		cs.caption = T_("Move &Up");
 		button = grid->addChild(cs);
-		button->setHelpId(IDH_FAVORITE_HUBS_MOVE_UP);
 		button->onClicked([this] { handleMove(true); });
 		addWidget(button);
 		hubs->onSelectionChanged([this, button] { button->setEnabled(hubs->hasSelected()); });
 
 		cs.caption = T_("Move &Down");
 		button = grid->addChild(cs);
-		button->setHelpId(IDH_FAVORITE_HUBS_MOVE_DOWN);
 		button->onClicked([this] { handleMove(false); });
 		addWidget(button);
 		hubs->onSelectionChanged([this, button] { button->setEnabled(hubs->hasSelected()); });
 
 		cs.caption = T_("&Remove");
 		button = grid->addChild(cs);
-		button->setHelpId(IDH_FAVORITE_HUBS_REMOVE);
 		button->onClicked([this] { handleRemove(); });
 		addWidget(button);
 		hubs->onSelectionChanged([this, button] { button->setEnabled(hubs->hasSelected()); });
 
 		cs.caption = T_("&Move to group");
 		button = grid->addChild(cs);
-		button->setHelpId(IDH_FAVORITE_HUBS_GROUP);
 		button->onClicked([this] { handleGroup(); });
 		addWidget(button);
 		hubs->onSelectionChanged([this, button] { button->setEnabled(hubs->hasSelected()); });
@@ -154,7 +147,6 @@ hubs(0)
 		cs.caption = T_("Manage &groups");
 		cs.style &= ~WS_DISABLED;
 		button = grid->addChild(cs);
-		button->setHelpId(IDH_FAVORITE_HUBS_MANAGE_GROUPS);
 		button->onClicked([this] { handleGroups(); });
 		addWidget(button);
 	}

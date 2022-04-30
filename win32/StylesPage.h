@@ -57,7 +57,7 @@ private:
 	public:
 		enum { FONT_CHANGEABLE = 1 << 0, TEXT_COLOR_CHANGEABLE = 1 << 1, BG_COLOR_CHANGEABLE = 1 << 2 };
 
-		Data(tstring&& text, const unsigned helpId);
+		Data(tstring&& text);
 		virtual ~Data() { }
 
 		const tstring& getText(int) const;
@@ -71,7 +71,6 @@ private:
 		virtual void write() { }
 
 		const tstring text;
-		const unsigned helpId;
 
 		bool customFont;
 		Font font;
@@ -89,7 +88,7 @@ private:
 
 	class SettingsData : public Data {
 	public:
-		SettingsData(tstring&& text, unsigned helpId, int fontSetting, int textColorSetting, int bgColorSetting);
+		SettingsData(tstring&& text, int fontSetting, int textColorSetting, int bgColorSetting);
 
 		const Font& getFont() const;
 		int getTextColor() const;
@@ -136,7 +135,6 @@ private:
 	CheckBoxPtr showGen;
 
 	void handleSelectionChanged();
-	void handleTableHelpId(unsigned& id);
 
 	void handleCustomFont();
 	void handleFont();

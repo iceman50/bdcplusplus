@@ -46,12 +46,9 @@ v6Grid(0),
 transferBox(0),
 tlstransferBox(0)
 {
-	setHelpId(IDH_CONNECTIVITYMANUALPAGE);
-
 	grid->column(0).mode = GridInfo::FILL;
 
 	autoGroup = grid->addChild(GroupBox::Seed(T_("Automatic connectivity setup")));
-	autoGroup->setHelpId(IDH_SETTINGS_CONNECTIVITY_AUTODETECT);
 
 	autoDetect = autoGroup->addChild(CheckBox::Seed(T_("Let DC++ determine the best connectivity settings")));
 	autoDetect->onClicked([this] { handleAutoClicked(); });
@@ -59,9 +56,8 @@ tlstransferBox(0)
 	portGrid = grid->addChild(Grid::Seed(1, 3));
 	portGrid->setSpacing(grid->getSpacing());
 
-	auto addPortBox = [this](const tstring& text, int setting, unsigned helpId) {
+	auto addPortBox = [this](const tstring& text, int setting) {
 		auto group = portGrid->addChild(GroupBox::Seed(str(TF_("%1% port") % text)));
-		group->setHelpId(helpId);
 
 		auto boxGrid = group->addChild(Grid::Seed(1, 1));
 		boxGrid->column(0).size = 40;
@@ -73,13 +69,13 @@ tlstransferBox(0)
 		return inputBox;
 	};
 
-	transferBox = addPortBox(T_("Transfer"), SettingsManager::TCP_PORT, IDH_SETTINGS_CONNECTIVITY_PORT_TCP);
+	transferBox = addPortBox(T_("Transfer"), SettingsManager::TCP_PORT);
 	transferBox->onUpdated([this] { onTransferPortUpdated(); });
 
-	tlstransferBox = addPortBox(T_("Encrypted transfer"), SettingsManager::TLS_PORT, IDH_SETTINGS_CONNECTIVITY_PORT_TLS);
+	tlstransferBox = addPortBox(T_("Encrypted transfer"), SettingsManager::TLS_PORT);
 	tlstransferBox->onUpdated([this] { onTLSTransferPortUpdated(); });
 
-	addPortBox(T_("Search"), SettingsManager::UDP_PORT, IDH_SETTINGS_CONNECTIVITY_PORT_UDP);
+	addPortBox(T_("Search"), SettingsManager::UDP_PORT);
 	
 	v4Grid = grid->addChild(GroupBox::Seed(T_("IPv4")))->addChild(Grid::Seed(4, 1));
 	v4Grid->column(0).mode = GridInfo::FILL;
@@ -184,22 +180,14 @@ void PageContent::initializeUI()
 		cur->setSpacing(grid->getSpacing());
 
 		active = cur->addChild(RadioButton::Seed(T_("Active mode (I have no router / I have configured my router)")));
-		active->setHelpId(IDH_SETTINGS_CONNECTIVITY_ACTIVE);
-
 		upnp = cur->addChild(RadioButton::Seed(T_("Active mode (let DC++ configure my router with NAT-PMP / UPnP)")));
-		upnp->setHelpId(IDH_SETTINGS_CONNECTIVITY_UPNP);
-
 		passive = cur->addChild(RadioButton::Seed(T_("Passive mode (last resort - has serious limitations)")));
-		passive->setHelpId(IDH_SETTINGS_CONNECTIVITY_PASSIVE);
-
 		inactive = cur->addChild(RadioButton::Seed(T_("Disable connectivity")));
-		inactive->setHelpId(IDH_SETTINGS_CONNECTIVITY_DISABLE);
 	}
 
 
 	{
 		auto group = grid->addChild(GroupBox::Seed(T_("External / WAN IP address")));
-		group->setHelpId(IDH_SETTINGS_CONNECTIVITY_EXTERNAL_IP);
 
 		auto cur = group->addChild(Grid::Seed(2, 1));
 		cur->column(0).mode = GridInfo::FILL;
@@ -211,7 +199,6 @@ void PageContent::initializeUI()
 
 		auto overrideIP = cur->addChild(CheckBox::Seed(T_("Don't allow hubs/NAT-PMP/UPnP to override")));
 		items.emplace_back(overrideIP, settingNoIPOverride, PropPage::T_BOOL);
-		overrideIP->setHelpId(IDH_SETTINGS_CONNECTIVITY_OVERRIDE);
 	}
 
 	{
@@ -220,12 +207,10 @@ void PageContent::initializeUI()
 
 		{
 			auto group = cur->addChild(GroupBox::Seed(T_("Preferred port mapper")));
-			group->setHelpId(IDH_SETTINGS_CONNECTIVITY_MAPPER);
 			mapper = group->addChild(WinUtil::Seeds::Dialog::comboBox);
 		}
 
 		auto group = cur->addChild(GroupBox::Seed(T_("Bind Address")));
-		group->setHelpId(IDH_SETTINGS_CONNECTIVITY_BIND_ADDRESS);
 		bind = group->addChild(WinUtil::Seeds::Dialog::comboBox);
 	}
 }

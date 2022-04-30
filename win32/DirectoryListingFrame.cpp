@@ -222,7 +222,7 @@ void DirectoryListingFrame::activateWindow(const HintedUser& aUser) {
 }
 
 DirectoryListingFrame::DirectoryListingFrame(TabViewPtr parent, const HintedUser& aUser, int64_t aSpeed) :
-	BaseType(parent, _T(""), IDH_FILE_LIST, IDI_DIRECTORY, false),
+	BaseType(parent, _T(""), IDI_DIRECTORY, false),
 	loader(nullptr),
 	loading(0),
 	rebar(0),
@@ -258,7 +258,6 @@ DirectoryListingFrame::DirectoryListingFrame(TabViewPtr parent, const HintedUser
 		searchGrid->column(0).mode = GridInfo::FILL;
 
 		searchBox = searchGrid->addChild(WinUtil::Seeds::comboBoxEdit);
-		searchBox->setHelpId(IDH_FILE_LIST_SEARCH_BOX);
 		searchBox->getTextBox()->setCue(T_("Find files"));
 		addWidget(searchBox);
 		searchBox->getTextBox()->onKeyDown([this](int c) { return handleSearchKeyDown(c); });
@@ -268,7 +267,6 @@ DirectoryListingFrame::DirectoryListingFrame(TabViewPtr parent, const HintedUser
 		WinUtil::addSearchIcon(searchBox->getTextBox());
 
 		filterMethod = searchGrid->addChild(WinUtil::Seeds::comboBox);
-		filterMethod->setHelpId(IDH_FILE_LIST_SEARCH_BOX);
 		addWidget(filterMethod);
 
 		WinUtil::addFilterMethods(filterMethod);
@@ -279,7 +277,6 @@ DirectoryListingFrame::DirectoryListingFrame(TabViewPtr parent, const HintedUser
 		auto seed = WinUtil::Seeds::button;
 		seed.caption = T_("Find previous");
 		ButtonPtr button = searchGrid->addChild(seed);
-		button->setHelpId(IDH_FILE_LIST_FIND_PREV);
 		button->setImage(WinUtil::buttonIcon(IDI_LEFT));
 		button->onClicked([this] { handleFind(true); });
 		addWidget(button);
@@ -287,7 +284,6 @@ DirectoryListingFrame::DirectoryListingFrame(TabViewPtr parent, const HintedUser
 		seed.caption = T_("Find next");
 		seed.style |= BS_DEFPUSHBUTTON;
 		button = searchGrid->addChild(seed);
-		button->setHelpId(IDH_FILE_LIST_FIND_NEXT);
 		button->setImage(WinUtil::buttonIcon(IDI_RIGHT));
 		button->onClicked([this] { handleFind(false); });
 		addWidget(button);
@@ -300,7 +296,6 @@ DirectoryListingFrame::DirectoryListingFrame(TabViewPtr parent, const HintedUser
 
 	{
 		dirs = paned->addChild(WidgetDirs::Seed(WinUtil::Seeds::treeView));
-		dirs->setHelpId(IDH_FILE_LIST_DIRS);
 		addWidget(dirs);
 
 		dirs->setNormalImageList(WinUtil::fileImages);
@@ -311,7 +306,6 @@ DirectoryListingFrame::DirectoryListingFrame(TabViewPtr parent, const HintedUser
 		dirs->onXMouseUp([this](const dwt::MouseEvent &me) { return handleXMouseUp(me); });
 
 		files = paned->addChild(WidgetFiles::Seed(WinUtil::Seeds::table));
-		files->setHelpId(IDH_FILE_LIST_FILES);
 		addWidget(files);
 
 		files->setSmallImageList(WinUtil::fileImages);
@@ -337,16 +331,16 @@ DirectoryListingFrame::DirectoryListingFrame(TabViewPtr parent, const HintedUser
 
 		StringList ids;
 		auto addButton = [&toolbar, &ids](unsigned icon, const tstring& text, bool showText,
-			unsigned helpId, const dwt::Dispatchers::VoidVoid<>::F& f)
+			const dwt::Dispatchers::VoidVoid<>::F& f)
 		{
 			ids.emplace_back(1, '0' + ids.size());
-			toolbar->addButton(ids.back(), icon ? WinUtil::toolbarIcon(icon) : 0, 0, text, showText, helpId, f);
+			toolbar->addButton(ids.back(), icon ? WinUtil::toolbarIcon(icon) : 0, 0, text, showText, 0/*Nothing we can do set helpId=0*/, f);
 		};
 
-		addButton(IDI_LEFT, T_("Back"), false, IDH_FILE_LIST_BACK, [this] { back(); });
-		addButton(IDI_RIGHT, T_("Forward"), false, IDH_FILE_LIST_FORWARD, [this] { this->forward(); }); // explicit ns (vs std::forward)
+		addButton(IDI_LEFT, T_("Back"), false, [this] { back(); });
+		addButton(IDI_RIGHT, T_("Forward"), false, [this] { this->forward(); }); // explicit ns (vs std::forward)
 		ids.emplace_back();
-		addButton(IDI_UP, T_("Up one level"), false, IDH_FILE_LIST_UP, [this] { up(); });
+		addButton(IDI_UP, T_("Up one level"), false, [this] { up(); });
 		toolbar->setLayout(ids);
 
 		rebar->add(toolbar, RBBS_NOGRIPPER);
@@ -364,12 +358,12 @@ DirectoryListingFrame::DirectoryListingFrame(TabViewPtr parent, const HintedUser
 		toolbar = addChild(seed);
 
 		ids.clear();
-		addButton(0, T_("Subtract list"), true, IDH_FILE_LIST_SUBSTRACT, [this] { handleListDiff(); });
-		addButton(0, T_("Match queue"), true, IDH_FILE_LIST_MATCH_QUEUE, [this] { handleMatchQueue(); });
-		addButton(0, T_("Download full list"), true, IDH_FILE_LIST_DOWNLOAD_FULL, [this] { user.getList(); });
+		addButton(0, T_("Subtract list"), true, [this] { handleListDiff(); });
+		addButton(0, T_("Match queue"), true, [this] { handleMatchQueue(); });
+		addButton(0, T_("Download full list"), true,  [this] { user.getList(); });
 		ids.push_back("Find");
 		auto findId = ids.back();
-		toolbar->addButton(findId, WinUtil::toolbarIcon(IDI_SEARCH), 0, T_("Find"), true, IDH_FILE_LIST_FIND,
+		toolbar->addButton(findId, WinUtil::toolbarIcon(IDI_SEARCH), 0, T_("Find"), true, 0,
 			nullptr, [this](const dwt::ScreenCoordinate&) { handleFindToggle(); });
 		toolbar->setLayout(ids);
 

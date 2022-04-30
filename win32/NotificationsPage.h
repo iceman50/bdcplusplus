@@ -35,8 +35,7 @@ private:
 	struct Option {
 		tstring sound;
 		int balloon;
-		unsigned helpId;
-		Option() : balloon(0), helpId(0) { }
+		Option() : balloon(0) { }
 	};
 	Option options[WinUtil::NOTIFICATION_LAST];
 
@@ -64,7 +63,6 @@ private:
 
 	void handleSelectionChanged();
 	void handleDblClicked();
-	void handleTableHelpId(unsigned& id);
 	void handleSoundClicked();
 	void handleBalloonClicked();
 	void handlePlayClicked();

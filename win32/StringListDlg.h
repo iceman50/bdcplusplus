@@ -56,7 +56,6 @@ private:
 	virtual tstring getTitle() const;
 	virtual tstring getEditTitle() const;
 	virtual tstring getEditDescription() const;
-	virtual unsigned getHelpId(HelpFields field) const;
 	virtual void add(const tstring& s);
 	virtual void edit(unsigned row, const tstring& s);
 

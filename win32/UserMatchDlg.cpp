@@ -48,34 +48,26 @@ forceChat(0),
 ignoreChat(0)
 {
 	onInitDialog([this, initialMatcher] { return handleInitDialog(initialMatcher); });
-	onHelp(&WinUtil::help);
 }
 
 UserMatchDlg::~UserMatchDlg() {
 }
 
 bool UserMatchDlg::handleInitDialog(const UserMatch* initialMatcher) {
-	setHelpId(IDH_USER_MATCH);
 
 	grid = addChild(Grid::Seed(5, 1));
 	grid->column(0).mode = GridInfo::FILL;
 	grid->setSpacing(8);
 
 	name = grid->addChild(GroupBox::Seed(T_("Name")))->addChild(WinUtil::Seeds::Dialog::textBox);
-	name->setHelpId(IDH_USER_MATCH_NAME);
 
 	{
 		auto cur = grid->addChild(GroupBox::Seed())->addChild(Grid::Seed(1, 3));
 		cur->setSpacing(grid->getSpacing());
 
 		favs = cur->addChild(CheckBox::Seed(T_("Match favorite users")));
-		favs->setHelpId(IDH_USER_MATCH_FAVS);
-
 		ops = cur->addChild(CheckBox::Seed(T_("Match operators")));
-		ops->setHelpId(IDH_USER_MATCH_OPS);
-
 		bots = cur->addChild(CheckBox::Seed(T_("Match bots")));
-		bots->setHelpId(IDH_USER_MATCH_BOTS);
 	}
 
 	{
@@ -86,7 +78,6 @@ bool UserMatchDlg::handleInitDialog(const UserMatch* initialMatcher) {
 		rules->column(1).mode = GridInfo::FILL;
 
 		auto button = cur->addChild(Grid::Seed(1, 1))->addChild(Button::Seed(T_("Add a rule")));
-		button->setHelpId(IDH_USER_MATCH_ADD_RULE);
 		button->onClicked([this] { addRow(); layoutRules(); });
 	}
 
@@ -95,11 +86,9 @@ bool UserMatchDlg::handleInitDialog(const UserMatch* initialMatcher) {
 		cur->setSpacing(grid->getSpacing());
 
 		forceChat = cur->addChild(CheckBox::Seed(T_("Always show chat messages")));
-		forceChat->setHelpId(IDH_USER_MATCH_FORCE_CHAT);
 		forceChat->onClicked([this] { if(forceChat->getChecked()) ignoreChat->setChecked(false); });
 
 		ignoreChat = cur->addChild(CheckBox::Seed(T_("Ignore chat messages")));
-		ignoreChat->setHelpId(IDH_USER_MATCH_IGNORE_CHAT);
 		ignoreChat->onClicked([this] { if(ignoreChat->getChecked()) forceChat->setChecked(false); });
 	}
 
@@ -112,8 +101,6 @@ bool UserMatchDlg::handleInitDialog(const UserMatch* initialMatcher) {
 		WinUtil::addDlgButtons(cur,
 			[this] { handleOKClicked(); },
 			[this] { endDialog(IDCANCEL); });
-
-		WinUtil::addHelpButton(cur)->onClicked([this] { WinUtil::help(this); });
 	}
 
 	if(initialMatcher) {
@@ -201,19 +188,12 @@ void UserMatchDlg::addRow(const UserMatch::Rule* rule) {
 	rules->addRow();
 
 	auto field = rules->addChild(WinUtil::Seeds::Dialog::comboBox);
-	field->setHelpId(IDH_USER_MATCH_RULE_FIELD);
-
 	auto search = rules->addChild(WinUtil::Seeds::Dialog::textBox);
-	search->setHelpId(IDH_USER_MATCH_RULE_PATTERN);
-
 	auto method = rules->addChild(WinUtil::Seeds::Dialog::comboBox);
-	method->setHelpId(IDH_USER_MATCH_RULE_METHOD);
-
 	{
 		auto seed = Button::Seed(_T("X"));
 		seed.padding.x = 10;
 		auto remove = rules->addChild(seed);
-		remove->setHelpId(IDH_USER_MATCH_RULE_REMOVE);
 		remove->onClicked([this, remove] { callAsync([=] {
 			rules->removeRow(remove);
 			layoutRules();

@@ -48,7 +48,6 @@ pauseResume(0),
 autoClose(aAutoClose)
 {
 	onInitDialog([this] { return handleInitDialog(); });
-	onHelp(&WinUtil::help);
 }
 
 HashProgressDlg::~HashProgressDlg() {
@@ -56,8 +55,6 @@ HashProgressDlg::~HashProgressDlg() {
 }
 
 bool HashProgressDlg::handleInitDialog() {
-	setHelpId(IDH_HASH_PROGRESS);
-
 	grid = addChild(Grid::Seed(5, 1));
 	grid->column(0).mode = GridInfo::FILL;
 	grid->row(3).size = 20;
