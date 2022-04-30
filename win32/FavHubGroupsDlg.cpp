@@ -64,7 +64,7 @@ FavHubGroupsDlg::~FavHubGroupsDlg() {
 }
 
 int FavHubGroupsDlg::run() {
-	create(Seed(dwt::Point(450, 450), DS_CONTEXTHELP));
+	create(Seed(dwt::Point(450, 450), DS_CENTERMOUSE));
 	return show();
 }
 

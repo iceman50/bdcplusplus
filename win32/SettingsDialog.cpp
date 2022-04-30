@@ -85,7 +85,7 @@ int SettingsDialog::run() {
 		return std::max(SettingsManager::getInstance()->get(setting), 200);
 	};
 	create(Seed(dwt::Point(sizeVal(SettingsManager::SETTINGS_WIDTH), sizeVal(SettingsManager::SETTINGS_HEIGHT)),
-		WS_SIZEBOX | DS_CONTEXTHELP));
+		WS_SIZEBOX | DS_CENTERMOUSE));
 	return show();
 }
 

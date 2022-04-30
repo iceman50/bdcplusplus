@@ -38,7 +38,7 @@ using dwt::ProgressBar;
 namespace { const int progressBarMax = 10000; }
 
 HashProgressDlg::HashProgressDlg(dwt::Widget* parent, bool aAutoClose) :
-GridDialog(parent, 657, DS_CONTEXTHELP),
+GridDialog(parent, 657, DS_CENTERMOUSE),
 file(0),
 stat(0),
 speed(0),

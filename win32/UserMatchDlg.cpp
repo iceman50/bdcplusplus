@@ -38,7 +38,7 @@ using dwt::GridInfo;
 using dwt::Label;
 
 UserMatchDlg::UserMatchDlg(dwt::Widget* parent, const UserMatch* initialMatcher) :
-GridDialog(parent, 700, DS_CONTEXTHELP),
+GridDialog(parent, 700, DS_CENTERMOUSE),
 name(0),
 favs(0),
 ops(0),

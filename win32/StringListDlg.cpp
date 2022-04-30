@@ -53,7 +53,7 @@ StringListDlg::~StringListDlg() {
 }
 
 int StringListDlg::run() {
-	create(Seed(dwt::Point(400, 316), DS_CONTEXTHELP));
+	create(Seed(dwt::Point(400, 316), DS_CENTERMOUSE));
 	return show();
 }
 
