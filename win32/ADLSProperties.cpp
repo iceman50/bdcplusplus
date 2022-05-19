@@ -32,7 +32,7 @@ using dwt::Grid;
 using dwt::GridInfo;
 
 ADLSProperties::ADLSProperties(dwt::Widget* parent, ADLSearch& search_) :
-GridDialog(parent, 290, DS_CENTERMOUSE), //DiCe Help - See CommandDlg.cpp for different style 
+GridDialog(parent, 290, DS_CENTERMOUSE),
 searchString(0),
 searchType(0),
 minSize(0),

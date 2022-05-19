@@ -66,6 +66,9 @@ private:
 		COLUMN_FAVORITE = COLUMN_FIRST,
 		COLUMN_SLOT,
 		COLUMN_NICK,
+		COLUMN_CLIENT,
+		COLUMN_VERSION,
+		COLUMN_PROTOCOL,
 		COLUMN_HUB,
 		COLUMN_SEEN,
 		COLUMN_DESCRIPTION,
@@ -77,7 +80,10 @@ private:
 		FAVORITE_OFF_ICON,
 		FAVORITE_ON_ICON,
 		GRANT_OFF_ICON,
-		GRANT_ON_ICON
+		GRANT_ON_ICON,
+		NORMAL_USER_ICON,
+		UNKNOWN_USER_ICON,
+		BOT_USER_ICON
 	};
 
 	class UserInfo : public UserInfoBase {
@@ -92,6 +98,8 @@ private:
 			switch(col) {
 			case COLUMN_FAVORITE: return isFavorite ? FAVORITE_ON_ICON : FAVORITE_OFF_ICON;
 			case COLUMN_SLOT: return grantSlot ? GRANT_ON_ICON : GRANT_OFF_ICON;
+			case COLUMN_CLIENT: return isUnknown ? UNKNOWN_USER_ICON : isBot ? BOT_USER_ICON : isBDC ? FAVORITE_ON_ICON : NORMAL_USER_ICON;
+			case COLUMN_PROTOCOL: return isNMDC ? GRANT_OFF_ICON : GRANT_ON_ICON;
 			default: return -1;
 			}
 		}
@@ -112,6 +120,14 @@ private:
 
 		bool isFavorite;
 		bool grantSlot;
+
+		bool isUnknown;
+		bool isBot;
+		bool isBDC;
+		bool isNMDC;
+
+		string app;
+		string ver;
 	};
 
 	GridPtr grid;

@@ -107,7 +107,7 @@ const string SettingsManager::settingTags[] =
 	"HubUserCommands", "IgnoreBotPms", "IgnoreHubPms", "OpenNewWindow", "KeepFinishedFiles",
 	"KeepLists", "ListDuplicates", "LogDownloads", "LogFilelistTransfers", "LogFinishedDownloads",
 	"LogMainChat", "LogPrivateChat", "LogStatusMessages", "LogSystem", "LogUploads", "MagnetAsk",
-	"MagnetRegister", "MinimizeToTray", "NoAwayMsgToBots", "NoIpOverride", "NoIpOverride6", "OpenUserCmdHelp",
+	"MagnetRegister", "MinimizeToTray", "NoAwayMsgToBots", "NoIpOverride", "NoIpOverride6",
 	"OwnerDrawnMenus", "PopupBotPms", "PopupHubPms", "PopupPMs", "PopunderFilelist", "PopunderPm",
 	"LowestPrio", "PromptPassword", "QueueFrameShowTree", "RequireTLS", "SearchFilterShared",
 	"SearchOnlyFreeSlots", "SegmentedDL", "SendBloom", "SendUnknownCommands",
@@ -256,7 +256,6 @@ SettingsManager::SettingsManager() {
 	setDefault(LOG_SYSTEM, false);
 	setDefault(SEND_UNKNOWN_COMMANDS, true);
 	setDefault(MAX_HASH_SPEED, 0);
-	setDefault(OPEN_USER_CMD_HELP, true);
 	setDefault(GEO_CITY, false);
 	setDefault(GEO_REGION, false);
 	setDefault(GET_USER_COUNTRY, true);

@@ -1,4 +1,5 @@
 -- 0.8xx ---
+* [L#1970416] Set the focus properly on the active window at startup (emtee)
 * Add new hublist server hublist.pwiam.com; blacklist and remove discontinued or inaccessible server addresses
 * Add AboutConfig frame for testing and debugging purposes (iceman50, emtee)
 * [L#1682791] Block possible unencrypted direct private message connection attempts (fix adapted from AirDC++) (emtee)

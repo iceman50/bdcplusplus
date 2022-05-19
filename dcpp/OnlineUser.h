@@ -49,7 +49,9 @@ public:
 
 	enum StatusFlags {
 		NORMAL = 0x01,
-		TLS = 0x10
+		AWAY = 0x02,
+		TLS = 0x10,
+		BDC = 0x80
 	};
 
 	Identity() : sid(0) { }

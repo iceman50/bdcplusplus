@@ -83,6 +83,10 @@ static const FieldName fields[] =
 	{ "PK", T_("PK(NMDC)"), &Text::toT },
 	{ "KY", T_("Key(NMDC)"), &Text::toT },
 	{ "ST", T_("Status(NMDC)"), &Text::toT },
+	{ "LC", T_("Locale"), &Text::toT },
+	{ "BO", T_("Bot(NMDC)"), &Text::toT },
+	{ "RG", T_("Registered(NMDC)"), &Text::toT },
+	{ "OP", T_("Operator(NMDC)"), &Text::toT },
 
 	{ "", _T(""), 0 }
 };

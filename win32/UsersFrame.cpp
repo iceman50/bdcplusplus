@@ -53,6 +53,9 @@ static const ColumnInfo usersColumns[] = {
 	{ N_("Favorite"), 25, false },
 	{ N_("Auto grant slot"), 25, false },
 	{ N_("Nick"), 125, false },
+	{ N_("Client"), 40, false },
+	{ N_("Version"), 40, false },
+	{ N_("Protocol"), 50, false },
 	{ N_("Hub(s)"), 300, false },
 	{ N_("Status / Time last seen"), 150, false },
 	{ N_("Description"), 200, false },
@@ -105,6 +108,11 @@ static const FieldName fields[] =
 	{ "LK", T_("Lock"), &Text::toT },
 	{ "PK", T_("PK"), &Text::toT },
 	{ "KY", T_("Key"), &Text::toT },
+	{ "ST", T_("Status"), &Text::toT },
+	{ "LC", T_("Locale"), &Text::toT },
+	{ "BO", T_("Bot(NMDC)"), &Text::toT },
+	{ "RG", T_("Registered(NMDC)"), &Text::toT },
+	{ "OP", T_("Operator(NMDC)"), &Text::toT },
 
 	{ "", _T(""), 0 }
 };
@@ -134,6 +142,9 @@ selected(-1)
 			userIcons->add(dwt::Icon(IDI_FAVORITE_USER_ON, size));
 			userIcons->add(dwt::Icon(IDI_RED_BALL, size));
 			userIcons->add(dwt::Icon(IDI_GREEN_BALL, size));
+			userIcons->add(dwt::Icon(IDI_DCPP, size));
+			userIcons->add(dwt::Icon(IDI_WHATS_THIS, size));
+			userIcons->add(dwt::Icon(IDI_USER_BOT, size));
 		}
 
 		WidgetUsers::Seed cs(WinUtil::Seeds::table);
@@ -253,6 +264,49 @@ void UsersFrame::UserInfo::remove() {
 }
 
 void UsersFrame::UserInfo::update(const UserPtr& u, bool visible) {
+
+	auto ident = ClientManager::getInstance()->getIdentities(u);
+	if(ident.empty()) {
+		return;
+	}
+	auto application = ident[0].getApplication();
+	if(application.empty()) {
+		app = "Unknown";
+		ver = "Unknown";
+		isUnknown = true;
+	} else {
+		const auto& idx = application.find(' ');
+		app = application.substr(0, idx);
+		if(app == "++") { app = "DC++"; } //++ is DC++ let's make it look nicer in the table
+		else if(app == "DC++") { app = "DC++ (*)"; } //Tag = <DC++ ... tag faking, mark it as DC++ (*) to show irregularity
+		ver = application.substr(idx + 1);
+		isUnknown = false;
+	}
+
+	if(ident[0].isBot() || ident[0].isHub() || ident[0].isHidden()) {
+		isBot = true;
+	} else { 
+		isBot = false;
+	}
+
+	if(u->isBDC()) {
+		isBDC = true;
+		columns[COLUMN_CLIENT] = Text::toT("BDC++");
+	} else {
+		isBDC = false;
+		columns[COLUMN_CLIENT] = Text::toT(app);
+	}
+		
+	columns[COLUMN_VERSION] = Text::toT(ver);
+
+	if (u->isNMDC()) {
+		isNMDC = true;
+		columns[COLUMN_PROTOCOL] = Text::toT("NMDC");
+	} else {
+		isNMDC = false;
+		columns[COLUMN_PROTOCOL] = Text::toT("ADC");
+	}
+
 	auto fu = FavoriteManager::getInstance()->getFavoriteUser(u);
 	if(fu) {
 		isFavorite = true;

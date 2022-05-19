@@ -144,6 +144,11 @@ void NmdcHub::clearUsers() {
 
 void NmdcHub::updateFromTag(Identity& id, const string& tag) {
 	StringTokenizer<string> tok(tag, ',');
+
+	if(tag.find("BDC++") != string::npos){
+		id.getUser()->setFlag(User::BDC);
+	}
+
 	for(auto& i: tok.getTokens()) {
 		if(i.size() < 2)
 			continue;
@@ -389,10 +394,15 @@ void NmdcHub::onLine(const string& aLine) noexcept {
 		u.getIdentity().set("CO", connection);
 		u.getIdentity().setStatus(Util::toString(param[j - 1]));
 
-		if (u.getIdentity().getStatus() & Identity::TLS)
+		if(u.getIdentity().getStatus() & Identity::TLS) {
 			u.getUser()->setFlag(User::TLS);
-		else
+		} else {
 			u.getUser()->unsetFlag(User::TLS);
+		}
+
+		if((u.getIdentity().getStatus() & Identity::BDC) && !u.getUser()->isSet(User::BDC)) {
+			u.getUser()->setFlag(User::BDC);
+		}
 
 		i = j + 1;
 		j = param.find('$', i);
@@ -513,7 +523,7 @@ void NmdcHub::onLine(const string& aLine) noexcept {
 				supportFlags |= SUPPORTS_NOGETINFO;
 			} else if(i == "UserIP2") {
 				supportFlags |= SUPPORTS_USERIP2;
-			} else if (i == "TLS") {
+			} else if(i == "TLS") {
 				supportFlags |= SUPPORTS_TLS;
 			}
 		}
@@ -577,6 +587,7 @@ void NmdcHub::onLine(const string& aLine) noexcept {
 				feat.push_back("UserIP2");
 				feat.push_back("TTHSearch");
 				feat.push_back("ZPipe0");
+				feat.push_back("SaltPass");
 
 				if(CryptoManager::getInstance()->TLSOk()) {
 					feat.push_back("TLS");
@@ -764,6 +775,7 @@ void NmdcHub::onLine(const string& aLine) noexcept {
 		OnlineUser& ou = getUser(getMyNick());
 		ou.getIdentity().set("RG", "1");
 		setMyIdentity(ou.getIdentity());
+		salt = param;
 		fire(ClientListener::GetPassword(), this);
 	} else if(cmd == "$BadPass") {
 		setPassword(Util::emptyString);
@@ -813,7 +825,7 @@ void NmdcHub::myInfo(bool alwaysSend) {
 	checkstate();
 
 	reloadSettings(false);
-	char StatusMode = Identity::NORMAL;
+	unsigned char statusMode = Identity::NORMAL;
 
 	string tmp1 = ";ACB**\x1fU9";
 	string tmp2 = "+L9";
@@ -836,6 +848,8 @@ void NmdcHub::myInfo(bool alwaysSend) {
 	else
 		modeChar = 'P';
 
+	statusMode |= Identity::BDC;
+
 	string uploadSpeed;
 	int upLimit = ThrottleManager::getInstance()->getUpLimit();
 	if (upLimit > 0) {
@@ -844,19 +858,21 @@ void NmdcHub::myInfo(bool alwaysSend) {
 		uploadSpeed = SETTING(UPLOAD_SPEED);
 	}
 
-	if (CryptoManager::getInstance()->TLSOk()) {
-		StatusMode |= Identity::TLS;
+	if(CryptoManager::getInstance()->TLSOk()) {
+		statusMode |= Identity::TLS;
+	}
+
+	if (Util::getAway()) {
+		statusMode |= Identity::AWAY;
 	}
 
 	string uMin = (SETTING(MIN_UPLOAD_SPEED) == 0) ? Util::emptyString : tmp5 + Util::toString(SETTING(MIN_UPLOAD_SPEED));
 	string myInfoA =
 		"$MyINFO $ALL " + fromUtf8(getMyNick()) + " " + fromUtf8(escape(get(Description))) +
-//DiCe Edit
-//		tmp1 + VERSIONSTRING + tmp2 + modeChar + tmp3 + getCounts();
 		tmp1 + MODVER + tmp2 + modeChar + tmp3 + getCounts();
 	string myInfoB = tmp4 + Util::toString(SETTING(SLOTS));
 	string myInfoC = uMin +
-		">$ $" + uploadSpeed + StatusMode + '$' + fromUtf8(escape(get(Email))) + '$';
+		">$ $" + uploadSpeed + Util::toString(statusMode) + '$' + fromUtf8(escape(get(Email))) + '$';
 	string myInfoD = ShareManager::getInstance()->getShareSizeString() + "$|";
 	// we always send A and C; however, B (slots) and D (share size) can frequently change so we delay them if needed
  	if(lastMyInfoA != myInfoA || lastMyInfoC != myInfoC ||
@@ -887,6 +903,22 @@ void NmdcHub::search(int aSizeType, int64_t aSize, int aFileType, const string& 
 		tmp2 = "Hub:" + fromUtf8(getMyNick());
 	}
 	send("$Search " + tmp2 + ' ' + c1 + '?' + c2 + '?' + Util::toString(aSize) + '?' + Util::toString(aFileType+1) + '?' + tmp + '|');
+}
+
+void NmdcHub::password(const string& aPass) {
+	string filteredPass = fromUtf8(aPass);
+	if(!salt.empty()) {		
+		size_t saltBytes = salt.size() * 5 / 8;
+		boost::scoped_array<uint8_t> buf(new uint8_t[saltBytes]);
+		Encoder::fromBase32(salt.c_str(), &buf[0], saltBytes);
+		TigerHash th;
+		th.update(filteredPass.data(), filteredPass.length());
+		th.update(&buf[0], saltBytes);		
+		send("$MyPass " + Encoder::toBase32(th.finalize(), TigerHash::BYTES) + "|");
+		salt.clear();
+	} else {
+		send("$MyPass " + filteredPass + "|");
+	}
 }
 
 string NmdcHub::validateMessage(string tmp, bool reverse) {

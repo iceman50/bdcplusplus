@@ -280,6 +280,8 @@ fullSlots(false)
 			::ShowWindow(handle(), cmdShow);
 		}
 
+		handleActivate(true); //Now as it is already visible, set the proper focus for the active restored window.
+
 		if(cmdShow == SW_MINIMIZE || cmdShow == SW_SHOWMINIMIZED || cmdShow == SW_SHOWMINNOACTIVE)
 			handleMinimized();
 	});
@@ -537,9 +539,7 @@ void MainWindow::initToolbar() {
 			"Settings" + comma +
 			NotepadFrame::id + comma +
 			comma +
-			"Plugins" + comma +
-			comma +
-			"CSHelp");
+			"Plugins" + comma);
 	}
 	toolbar->setLayout(StringTokenizer<string>(SETTING(TOOLBAR), ',').getTokens());
 	toolbar->onCustomized([this] { handleToolbarCustomized(); });
