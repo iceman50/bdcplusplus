@@ -588,6 +588,7 @@ void NmdcHub::onLine(const string& aLine) noexcept {
 				feat.push_back("TTHSearch");
 				feat.push_back("ZPipe0");
 				feat.push_back("SaltPass");
+				feat.push_back("BotList");
 
 				if(CryptoManager::getInstance()->TLSOk()) {
 					feat.push_back("TLS");
@@ -709,6 +710,24 @@ void NmdcHub::onLine(const string& aLine) noexcept {
 			// Special...to avoid op's complaining that their count is not correctly
 			// updated when they log in (they'll be counted as registered first...)
 			myInfo(false);
+		}
+	} else if(cmd == "$BotList") {
+		if (!param.empty()) {
+			OnlineUserList v;
+			StringTokenizer<string> t(param, "$$");
+			StringList& sl = t.getTokens();
+			for(auto& it: sl) {
+				if(it.empty())
+					continue;
+				OnlineUser& ou = getUser(it);
+				ou.getIdentity().setBot(true);
+//				if(ou.getUser() == getMyIdentity().getUser()) { //We should never be included in the $BotList but sanity checks never hurt...
+//					setMyIdentity(ou.getIdentity());
+//				}
+				v.push_back(&ou);
+			}
+
+			updated(v);
 		}
 	} else if(cmd == "$To:") {
 		string::size_type i = param.find("From:");
