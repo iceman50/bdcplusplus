@@ -13,7 +13,8 @@
 #include <windows.h> 
 #include <io.h>
 #if _MSC_VER < 1700
-#define snprintf _snprintf 
+#define snprintf _snprintf
+#endif
 #define FILETIME_TO_USEC(ft) (((unsigned __int64) ft.dwHighDateTime << 32 | ft.dwLowDateTime) / 10) 
 #endif /* !defined(_WIN32) */ 
 
