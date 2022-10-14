@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2001-2021 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2022 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -12,8 +12,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #ifndef DCPLUSPLUS_DCPP_SETTINGS_MANAGER_H
@@ -88,7 +87,7 @@ public:
 		SOUND_MAIN_CHAT, SOUND_PM, SOUND_PM_WINDOW, SOUND_FINISHED_DL, SOUND_FINISHED_FL, LAST_SHARED_FOLDER,
 		SHARING_SKIPLIST_EXTENSIONS, SHARING_SKIPLIST_REGEX, SHARING_SKIPLIST_PATHS, WHITELIST_OPEN_URIS,
 		//DiCe Addon SETTINGS::STR
-		INFO_VIEWER_FONT, ACFRAME_ORDER, ACFRAME_WIDTHS,
+		INFO_VIEWER_FONT, ACFRAME_ORDER, ACFRAME_WIDTHS, LOADED_THEME, THEME_LIST,
 		//
 		STR_LAST };
 
@@ -136,7 +135,7 @@ public:
 		BOLD_HUB, BOLD_PM, BOLD_QUEUE, BOLD_SEARCH, BOLD_SYSTEM_LOG, CLEAR_SEARCH,
 		CLICKABLE_CHAT_LINKS,
 		COMPRESS_TRANSFERS, CONFIRM_ADLS_REMOVAL, CONFIRM_EXIT, CONFIRM_HUB_CLOSING,
-		CONFIRM_HUB_REMOVAL, CONFIRM_ITEM_REMOVAL, CONFIRM_USER_REMOVAL, DCEXT_REGISTER,
+		CONFIRM_HUB_REMOVAL, CONFIRM_ITEM_REMOVAL, CONFIRM_USER_REMOVAL, DCEXT_REGISTER, THEME_REGISTER,
 		DONT_DL_ALREADY_QUEUED, DONT_DL_ALREADY_SHARED, ENABLE_CCPM, FAV_SHOW_JOINS,
 		FILTER_MESSAGES,
 		FINISHED_DL_ONLY_FULL, FOLLOW_LINKS, GEO_CITY, GEO_REGION, GET_USER_COUNTRY, GET_USER_INFO,
@@ -154,7 +153,7 @@ public:
 		USERS_FILTER_FAVORITE, USERS_FILTER_ONLINE, USERS_FILTER_QUEUE, USERS_FILTER_WAITING,
 		REGISTER_SYSTEM_STARTUP, DONT_LOG_CCPM, 
 		//DiCe Addons SETTINGS::Bool
-		TABS_ON_BOTTOM, AC_DISCLAIM,
+		TABS_ON_BOTTOM, AC_DISCLAIM, USE_THEME,
 		BOOL_LAST };
 
 	enum Int64Setting { INT64_FIRST = BOOL_LAST + 1,

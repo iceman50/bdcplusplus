@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2001-2021 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2022 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -12,8 +12,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #ifndef DCPLUSPLUS_DCPP_FAVORITE_MANAGER_H
@@ -55,7 +54,7 @@ public:
 	StringList getHubLists();
 	void setHubList(int aHubList);
 	int getSelectedHubList() { return lastServer; }
-	void refresh(bool forceDownload = false);
+	void refresh(bool forceDownload = false, bool forceCached = false);
 	HubTypes getHubListType() { return listType; }
 	HubEntryList getPublicHubs() {
 		Lock l(cs);
@@ -145,6 +144,7 @@ private:
 	int lastServer;
 	HubTypes listType;
 	StringMap blacklist;
+	string cachedFileName;
 
 	/** Used during loading to prevent saving. */
 	bool dontSave;

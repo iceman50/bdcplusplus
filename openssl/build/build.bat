@@ -3,7 +3,7 @@ choice /M "%0 - Make sure you have Cygwin - Make sure you have an 'openssl-*.tar
 echo on
 if errorlevel 2 goto end
 
-set VCDIR=C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC
+set VCDIR=C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build
 
 mv ../include/openssl/opensslconf.h .
 rm -rf ../include ../lib

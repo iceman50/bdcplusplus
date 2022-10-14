@@ -367,9 +367,9 @@ class Dev:
 
         if 'msvc' in env['TOOLS']:
             if env['mode'] == 'debug':
-                env.Prepend(LIBS=['ssleay32d', 'libeay32d'])
+                env.Prepend(LIBS=['libssld', 'libcryptod'])
             else:
-                env.Prepend(LIBS=['ssleay32', 'libeay32'])
+                env.Prepend(LIBS=['libssl', 'libcrypto'])
         else:
             env.Prepend(LIBS=['ssl', 'crypto'])
 
@@ -544,7 +544,7 @@ def msvcproj_workarounds(target, source, env):
     contents = contents.replace(
         b'<UseOfMfc>false</UseOfMfc>',
         b'<UseOfMfc>false</UseOfMfc>\r\n\t\t'
-        b'<PlatformToolset>v142</PlatformToolset>'
+        b'<PlatformToolset>v143</PlatformToolset>'
     )
 
     f = open(str(target[0]), 'wb')

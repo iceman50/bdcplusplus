@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2001-2021 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2022 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -12,8 +12,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "stdafx.h"
@@ -133,8 +132,18 @@ users(0)
 		if(!hubIcons) {
 			const dwt::Point size(16, 16);
 			hubIcons = dwt::ImageListPtr(new dwt::ImageList(size));
-			hubIcons->add(dwt::Icon(IDI_HUB, size));
-			hubIcons->add(dwt::Icon(IDI_HUB_OFF, size));
+			if(WinUtil::useTheme()) {
+				try {
+					hubIcons->add(dwt::Icon(WinUtil::iconFilename(IDI_HUB), size));
+					hubIcons->add(dwt::Icon(WinUtil::iconFilename(IDI_HUB_OFF), size));
+				} catch (const dwt::DWTException&) {
+					hubIcons->add(dwt::Icon(IDI_HUB, size));
+					hubIcons->add(dwt::Icon(IDI_HUB_OFF, size));
+				}
+			}else{
+				hubIcons->add(dwt::Icon(IDI_HUB, size));
+				hubIcons->add(dwt::Icon(IDI_HUB_OFF, size));
+			}
 		}
 		hubs->setSmallImageList(hubIcons);
 
@@ -459,10 +468,15 @@ void PublicHubsFrame::handleListSelChanged() {
 	updateList();
 }
 
-void PublicHubsFrame::onFinished(const tstring& s, bool success) {
+void PublicHubsFrame::onFinished(const tstring& s, bool success, bool isCached) {
 	if(success) {
 		entries = FavoriteManager::getInstance()->getPublicHubs();
 		updateList();
+	} else if (isCached) {
+		// The HTTP resource has failed but we've got a cached version so let's queue another refresh to load that
+		// We don't interact with the user about what to do here so this is a hack.
+		// @todo make all the checks, decisions and load in the manager and fire the events only once, depending on the outcome.
+		FavoriteManager::getInstance()->refresh(false, true);
 	}
 	status->setText(STATUS_STATUS, s);
 	listsGrid->setEnabled(true);
@@ -472,23 +486,25 @@ void PublicHubsFrame::on(DownloadStarting, const string& l) noexcept {
 	callAsync([=] { status->setText(STATUS_STATUS, str(TF_("Downloading public hub list... (%1%)") % Text::toT(l)), false); });
 }
 
-void PublicHubsFrame::on(DownloadFailed, const string& l) noexcept {
-	callAsync([=] { onFinished(str(TF_("Download failed: %1%") % Text::toT(l)), false); });
+void PublicHubsFrame::on(DownloadFailed, const string& l, bool isCached) noexcept {
+	callAsync([=] { onFinished(str(TF_("Download failed: %1%") % Text::toT(l)), false, isCached); });
 }
 
 void PublicHubsFrame::on(DownloadFinished, const string& l) noexcept {
-	callAsync([=] { onFinished(str(TF_("Hub list downloaded (%1%)") % Text::toT(l)), true); });
+	callAsync([=] { onFinished(str(TF_("Hub list downloaded (%1%)") % Text::toT(l)), true, false); });
 }
 
-void PublicHubsFrame::on(LoadedFromCache, const string& l, const string& d) noexcept {
-	callAsync([=] { onFinished(str(TF_("Locally cached (as of %1%) version of the hub list loaded (%2%)") % Text::toT(d) % Text::toT(l)), true); });
+void PublicHubsFrame::on(LoadedFromCache, const string& l, const string& d, bool isForced) noexcept {
+	// @todo strings are already frozen - add "HTTP download failed." here w/o param duplication later
+	tstring s = isForced ? (str(TF_("Download failed: %1%") % Text::toT(l)) + Text::toT(" - ")) : Util::emptyStringT;
+	callAsync([=] { onFinished(s + str(TF_("Locally cached (as of %1%) version of the hub list loaded (%2%)") % Text::toT(d) % Text::toT(l)), true, false); });
 }
 
-void PublicHubsFrame::on(Corrupted, const string& l) noexcept {
+void PublicHubsFrame::on(Corrupted, const string& l, bool isCached) noexcept {
 	if(l.empty()) {
-		callAsync([this] { onFinished(T_("Cached hub list is corrupted or unsupported"), false); });
+		callAsync([this] { onFinished(T_("Cached hub list is corrupted or unsupported"), false, false); });
 	} else {
-		callAsync([=] { onFinished(str(TF_("Downloaded hub list is corrupted or unsupported (%1%)") % Text::toT(l)), false); });
+		callAsync([=] { onFinished(str(TF_("Downloaded hub list is corrupted or unsupported (%1%)") % Text::toT(l)), false, isCached); });
 	}
 }
 

@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2001-2021 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2022 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -12,8 +12,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "stdinc.h"
@@ -361,13 +360,24 @@ bool FavoriteManager::onHttpFinished(const string& buf) noexcept {
 		fire(FavoriteManagerListener::Corrupted(), useHttp ? publicListServer : Util::emptyString);
 	}
 
-	if(useHttp) {
-		try {
-			File f(Util::getHubListsPath() + Util::validateFileName(publicListServer), File::WRITE, File::CREATE | File::TRUNCATE);
-			f.write(buf);
-			f.close();
-		} catch(const FileException&) { }
-	}
+	if(success) {
+		if (useHttp) { // Cache only successfully processeed lists
+			try {
+				File f(cachedFileName, File::WRITE, File::CREATE | File::TRUNCATE);
+				f.write(buf);
+				f.close();
+			} catch(const FileException&) { }
+		}
+	} else { // List processing failed
+		bool haveCached = false;
+		if (useHttp) { // The corrupted list is from HTTP source so let's see if we have any usable cached version
+			haveCached = (File::getSize(cachedFileName) > 0);
+		} else {
+			// Corrupted cached content - delete?
+		}
+
+		fire(FavoriteManagerListener::Corrupted(), useHttp ? publicListServer : Util::emptyString, haveCached);
+	} 
 
 	return success;
 }
@@ -713,42 +723,50 @@ void FavoriteManager::setHubList(int aHubList) {
 	refresh();
 }
 
-void FavoriteManager::refresh(bool forceDownload /* = false */) {
+void FavoriteManager::refresh(bool forceDownload /* = false */, bool forceCached /* = false */) {
 	StringList sl = getHubLists();
 	if(sl.empty()) {
-		fire(FavoriteManagerListener::DownloadFailed(), Util::emptyString);
+		fire(FavoriteManagerListener::DownloadFailed(), Util::emptyString, false);
 		return;
 	}
 
 	publicListServer = sl[(lastServer) % sl.size()];
 	if(Util::findSubString(publicListServer, "http://") != 0 && Util::findSubString(publicListServer, "https://") != 0) {
 		lastServer++;
-		fire(FavoriteManagerListener::DownloadFailed(), str(F_("Invalid URL: %1%") % Util::addBrackets(publicListServer)));
+		fire(FavoriteManagerListener::DownloadFailed(), str(F_("Invalid URL: %1%") % Util::addBrackets(publicListServer)), false);
 		return;
 	}
 
+	cachedFileName = Util::getHubListsPath() + Util::validateFileName(publicListServer);
+
 	if(!forceDownload) {
-		string path = Util::getHubListsPath() + Util::validateFileName(publicListServer);
-		if(File::getSize(path) > 0) {
+		if(File::getSize(cachedFileName) > 0) {
 			useHttp = false;
 			string buf, fileDate;
 			{
 				Lock l(cs);
 				publicListMatrix[publicListServer].clear();
 			}
-			listType = (Util::stricmp(path.substr(path.size() - 4), ".bz2") == 0) ? TYPE_BZIP2 : TYPE_NORMAL;
+
+			listType = (Util::stricmp(cachedFileName.substr(cachedFileName.size() - 4), ".bz2") == 0) ? TYPE_BZIP2 : TYPE_NORMAL;
+
 			try {
-				File cached(path, File::READ, File::OPEN);
-				buf = cached.read();
-				char dateBuf[20];
+				File cached(cachedFileName, File::READ, File::OPEN);
 				time_t fd = cached.getLastModified();
-				if (strftime(dateBuf, 20, "%x", localtime(&fd))) {
-					fileDate = string(dateBuf);
+
+				if (forceCached || difftime(time(NULL), fd) < 60 * 60 * 24) { // cache expires in 24 hours
+					buf = cached.read();
+					char dateBuf[20];
+					if (strftime(dateBuf, 20, "%x", localtime(&fd)))
+						fileDate = string(dateBuf);
 				}
 			} catch(const FileException&) { }
+
 			if(!buf.empty()) {
 				if(onHttpFinished(buf)) {
-					fire(FavoriteManagerListener::LoadedFromCache(), publicListServer, fileDate);
+					fire(FavoriteManagerListener::LoadedFromCache(), publicListServer, fileDate, forceCached);
+				} else {
+					lastServer++;
 				}
 				return;
 			}
@@ -841,10 +859,13 @@ void FavoriteManager::on(HttpManagerListener::Added, HttpConnection* c) noexcept
 void FavoriteManager::on(HttpManagerListener::Failed, HttpConnection* c, const string& str) noexcept {
 	if(c != this->c) { return; }
 	this->c = nullptr;
-	lastServer++;
+	
+	bool isCached = File::getSize(cachedFileName) > 0;
+	if (!isCached) lastServer++;
+
 	running = false;
 	if(useHttp) {
-		fire(FavoriteManagerListener::DownloadFailed(), str);
+		fire(FavoriteManagerListener::DownloadFailed(), str, isCached);
 	}
 }
 

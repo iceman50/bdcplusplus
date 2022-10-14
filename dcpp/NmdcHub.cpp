@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2001-2021 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2022 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -12,8 +12,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "stdinc.h"
@@ -145,7 +144,7 @@ void NmdcHub::clearUsers() {
 void NmdcHub::updateFromTag(Identity& id, const string& tag) {
 	StringTokenizer<string> tok(tag, ',');
 
-	if(tag.find("BDC++") != string::npos){
+	if(tag.find("<BDC++") != string::npos){
 		id.getUser()->setFlag(User::BDC);
 	}
 
@@ -398,10 +397,6 @@ void NmdcHub::onLine(const string& aLine) noexcept {
 			u.getUser()->setFlag(User::TLS);
 		} else {
 			u.getUser()->unsetFlag(User::TLS);
-		}
-
-		if((u.getIdentity().getStatus() & Identity::BDC) && !u.getUser()->isSet(User::BDC)) {
-			u.getUser()->setFlag(User::BDC);
 		}
 
 		i = j + 1;
@@ -823,7 +818,6 @@ void NmdcHub::connectToMe(const OnlineUser& aUser) {
 	dcdebug("NmdcHub::connectToMe %s\n", aUser.getIdentity().getNick().c_str());
 	string nick = fromUtf8(aUser.getIdentity().getNick());
 	ConnectionManager::getInstance()->nmdcExpect(nick, getMyNick(), getHubUrl());
-	//send("$ConnectToMe " + nick + " " + localIp + ":" + ConnectionManager::getInstance()->getPort() + "|");
 	bool secure = CryptoManager::getInstance()->TLSOk() && aUser.getUser()->isSet(User::TLS);
 	send("$ConnectToMe " + nick + " " + localIp + ":" + ConnectionManager::getInstance()->getPort() + (secure ? "S" : "") + "|");
 }
@@ -844,7 +838,7 @@ void NmdcHub::myInfo(bool alwaysSend) {
 	checkstate();
 
 	reloadSettings(false);
-	unsigned char statusMode = Identity::NORMAL;
+	char statusMode = Identity::NORMAL;
 
 	string tmp1 = ";ACB**\x1fU9";
 	string tmp2 = "+L9";
@@ -866,8 +860,6 @@ void NmdcHub::myInfo(bool alwaysSend) {
 		modeChar = 'A';
 	else
 		modeChar = 'P';
-
-	statusMode |= Identity::BDC;
 
 	string uploadSpeed;
 	int upLimit = ThrottleManager::getInstance()->getUpLimit();
@@ -891,7 +883,7 @@ void NmdcHub::myInfo(bool alwaysSend) {
 		tmp1 + MODVER + tmp2 + modeChar + tmp3 + getCounts();
 	string myInfoB = tmp4 + Util::toString(SETTING(SLOTS));
 	string myInfoC = uMin +
-		">$ $" + uploadSpeed + Util::toString(statusMode) + '$' + fromUtf8(escape(get(Email))) + '$';
+		">$ $" + uploadSpeed + statusMode + '$' + fromUtf8(escape(get(Email))) + '$';
 	string myInfoD = ShareManager::getInstance()->getShareSizeString() + "$|";
 	// we always send A and C; however, B (slots) and D (share size) can frequently change so we delay them if needed
  	if(lastMyInfoA != myInfoA || lastMyInfoC != myInfoC ||

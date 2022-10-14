@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2001-2021 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2022 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -12,8 +12,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #ifndef DCPLUSPLUS_WIN32_WIN_UTIL_H
@@ -27,6 +26,7 @@
 #include <dcpp/forward.h>
 #include <dcpp/MerkleTree.h>
 #include <dcpp/HintedUser.h>
+#include <dcpp/SettingsManager.h>
 
 #include <dwt/forward.h>
 #include <dwt/widgets/Button.h>
@@ -40,6 +40,7 @@
 
 #include "forward.h"
 #include "RichTextBox.h"
+#include "resource.h"
 
 using std::unordered_map;
 
@@ -128,6 +129,24 @@ public:
 	};
 
 	static Notification notifications[NOTIFICATION_LAST];
+
+	struct Theme {
+		string name;
+		string uuid;
+		string description;
+		string author;
+		string website;
+		double version;
+		COLORREF textColor;
+		COLORREF background;
+		COLORREF uploadText;
+		COLORREF uploadBg;
+		COLORREF downloadText;
+		COLORREF downloadBg;
+		COLORREF linkColor;
+		COLORREF logColor;
+		string path;
+	};
 
 	static tstring tth;
 
@@ -295,6 +314,7 @@ public:
 	static void registerHubHandlers();
 	static void registerMagnetHandler();
 	static void registerDcextHandler();
+	static void registerThemeHandler();
 
 	static void setApplicationStartupRegister();
 	static void setApplicationStartupUnregister();
@@ -313,7 +333,24 @@ public:
 
 	static dwt::IconPtr mergeIcons(const std::vector<int>& iconIds);
 
+	static tstring iconFilename(int icon, long size = 16);
+
 	static void getHubStatus(const string& aUrl, tstring& statusText, int& statusIcon);
+
+	static bool useTheme() { return SETTING(USE_THEME); }
+	static string currentTheme() { return SETTING(LOADED_THEME); }
+	static string getThemePath();
+
+	static vector<WinUtil::Theme> themeList;
+	static Theme loadedTheme;
+
+	static WinUtil::Theme extractTheme(const string& path);
+	static void addTheme(const Theme& theme);
+	static void handleTheme(const Theme& theme);
+	static void defaultTheme();
+	static vector<WinUtil::Theme>::iterator findThemeIter(const string& uuid);
+	static WinUtil::Theme* findTheme(const string& uuid);
+	static void removeTheme(const WinUtil::Theme& theme);
 
 private:
 	static void initUserMatching();
@@ -321,6 +358,15 @@ private:
 	static bool urlDcADCRegistered;
 	static bool urlMagnetRegistered;
 	static bool dcextRegistered;
+	static bool themeRegistered;
+
+	//Is this really needed?
+	static CriticalSection cs;
+
+	static string themeFolder;
+	static void saveThemes();
+	static void loadThemes();
+	static void loadTheme(const string& uuid, Theme& theme);
 };
 
 #endif // !defined(WIN_UTIL_H)

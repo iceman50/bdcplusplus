@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2001-2021 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2022 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -12,8 +12,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #ifndef DCPLUSPLUS_DCPP_CLIENT_H
@@ -21,7 +20,6 @@
 
 #include "compiler.h"
 
-#include "atomic.h"
 #include "BufferedSocketListener.h"
 #include "ClientListener.h"
 #include "ConnectionType.h"
@@ -33,6 +31,7 @@
 #include "TimerManager.h"
 
 #include <boost/core/noncopyable.hpp>
+#include <atomic>
 
 namespace dcpp {
 
@@ -134,7 +133,7 @@ protected:
 		COUNT_UNCOUNTED,
 	};
 
-	static atomic<long> counts[COUNT_UNCOUNTED];
+	static std::atomic_long counts[COUNT_UNCOUNTED];
 
 	enum State {
 		STATE_CONNECTING,	///< Waiting for socket to connect
@@ -144,7 +143,7 @@ protected:
 		STATE_NORMAL,		///< Running
 		STATE_DISCONNECTED,	///< Nothing in particular
 	};
-	atomic<State> state;
+	std::atomic<State> state;
 
 	BufferedSocket *sock;
 

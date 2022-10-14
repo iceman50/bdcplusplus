@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2001-2021 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2022 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -12,19 +12,19 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "stdafx.h"
 
 #include "WinUtil.h"
 
-#include "resource.h"
+#include <filesystem>
 #include <mmsystem.h>
 
 #include <boost/lexical_cast.hpp>
 
+#include <dcpp/Archive.h>
 #include <dcpp/ClientManager.h>
 #include <dcpp/debug.h>
 #include <dcpp/File.h>
@@ -32,7 +32,6 @@
 #include <dcpp/LogManager.h>
 #include <dcpp/Magnet.h>
 #include <dcpp/QueueManager.h>
-#include <dcpp/SettingsManager.h>
 #include <dcpp/ShareManager.h>
 #include <dcpp/StringMatch.h>
 #include <dcpp/StringTokenizer.h>
@@ -90,6 +89,11 @@ MainWindow* WinUtil::mainWindow = 0;
 bool WinUtil::urlDcADCRegistered = false;
 bool WinUtil::urlMagnetRegistered = false;
 bool WinUtil::dcextRegistered = false;
+bool WinUtil::themeRegistered = false;
+decltype(WinUtil::themeList) WinUtil::themeList;
+WinUtil::Theme WinUtil::loadedTheme;
+decltype(WinUtil::cs) WinUtil::cs;
+string WinUtil::themeFolder = Util::getPath(Util::PATH_RESOURCES) + "Themes" + PATH_SEPARATOR_STR;
 
 const Button::Seed WinUtil::Seeds::button;
 const ComboBox::Seed WinUtil::Seeds::comboBox;
@@ -114,6 +118,96 @@ const Table::Seed WinUtil::Seeds::Dialog::table;
 const Table::Seed WinUtil::Seeds::Dialog::optionsTable;
 const CheckBox::Seed WinUtil::Seeds::Dialog::checkBox;
 const Button::Seed WinUtil::Seeds::Dialog::button;
+
+//New Icons need to be added here, otherwise new icons will not appear unless using embedded icons(resource.h and DCPlusPlus.rc)
+static const map<int, tstring> icoMap = 
+{
+	{IDI_DCPP , _T("DCPlusPlus.ico")},
+	{IDI_PUBLICHUBS, _T("PublicHubs.ico")},
+	{IDI_SEARCH, _T("Search.ico")},
+	{IDI_FAVORITE_HUBS, _T("FavoriteHubs.ico")},
+	{IDI_PRIVATE, _T("UserOn.ico")},
+	{IDI_DIRECTORY, _T("Directory.ico")},
+	{IDI_HUB, _T("HubOn.ico")},
+	{IDI_NOTEPAD, _T("Notepad.ico")},
+	{IDI_QUEUE, _T("Queue.ico")},
+	{IDI_FINISHED_DL, _T("FinishedDL.ico")},
+	{IDI_ADLSEARCH, _T("ADLSearch.ico")},
+	{IDI_FINISHED_UL, _T("FinishedUL.ico")},
+	{IDI_USERS, _T("Users.ico")},
+	{IDI_NET_STATS, _T("NetStats.ico")},
+	{IDI_MAGNET, _T("Magnet.ico")},
+	{IDI_HUB_OFF, _T("HubOff.ico")},
+	{IDI_PRIVATE_OFF, _T("UserOff.ico")},
+	{IDI_GROUPED_BY_FILES, _T("GroupedByFiles.ico")},
+	{IDI_GROUPED_BY_USERS, _T("GroupedByUsers.ico")},
+	{IDI_EXIT, _T("Exit.ico")},
+	{IDI_CHAT, _T("Chat.ico")},
+	{IDI_HELP, _T("Help.ico")},
+	{IDI_OPEN_DL_DIR, _T("OpenDLDir.ico")},
+	{IDI_OPEN_FILE_LIST, _T("OpenFileList.ico")},
+	{IDI_RECONNECT, _T("Reconnect.ico")},
+	{IDI_SETTINGS, _T("Settings.ico")},
+	{IDI_TRAY_PM, _T("TrayPM.ico")},
+	{IDI_TRUSTED, _T("Trusted.ico")},
+	{IDI_SECURE, _T("Secure.ico")},
+	{IDI_RECENTS, _T("Recents.ico")},
+	{IDI_WHATS_THIS, _T("WhatsThis.ico")},
+	{IDI_DOWNLOAD, _T("Download.ico")},
+	{IDI_UPLOAD, _T("Upload.ico")},
+	{IDI_UPLOAD_FILTERING, _T("UploadFiltering.ico")},
+	{IDI_CHANGELOG, _T("Changelog.ico")},
+	{IDI_DONATE, _T("Donate.ico")},
+	{IDI_GET_STARTED, _T("GetStarted.ico")},
+	{IDI_INDEXING, _T("Indexing.ico")},
+	{IDI_LINKS, _T("Links.ico")},
+	{IDI_REFRESH, _T("Refresh.ico")},
+	{IDI_SLOTS, _T("Slots.ico")},
+	{IDI_OK, _T("OK.ico")},
+	{IDI_CANCEL, _T("Cancel.ico")},
+	{IDI_LEFT, _T("Left.ico")},
+	{IDI_RIGHT, _T("Right.ico")},
+	{IDI_USER, _T("User.ico")},
+	{IDI_USER_AWAY, _T("UserAway.ico")},
+	{IDI_USER_BOT, _T("UserBot.ico")},
+	{IDI_USER_NOCON, _T("UserNoCon.ico")},
+	{IDI_USER_NOSLOT, _T("UserNoSlot.ico")},
+	{IDI_USER_OP, _T("UserOp.ico")},
+	{IDI_UP, _T("Up.ico")},
+	{IDI_FILE, _T("File.ico")},
+	{IDI_EXEC, _T("Exec.ico")},
+	{IDI_FAVORITE_USER_ON, _T("FavoriteUserOn.ico")},
+	{IDI_FAVORITE_USER_OFF, _T("FavoriteUserOff.ico")},
+	{IDI_GREEN_BALL, _T("BallGreen.ico")},
+	{IDI_RED_BALL, _T("BallRed.ico")},
+	{IDI_SLOTS_FULL, _T("SlotsFull.ico")},
+	{IDI_ADVANCED, _T("Advanced.ico")},
+	{IDI_CLOCK, _T("Clock.ico")},
+	{IDI_STYLES, _T("Styles.ico")},
+	{IDI_BW_LIMITER, _T("Bandwidthlimiter.ico")},
+	{IDI_CONN_GREY, _T("ConnGrey.ico")},
+	{IDI_CONN_BLUE, _T("ConnBlue.ico")},
+	{IDI_EXPERT, _T("Expert.ico")},
+	{IDI_FAVORITE_DIRS, _T("FavoriteDirs.ico")},
+	{IDI_LOGS, _T("Logs.ico")},
+	{IDI_NOTIFICATIONS, _T("Notifications.ico")},
+	{IDI_PROXY, _T("Proxy.ico")},
+	{IDI_TABS, _T("Tabs.ico")},
+	{IDI_WINDOWS, _T("Windows.ico")},
+	{IDI_BALLOON, _T("Balloon.ico")},
+	{IDI_SOUND, _T("Sound.ico")},
+	{IDI_ULIMIT, _T("ULimit.ico")},
+	{IDI_DLIMIT, _T("DLimit.ico")},
+	{IDI_OPEN_OWN_FILE_LIST, _T("OpenOwnFileList.ico")},
+	{IDI_PLUGINS, _T("Plugins.ico")},
+	{IDI_USER_REG, _T("UserReg.ico")},
+	{IDI_DELETE, _T("Remove.ico")},
+	{IDI_PAUSE, _T("Pause.ico")},
+	{IDI_PLAY, _T("Play.ico")},
+	{IDI_INCREMENT, _T("Increment.ico")},
+	{IDI_DECREMENT, _T("Decrement.ico")},
+	{IDI_REMOVEQUEUE, _T("RemoveQueue.ico")}
+};
 
 void WinUtil::init() {
 
@@ -208,6 +302,17 @@ void WinUtil::init() {
 	registerHubHandlers();
 	registerMagnetHandler();
 	registerDcextHandler();
+	registerThemeHandler();
+
+	if(useTheme()) {
+		loadThemes();
+		auto loaded = findTheme(currentTheme()); // This is incorrect 
+		if(loaded != nullptr) {
+			loadTheme(loaded->uuid, WinUtil::loadedTheme);
+			LogManager::getInstance()->message("WinUtil::init loadedTheme - " + loadedTheme.name + " - UUID " + loadedTheme.uuid + "\r\n");
+		}		
+	}
+
 }
 
 void WinUtil::initSeeds() {
@@ -295,7 +400,7 @@ void WinUtil::initSeeds() {
 }
 
 void WinUtil::uninit() {
-
+	saveThemes();
 }
 
 void WinUtil::initFont() {
@@ -630,12 +735,20 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 		HashManager::getInstance()->rebuild();
 	} else if(Util::stricmp(cmd.c_str(), _T("upload")) == 0) {
 		auto value = Util::toInt(Text::fromT(param));
-		ThrottleManager::setSetting(ThrottleManager::getCurSetting(SettingsManager::MAX_UPLOAD_SPEED_MAIN), value);
-		status = value ? str(TF_("Upload limit set to %1% KiB/s") % value) : T_("Upload limit disabled");
+		if(value >= 0) {
+			ThrottleManager::setSetting(ThrottleManager::getCurSetting(SettingsManager::MAX_UPLOAD_SPEED_MAIN), value);
+			status = value ? str(TF_("Upload limit set to %1% KiB/s") % value) : T_("Upload limit disabled");
+		} else {
+			status = T_("Invalid speed value");
+		}
 	} else if(Util::stricmp(cmd.c_str(), _T("download")) == 0) {
 		auto value = Util::toInt(Text::fromT(param));
-		ThrottleManager::setSetting(ThrottleManager::getCurSetting(SettingsManager::MAX_DOWNLOAD_SPEED_MAIN), value);
-		status = value ? str(TF_("Download limit set to %1% KiB/s") % value) : T_("Download limit disabled");
+		if(value >= 0) {
+			ThrottleManager::setSetting(ThrottleManager::getCurSetting(SettingsManager::MAX_DOWNLOAD_SPEED_MAIN), value);
+			status = value ? str(TF_("Download limit set to %1% KiB/s") % value) : T_("Download limit disabled");
+		} else {
+			status = T_("Invalid speed value");
+		}
 	} else if(Util::stricmp(cmd.c_str(), _T("about:config")) == 0 || Util::stricmp(cmd.c_str(), _T("ac")) == 0 || Util::stricmp(cmd.c_str(), _T("a:c")) == 0) {
 		ACFrame::openWindow(mainWindow->getTabView());
 	} else {
@@ -1209,6 +1322,17 @@ void WinUtil::registerDcextHandler() {
 	}
 }
 
+void WinUtil::registerThemeHandler() {
+	if(SETTING(THEME_REGISTER)) {
+		if(!themeRegistered) {
+			themeRegistered = registerHandler(_T(".dcpptheme"), _T("DC theme"), false, _T("dcpptheme:"));
+		}
+	} else if(themeRegistered) {
+		themeRegistered = ::SHDeleteKey(HKEY_CURRENT_USER, _T("Software\\Classes\\.dcpptheme")) != ERROR_SUCCESS;
+		regChanged();
+	}
+}
+
 void WinUtil::setApplicationStartupRegister()
 {
 	HKEY hk;
@@ -1424,8 +1548,14 @@ void WinUtil::addUserItems(Menu* menu, const HintedUserList& users, TabViewPtr p
 	addUsers(menu, T_("&Send private message"), users, [parent](const HintedUser& u, const string&) {
 		PrivateFrame::openWindow(parent, u); });
 
+	dwt::IconPtr icon;
+	if(WinUtil::useTheme()) {
+		try { icon = new dwt::Icon(WinUtil::iconFilename(IDI_FAVORITE_USER_ON)); } catch(const dwt::DWTException&) { icon = new dwt::Icon(IDI_FAVORITE_USER_ON); }
+	} else {
+		icon = new dwt::Icon(IDI_FAVORITE_USER_ON);
+	}
 	addUsers(menu, T_("Add To &Favorites"), filter(users, &isFav), [=](const HintedUser &u, const string& s) {
-		FavoriteManager::getInstance()->addFavoriteUser(u); }, dwt::IconPtr(new dwt::Icon(IDI_FAVORITE_USER_ON)));
+		FavoriteManager::getInstance()->addFavoriteUser(u); }, icon);
 
 	addUsers(menu, T_("Grant &extra slot"), users, [=](const HintedUser &u, const string& s) {
 		UploadManager::getInstance()->reserveSlot(u); });
@@ -1508,7 +1638,18 @@ pair<int, bool> WinUtil::tableSortSetting(int columnCount, int setting, int defa
 }
 
 dwt::IconPtr WinUtil::createIcon(unsigned id, long size) {
-	return new dwt::Icon(id, dwt::Point(size, size));
+	if(useTheme()) {
+		tstring iconPath = Text::toT(themeFolder + currentTheme());
+		tstring iconf;
+
+		auto item = icoMap.find(id);
+		if(item != icoMap.end()) {
+			iconf = item->second;
+		}
+		try { return new dwt::Icon(iconPath + iconf, dwt::Point(size, size)); } catch(const dwt::DWTException&) { return new dwt::Icon(id, dwt::Point(size, size)); }
+	} else {
+		return new dwt::Icon(id, dwt::Point(size, size));
+	}
 }
 
 dwt::IconPtr WinUtil::toolbarIcon(unsigned id) {
@@ -1527,6 +1668,17 @@ dwt::IconPtr WinUtil::mergeIcons(const std::vector<int>& iconIds)
 	}
 	
 	return dwt::util::merge(icons);
+}
+
+tstring WinUtil::iconFilename(int icon, long size) {
+	string themePath = getThemePath();
+	tstring iconf = Util::emptyStringT;
+
+	auto item = icoMap.find(icon);
+	if(item != icoMap.end()) {
+		iconf = item->second;
+	}
+	return Text::toT(themePath) + iconf; // We really don't care if this returns invalid catch dwt::DWTException as needed and fallback to embedded resource
 }
 
 void WinUtil::getHubStatus(const string& url, tstring& statusText, int& statusIcon)
@@ -1554,4 +1706,257 @@ void WinUtil::getHubStatus(const string& url, tstring& statusText, int& statusIc
 			statusIcon = HUB_OFF_ICON;
 		}
 	}
+}
+
+WinUtil::Theme WinUtil::extractTheme(const string& path) {
+	const auto dir = Util::getTempPath() + "dcpptheme" PATH_SEPARATOR_STR;
+	const auto info_path = dir + "dcpptheme.xml";
+	Archive(path).extract(dir);
+
+	SimpleXML xml;
+	xml.fromXML(File(info_path, File::READ, File::OPEN).read());
+
+	WinUtil::Theme theme { };
+
+	if(xml.findChild("dcpptheme")) {
+		xml.stepIn();
+
+		auto parse = [&xml](string tag, string& out) {
+			xml.resetCurrentChild();
+			if(xml.findChild(tag)) {
+				out = xml.getChildData();
+			}
+		};
+
+		auto parseColor = [&xml](string tag, COLORREF& out) {
+			xml.resetCurrentChild();
+			if (xml.findChild(tag)) {
+				string color = xml.getChildData();
+				out = Util::toInt(color);
+			}
+		};
+
+		parse("Name", theme.name);
+		parse("Uuid", theme.uuid);
+		parse("Description", theme.description);
+		parse("Author", theme.author);
+		parse("Website", theme.website);
+		string version;
+		parse("Version", version); theme.version = Util::toDouble(version);
+		parseColor("TextColor", theme.textColor);
+		parseColor("BgColor", theme.background);
+		parseColor("ULBarTextColor", theme.uploadText);
+		parseColor("ULBarBgColor", theme.uploadBg);
+		parseColor("DLBarTextColor", theme.downloadText);
+		parseColor("DLBarBgColor", theme.downloadBg);
+		parseColor("LinkColor", theme.linkColor);
+		parseColor("LogColor", theme.logColor);
+
+		xml.stepOut();
+	}
+
+	auto log = [](string msg) {
+		LogManager::getInstance()->message(msg + "\r\n");
+	};
+
+	theme.path = themeFolder + theme.uuid + PATH_SEPARATOR_STR;
+	File::ensureDirectory(theme.path);
+	log("File::ensureDirectory(theme.path) = " + theme.path);
+	Archive(path).extract(theme.path);
+//	File::renameFile(dir, theme.path);
+
+	return theme;
+}
+
+
+void WinUtil::addTheme(const Theme& theme) {
+	SettingsManager::getInstance()->set(SettingsManager::LOADED_THEME, theme.uuid);
+
+	auto it = findThemeIter(theme.uuid);
+	if(it == themeList.end()) {
+		themeList.push_back(move(theme));
+	}
+
+	handleTheme(theme);
+}
+
+void WinUtil::loadTheme(const string& uuid, Theme& theme) {
+	const auto theme_file = themeFolder + uuid + PATH_SEPARATOR_STR + "dcpptheme.xml";
+	SimpleXML xml;
+	xml.fromXML(File(theme_file, File::READ, File::OPEN).read());
+
+	if(xml.findChild("dcpptheme")) {
+		xml.stepIn();
+
+		auto parse = [&xml](string tag, string& out) {
+			xml.resetCurrentChild();
+			if(xml.findChild(tag)) {
+				out = xml.getChildData();
+			}
+		};
+
+		auto parseColor = [&xml](string tag, COLORREF& out) {
+			xml.resetCurrentChild();
+			if (xml.findChild(tag)) {
+				string color = xml.getChildData();
+				out = Util::toInt(color);
+			}
+		};
+
+		parse("Name", theme.name);
+		parse("Uuid", theme.uuid);
+		parse("Description", theme.description);
+		parse("Author", theme.author);
+		parse("Website", theme.website);
+		string version;
+		parse("Version", version); theme.version = Util::toFloat(version);
+		parseColor("TextColor", theme.textColor);
+		parseColor("BgColor", theme.background);
+		parseColor("ULBarTextColor", theme.uploadText);
+		parseColor("ULBarBgColor", theme.uploadBg);
+		parseColor("DLBarTextColor", theme.downloadText);
+		parseColor("DLBarBgColor", theme.downloadBg);
+		parseColor("LinkColor", theme.linkColor);
+		parseColor("LogColor", theme.logColor);
+
+		xml.stepOut();
+	}
+
+	auto it = findThemeIter(theme.uuid);
+	if(it == themeList.end()) {
+		themeList.push_back(move(theme));
+		LogManager::getInstance()->message(theme.name + " / " + theme.uuid + "WinUtil::Load themeList.push_back  \r\n");
+	}
+}
+
+namespace {
+	BOOL CALLBACK updateColors(HWND hwnd, LPARAM) {
+		dwt::Control* widget = dwt::hwnd_cast<dwt::Control*>(hwnd);
+		if(widget) {
+			// not every widget is custom colored; those that are also catch ID_UPDATECOLOR (see WinUtil::setColor).
+			widget->sendCommand(ID_UPDATECOLOR);
+		}
+		return TRUE;
+	}
+} // unnamed namespace
+
+void WinUtil::handleTheme(const Theme& theme) {
+
+	auto sm = SettingsManager::getInstance();
+	sm->set(SettingsManager::LOADED_THEME, theme.uuid);
+	sm->set(SettingsManager::TEXT_COLOR, static_cast<SettingsManager::IntSetting>(theme.textColor));
+	sm->set(SettingsManager::BACKGROUND_COLOR, static_cast<SettingsManager::IntSetting>(theme.background));
+	sm->set(SettingsManager::UPLOAD_TEXT_COLOR, static_cast<SettingsManager::IntSetting>(theme.uploadText));
+	sm->set(SettingsManager::UPLOAD_BG_COLOR, static_cast<SettingsManager::IntSetting>(theme.uploadBg));
+	sm->set(SettingsManager::DOWNLOAD_TEXT_COLOR, static_cast <SettingsManager::IntSetting>(theme.downloadText));
+	sm->set(SettingsManager::DOWNLOAD_BG_COLOR, static_cast<SettingsManager::IntSetting>(theme.downloadBg));
+	sm->set(SettingsManager::LINK_COLOR, static_cast<SettingsManager::IntSetting>(theme.linkColor));
+	sm->set(SettingsManager::LOG_COLOR, static_cast<SettingsManager::IntSetting>(theme.logColor));
+	sm->save();
+
+	textColor = theme.textColor;
+	bgColor = theme.background;
+
+	::EnumChildWindows(mainWindow->handle(), updateColors, 0);
+	LogManager::getInstance()->message("Please restart DC++ to see full effects of theme");
+//	auto font = WinUtil::font->handle();
+//	::EnumChildWindows(mainWindow->handle(), updateFont, reinterpret_cast<LPARAM>(font));//not really necessary since we require a restart
+
+}
+
+void WinUtil::defaultTheme() {
+	auto setDefault = [&](SettingsManager::IntSetting setting) -> void {
+		auto sm = SettingsManager::getInstance();
+		sm->set(setting, sm->getDefault(setting));
+	};
+
+	setDefault(SettingsManager::TEXT_COLOR);
+	setDefault(SettingsManager::BACKGROUND_COLOR);
+	setDefault(SettingsManager::UPLOAD_TEXT_COLOR);
+	setDefault(SettingsManager::UPLOAD_BG_COLOR);
+	setDefault(SettingsManager::DOWNLOAD_TEXT_COLOR);
+	setDefault(SettingsManager::DOWNLOAD_BG_COLOR);
+	setDefault(SettingsManager::LINK_COLOR);
+	setDefault(SettingsManager::LOG_COLOR);
+}
+
+string WinUtil::getThemePath() {
+	auto theme = findTheme(currentTheme());
+	if(theme == nullptr) {
+		LogManager::getInstance()->message("getThemePath()->theme == nullptr");
+		return Util::emptyString;
+	}
+
+	if(theme->path == Util::emptyString) {
+		return themeFolder + theme->uuid + PATH_SEPARATOR_STR;
+	} else {
+		return theme->path;
+	}
+	return theme->path;
+}
+
+void WinUtil::saveThemes() {
+	Lock lock(WinUtil::cs);
+
+	try {
+		if(themeList.empty()) { return; }
+
+		SimpleXML xml;
+		xml.addTag("Themes");
+		xml.stepIn();
+		for(auto& themes: themeList) {
+//				if(themes.name == "Default") { continue; } //We don't need to save the Default since it will always be loaded on WinUtil::init()
+			xml.addTag("Theme");
+			xml.addChildAttrib("Uuid", themes.uuid);
+			xml.addChildAttrib("Name", themes.name);
+			xml.addChildAttrib("Path", themes.path);
+		}
+		xml.stepOut();
+
+		string fname = Util::getPath(Util::PATH_USER_CONFIG) + "Themes.xml";
+		File f(fname + ".tmp", File::WRITE, File::CREATE | File::TRUNCATE);
+		f.write(SimpleXML::utf8Header);
+		f.write(xml.toXML());
+		f.close();
+		File::deleteFile(fname);
+		File::renameFile(fname + ".tmp", fname);
+	} catch(const Exception& e) {
+		dcdebug("WinUtil::saveThemes: %s\n", e.getError().c_str());
+	}
+}
+
+void WinUtil::loadThemes() {
+	Lock lock(WinUtil::cs);
+
+	themeList.clear();
+
+	try {
+		Util::migrate(Util::getPath(Util::PATH_USER_CONFIG) + "Themes.xml");
+		SimpleXML xml;
+		xml.fromXML(File(Util::getPath(Util::PATH_USER_CONFIG) + "Themes.xml", File::READ, File::OPEN).read());
+		if(xml.findChild("Themes")) {
+			xml.stepIn();
+			while(xml.findChild("Theme")) {
+				Theme theme {};
+				loadTheme(xml.getChildAttrib("Uuid"), theme);
+				themeList.push_back(move(theme));
+			}
+			xml.stepOut();
+		}
+	} catch(const Exception& e) {
+		dcdebug("WinUtil::loadThemes: %s\n", e.getError().c_str());
+	}
+}
+
+vector<WinUtil::Theme>::iterator WinUtil::findThemeIter(const string& uuid) {
+	return std::find_if(WinUtil::themeList.begin(), WinUtil::themeList.end(), [&uuid](const WinUtil::Theme& t) { return t.uuid == uuid; });
+}
+
+WinUtil::Theme* WinUtil::findTheme(const string& uuid) {
+	auto it = findThemeIter(uuid);
+	return it != WinUtil::themeList.end() ? &*it : nullptr;
+}
+
+void WinUtil::removeTheme(const WinUtil::Theme& theme) {
+	themeList.erase(findThemeIter(theme.uuid));
 }

@@ -1,6 +1,6 @@
 # vim: set filetype: py
 
-EnsureSConsVersion(3, 0, 0)
+EnsureSConsVersion(4, 0, 0)
 
 import os
 import sys
@@ -58,7 +58,7 @@ msvc_flags = {
         '/W4', '/EHsc', '/Zi', '/Zm200', '/GR', '/FC', '/wd4100', '/wd4121',
         '/wd4127', '/wd4189', '/wd4244', '/wd4290', '/wd4307', '/wd4324',
         '/wd4355', '/wd4510', '/wd4512', '/wd4610', '/wd4706', '/wd4800',
-        '/wd4996', '/wd4005'
+        '/wd4996', '/wd4005', '/wd4458'
     ],
     'debug': ['/MDd'],
     'release': ['/MD', '/O2']
@@ -183,7 +183,7 @@ if TARGET_ARCH == 'x64':
 # about VC 12 yet.
 env = Environment(
     ENV=os.environ, tools=[defEnv['tools']], options=opts,
-    TARGET_ARCH=TARGET_ARCH, MSVS_ARCH=TARGET_ARCH, MSVC_USE_SCRIPT=False
+    TARGET_ARCH=TARGET_ARCH, MSVS_ARCH=TARGET_ARCH, MSVC_USE_SCRIPT=True
 )
 
 if env['distro']:
@@ -243,12 +243,14 @@ if 'gcc' in env['TOOLS']:
 
     # require i686 instructions for atomic<int64_t>, used by boost::lockfree
     # (otherwise lockfree lists won't actually be lock-free).
-    # Require SSE2 for e.g., significantly faster Tiger hashing
+    # Require SSE2 for e.g., significantly faster Tiger hashing and generally
+    # to allow 32-bit builds to perform 64-bit arithmetic with more facility
     # https://www.cryptopp.com/benchmarks.html
-    # Require SSE3 for FISTTP
+    # Require SSE3 for fisttp
     if env['arch'] == 'x86':
         env.Append(CCFLAGS=['-march=nocona', '-mtune=generic']) # Through SSE3
     elif env['arch'] == 'x64':
+        # Require SSSE3 for pshufb, which, e.g., helps bzip2 compression speed
         env.Append(CCFLAGS=['-march=core2',  '-mtune=generic']) # Through SSSE3
 
 if 'msvc' in env['TOOLS']:
@@ -313,8 +315,6 @@ env.Append(CXXFLAGS=xxflags['common'])
 
 env.Append(LINKFLAGS=link_flags[env['mode']])
 env.Append(LINKFLAGS=link_flags['common'])
-
-env.SourceCode('.', None)
 
 import SCons.Scanner
 SWIGScanner = SCons.Scanner.ClassicCPP(

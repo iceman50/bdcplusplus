@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2001-2021 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2022 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -12,8 +12,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "stdafx.h"
@@ -23,7 +22,6 @@
 #include <dcpp/Text.h>
 #include <dcpp/version.h>
 
-#include <dwt/DWTException.h>
 #include <dwt/widgets/ProgressBar.h>
 
 #include "resource.h"
@@ -34,14 +32,8 @@ SplashWindow::SplashWindow() :
 	logoRot(0),
 	progress(0)
 {
-	// 256x icons only work on >= Vista. on failure, try loading a 48x image.
-	try {
-		iconSize = 256;
-		icon = WinUtil::createIcon(IDI_DCPP, iconSize);
-	} catch(const dwt::DWTException&) {
-		iconSize = 48;
-		icon = WinUtil::createIcon(IDI_DCPP, iconSize);
-	}
+	iconSize = 256;
+	icon = new dwt::Icon(IDI_DCPP, dwt::Point(iconSize, iconSize));
 
 	{
 		// create a layered window (WS_EX_LAYERED); it will be shown later with UpdateLayeredWindow.

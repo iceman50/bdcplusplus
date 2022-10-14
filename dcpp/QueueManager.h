@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2001-2021 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2022 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -12,19 +12,18 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #ifndef DCPLUSPLUS_DCPP_QUEUE_MANAGER_H
 #define DCPLUSPLUS_DCPP_QUEUE_MANAGER_H
 
+#include <atomic>
 #include <functional>
 #include <unordered_map>
 
 #include <boost/lockfree/queue.hpp>
 
-#include "atomic.h"
 #include "BundleItem.h"
 #include "ClientManagerListener.h"
 #include "CriticalSection.h"
@@ -153,7 +152,7 @@ private:
 		virtual int run();
 
 	private:
-		static atomic_flag active;
+		static std::atomic_flag active;
 		typedef pair<string, string> FilePair;
 		boost::lockfree::queue<FilePair*> files;
 	} mover;
@@ -173,7 +172,7 @@ private:
 
 	private:
 		QueueManager* qm;
-		static atomic_flag active;
+		static std::atomic_flag active;
 		boost::lockfree::queue<string*> files;
 	} rechecker;
 

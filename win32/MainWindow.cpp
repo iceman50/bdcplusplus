@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2001-2021 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2022 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -12,8 +12,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "stdafx.h"
@@ -47,6 +46,7 @@
 #include <dwt/Application.h>
 #include <dwt/DWTException.h>
 #include <dwt/widgets/Grid.h>
+#include <dwt/widgets/LoadDialog.h>
 #include <dwt/widgets/MessageBox.h>
 #include <dwt/widgets/Notification.h>
 #include <dwt/widgets/Rebar.h>
@@ -81,6 +81,8 @@
 #include "StatsFrame.h"
 #include "SystemFrame.h"
 #include "TextFrame.h"
+#include "ThemeInfoDlg.h"
+#include "ThemePage.h"
 #include "TransferView.h"
 #include "UsersFrame.h"
 
@@ -94,8 +96,8 @@ using dwt::ToolBar;
 
 decltype(MainWindow::pluginCommands) MainWindow::pluginCommands;
 
-static dwt::IconPtr mainIcon(WinUtil::createIcon(IDI_DCPP, 32));
-static dwt::IconPtr mainSmallIcon(WinUtil::createIcon(IDI_DCPP, 16));
+static dwt::IconPtr mainIcon(new dwt::Icon(IDI_DCPP, dwt::Point(32, 32))); //Workaround for SettingsManager not being initialized yet
+static dwt::IconPtr mainSmallIcon(new dwt::Icon(IDI_DCPP, dwt::Point(16, 16)));
 
 
 //DiCe Addon
@@ -352,6 +354,9 @@ void MainWindow::initMenu() {
 		file->appendItem(T_("Open crash log"), [this] { TextFrame::openWindow(getTabView(), Text::fromT(CrashLogger::getPath())); });
 		file->appendSeparator();
 
+		file->appendItem(T_("Add theme"), [this] { addTheme(this); }, WinUtil::menuIcon(IDI_STYLES));
+		file->appendSeparator();
+
 		file->appendItem(T_("Settings\tCtrl+F3"), [this] { handleSettings(); }, WinUtil::menuIcon(IDI_SETTINGS));
 		file->appendSeparator();
 
@@ -544,6 +549,7 @@ void MainWindow::initToolbar() {
 	toolbar->setLayout(StringTokenizer<string>(SETTING(TOOLBAR), ',').getTokens());
 	toolbar->onCustomized([this] { handleToolbarCustomized(); });
 	toolbar->onContextMenu([this](const dwt::ScreenCoordinate &sc) { return handleToolbarContextMenu(sc); });
+//	toolbar->onCustomDraw([this](NMTBCUSTOMDRAW& data) { return handleTBCustomDraw(data); });
 
 	rebar->add(toolbar);
 
@@ -1294,6 +1300,7 @@ void MainWindow::handleSettings() {
 	auto prevURLReg = SETTING(URL_HANDLER);
 	auto prevMagnetReg = SETTING(MAGNET_REGISTER);
 	auto prevDcextReg = SETTING(DCEXT_REGISTER);
+	auto prevThemeReg = SETTING(THEME_REGISTER);
 	auto prevSystemStartupReg = SETTING(REGISTER_SYSTEM_STARTUP);
 	auto prevSettingsSave = SETTING(SETTINGS_SAVE_INTERVAL);
 
@@ -1375,6 +1382,8 @@ void MainWindow::handleSettings() {
 			WinUtil::registerMagnetHandler();
 		if(SETTING(DCEXT_REGISTER) != prevDcextReg)
 			WinUtil::registerDcextHandler();
+		if(SETTING(THEME_REGISTER) != prevThemeReg)
+			WinUtil::registerThemeHandler();
 		
 		if(SETTING(REGISTER_SYSTEM_STARTUP) != prevSystemStartupReg)
 			WinUtil::setApplicationStartup();
@@ -1749,6 +1758,30 @@ void MainWindow::completeGeoUpdate(bool v6, bool success) {
 	}
 }
 
+void MainWindow::addTheme(Widget* w) {
+	tstring path_t;
+	if(dwt::LoadDialog(w)
+	   .addFilter(str(TF_("%1% files") % _T("dcpptheme")), _T("*.dcpptheme"))
+	   .open(path_t))
+	{
+		auto path = Text::fromT(path_t);
+		if(Util::getFileExt(path) == ".dcpptheme") {
+			ThemeInfoDlg(w, path).run();
+		} else {
+			LogManager::getInstance()->message("MainWindow::addTheme(*)Run LINE" + Util::toString(__LINE__));
+			auto theme = WinUtil::extractTheme(path);
+			LogManager::getInstance()->message("MainWindow::addTheme(*)Run LINE" + Util::toString(__LINE__));
+			try {
+				WinUtil::addTheme(theme);
+				LogManager::getInstance()->message("MainWindow::addTheme(*)Run LINE" + Util::toString(__LINE__));
+			} catch(const Exception& e) {
+				dwt::MessageBox(w).show(tstring(T_("Cannot install theme:") + Text::toT(theme.name)) + _T("\r\n\r\n") + Text::toT(e.getError()),
+										Text::toT(Util::getFileName(path)), dwt::MessageBox::BOX_OK, dwt::MessageBox::BOX_ICONSTOP);
+			}
+		}
+	}
+}
+
 void MainWindow::parseCommandLine(const tstring& cmdLine) {
 	// this string may or may not contain the executable's path at the beginning.
 
@@ -1766,6 +1799,10 @@ void MainWindow::parseCommandLine(const tstring& cmdLine) {
 		auto path = Text::fromT(cmdLine.substr(i + 6));
 		Util::sanitizeUrl(path);
 		PluginInfoDlg(this, path).run();
+	} else if((i = cmdLine.find(_T("dcpptheme:"))) != tstring::npos) {
+		auto path = Text::fromT(cmdLine.substr(i + 10));
+		Util::sanitizeUrl(path);
+		ThemeInfoDlg(this, path).run();
 	}
 }
 
@@ -1983,6 +2020,25 @@ void MainWindow::handleTrayUpdate() {
 		Util::formatBytes(UploadManager::getInstance()->getRunningAverage()) %
 		UploadManager::getInstance()->getUploadCount())));
 }
+/*
+LRESULT MainWindow::handleTBCustomDraw(NMTBCUSTOMDRAW& data) {
+	switch(data.nmcd.dwDrawStage) {
+	case CDDS_PREPAINT:
+		return CDRF_NOTIFYITEMDRAW;
+
+	case CDDS_ITEMPREPAINT:
+		return CDRF_NOTIFYSUBITEMDRAW;
+
+	case CDDS_SUBITEM | CDDS_ITEMPREPAINT:
+	{
+
+	}
+	// Fall through
+	default:
+		return CDRF_DODEFAULT;
+	}
+}
+*/
 
 void MainWindow::on(ConnectionManagerListener::Connected, ConnectionQueueItem* cqi, UserConnection* uc) noexcept {
 	if(cqi->getType() == CONNECTION_TYPE_PM) {

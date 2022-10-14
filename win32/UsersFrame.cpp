@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2001-2021 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2022 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -12,8 +12,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "stdafx.h"
@@ -138,13 +137,33 @@ selected(-1)
 		if(!userIcons) {
 			const dwt::Point size(16, 16);
 			userIcons = dwt::ImageListPtr(new dwt::ImageList(size));
-			userIcons->add(dwt::Icon(IDI_FAVORITE_USER_OFF, size));
-			userIcons->add(dwt::Icon(IDI_FAVORITE_USER_ON, size));
-			userIcons->add(dwt::Icon(IDI_RED_BALL, size));
-			userIcons->add(dwt::Icon(IDI_GREEN_BALL, size));
-			userIcons->add(dwt::Icon(IDI_DCPP, size));
-			userIcons->add(dwt::Icon(IDI_WHATS_THIS, size));
-			userIcons->add(dwt::Icon(IDI_USER_BOT, size));
+			if(WinUtil::useTheme()) {
+				try {
+					userIcons->add(dwt::Icon(WinUtil::iconFilename(IDI_FAVORITE_USER_OFF), size));
+					userIcons->add(dwt::Icon(WinUtil::iconFilename(IDI_FAVORITE_USER_ON), size));
+					userIcons->add(dwt::Icon(WinUtil::iconFilename(IDI_RED_BALL), size));
+					userIcons->add(dwt::Icon(WinUtil::iconFilename(IDI_GREEN_BALL), size));
+					userIcons->add(dwt::Icon(WinUtil::iconFilename(IDI_DCPP), size));
+					userIcons->add(dwt::Icon(WinUtil::iconFilename(IDI_WHATS_THIS), size));
+					userIcons->add(dwt::Icon(WinUtil::iconFilename(IDI_USER_BOT), size));
+				} catch (const dwt::DWTException&) {
+					userIcons->add(dwt::Icon(IDI_FAVORITE_USER_OFF, size));
+					userIcons->add(dwt::Icon(IDI_FAVORITE_USER_ON, size));
+					userIcons->add(dwt::Icon(IDI_RED_BALL, size));
+					userIcons->add(dwt::Icon(IDI_GREEN_BALL, size));
+					userIcons->add(dwt::Icon(IDI_DCPP, size));
+					userIcons->add(dwt::Icon(IDI_WHATS_THIS, size));
+					userIcons->add(dwt::Icon(IDI_USER_BOT, size));
+				}
+			} else {
+				userIcons->add(dwt::Icon(IDI_FAVORITE_USER_OFF, size));
+				userIcons->add(dwt::Icon(IDI_FAVORITE_USER_ON, size));
+				userIcons->add(dwt::Icon(IDI_RED_BALL, size));
+				userIcons->add(dwt::Icon(IDI_GREEN_BALL, size));
+				userIcons->add(dwt::Icon(IDI_DCPP, size));
+				userIcons->add(dwt::Icon(IDI_WHATS_THIS, size));
+				userIcons->add(dwt::Icon(IDI_USER_BOT, size));
+			}
 		}
 
 		WidgetUsers::Seed cs(WinUtil::Seeds::table);
@@ -269,11 +288,42 @@ void UsersFrame::UserInfo::update(const UserPtr& u, bool visible) {
 	if(ident.empty()) {
 		return;
 	}
+
+	auto info = ident[0].getInfo();
+	for(size_t i = 1; i < ident.size(); ++i) {
+		for(auto& j: ident[i].getInfo()) {
+			info[j.first] = j.second;
+		}
+	}
+
+	if(ident[0].isBot() || ident[0].isHub() || ident[0].isHidden()) {
+		isBot = true;
+	} else { 
+		isBot = false;
+	}
+
+	//Convert this to a lambda
 	auto application = ident[0].getApplication();
-	if(application.empty()) {
+	if(application.empty() && !isBot) {
 		app = "Unknown";
 		ver = "Unknown";
 		isUnknown = true;
+		auto idx = info.find("TA");
+		string tag;
+		if(idx != info.end()) {
+			tag = idx->second;
+		}
+/*
+		auto tag = getInfo("TA");
+		if(!tag.empty()) {
+			if(tag.find("<BDC++") != string::npos) { u->setFlag(User::BDC); isBDC = true; app = "BDC++"; }
+			if(tag.find(" v:") != string::npos) { app = "GreyLink"; ver = "Unknown"; isUnknown = false; }
+			string::size_type j = tag.find("V:"); // greylink uses v not V this crashes everytime
+			tag.erase(tag.begin() + j, tag.begin() + j + 2);
+			ver = tag;
+			isUnknown = false;
+		}
+*/
 	} else {
 		const auto& idx = application.find(' ');
 		app = application.substr(0, idx);
@@ -281,12 +331,6 @@ void UsersFrame::UserInfo::update(const UserPtr& u, bool visible) {
 		else if(app == "DC++") { app = "DC++ (*)"; } //Tag = <DC++ ... tag faking, mark it as DC++ (*) to show irregularity
 		ver = application.substr(idx + 1);
 		isUnknown = false;
-	}
-
-	if(ident[0].isBot() || ident[0].isHub() || ident[0].isHidden()) {
-		isBot = true;
-	} else { 
-		isBot = false;
 	}
 
 	if(u->isBDC()) {

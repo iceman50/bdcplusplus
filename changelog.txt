@@ -1,4 +1,9 @@
 -- 0.8xx ---
+* Set cached hublists to expire in 24 hours, keep them longer only in case of download problems (emtee, rolex)
+* [L#1979900] Prefer attempting outgoing connections on IPv4 when there's no IPv6 connectivity (emtee)
+* Introduce the naming "Optimized" and "Legacy" for the 64-bit and 32-bit builds of DC++ respectively; the former gains advantage 
+  of modern OSes and hardware while the latter makes DC++ remain compatible with the 32-bit architecture and / or old hardware.
+* Installer: detect available CPU features and offer the best DC++ binary for the current system (emtee)
 * [L#1970416] Set the focus properly on the active window at startup (emtee)
 * Add new hublist server hublist.pwiam.com; blacklist and remove discontinued or inaccessible server addresses
 * Add AboutConfig frame for testing and debugging purposes (iceman50, emtee)

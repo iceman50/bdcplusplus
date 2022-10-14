@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2001-2021 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2022 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -12,8 +12,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "stdinc.h"
@@ -63,7 +62,7 @@ const string SettingsManager::settingTags[] =
 	"SoundMainChat", "SoundPM", "SoundPMWindow", "SoundFinishedDL", "SoundFinishedFL", "LastSharedFolder",
 	"SharingSkiplistExtensions", "SharingSkiplistRegEx", "SharingSkiplistPaths", "WhitelistOpenURIs",
 	//DiCe STR SETTINGS
-	"InfoViewerFont","ACFrameOrder", "ACFrameWidths",
+	"InfoViewerFont","ACFrameOrder", "ACFrameWidths", "LoadedTheme", "ThemeList",
 	//
 	"SENTRY",
 	// Ints
@@ -100,7 +99,7 @@ const string SettingsManager::settingTags[] =
 	"BoldHub", "BoldPm", "BoldQueue", "BoldSearch", "BoldSystemLog", "ClearSearch",
 	"ClickableChatLinks",
 	"CompressTransfers", "ConfirmADLSRemoval", "ConfirmExit", "ConfirmHubClosing",
-	"ConfirmHubRemoval", "ConfirmItemRemoval", "ConfirmUserRemoval", "DcextRegister",
+	"ConfirmHubRemoval", "ConfirmItemRemoval", "ConfirmUserRemoval", "DcextRegister", "ThemeRegister",
 	"DontDlAlreadyQueued", "DontDLAlreadyShared", "EnableCCPM", "FavShowJoins",
 	"FilterMessages",
 	"FinishedDLOnlyFull", "FollowLinks", "GeoCity", "GeoRegion", "GetUserCountry", "GetUserInfo",
@@ -118,7 +117,7 @@ const string SettingsManager::settingTags[] =
 	"UsersFilterFavorite", "UsersFilterOnline", "UsersFilterQueue", "UsersFilterWaiting",
 	"RegisterSystemStartup", "DontLogCCPMChat", 
 	//DiCe Addon SETTINGS::BOOL
-	"TabsOnBottom", "AboutCfgDisclaimer",
+	"TabsOnBottom", "AboutCfgDisclaimer", "UseTheme",
 	"SENTRY",
 	// Int64
 	"TotalUpload", "TotalDownload", "SharingSkiplistMinSize", "SharingSkiplistMaxSize",
@@ -377,7 +376,7 @@ SettingsManager::SettingsManager() {
 	setDefault(MAX_EXTRA_SLOTS, 3);
 	setDefault(TESTING_STATUS, TESTING_ENABLED);
 	setDefault(WHITELIST_OPEN_URIS, "http:;https:;www;mailto:");
-
+	
 	//DiCe Addons
 	setDefault(TABS_ON_BOTTOM, true);
 	setDefault(AC_DISCLAIM, true);
@@ -394,6 +393,10 @@ SettingsManager::SettingsManager() {
 	setDefault(UPLOAD_BG_COLOR, RGB(205, 60, 55));
 	setDefault(DOWNLOAD_TEXT_COLOR, RGB(255, 255, 255));
 	setDefault(DOWNLOAD_BG_COLOR, RGB(55, 170, 85));
+	setDefault(USE_THEME, false);
+	setDefault(LOADED_THEME, "Default");
+	setDefault(THEME_REGISTER, false);
+	setDefault(THEME_LIST, Util::emptyString);
 #endif
 }
 
@@ -568,6 +571,12 @@ void SettingsManager::load(string const& aFileName)
 		}
 
 		if(v <= 0.868) {
+			// Move back to default as this is now true by default:
+			// We assume TLS is commonplace enough among ADC clients.
+			unset(REQUIRE_TLS);
+		}
+
+		if(v <= 0.871) {
 			// add all the newly introduced default hublist servers automatically. 
 			// change this to the version number of the previous release each time a new default hublist server entry added.
 			string lists = get(HUBLIST_SERVERS);
@@ -578,10 +587,6 @@ void SettingsManager::load(string const& aFileName)
 					lists += ";" + i;
 			}
 			set(HUBLIST_SERVERS, lists);
-
-			// Move back to default as this is now true by default:
-			// We assume TLS is commonplace enough among ADC clients.
-			unset(REQUIRE_TLS);
 		}
 
 		if(SETTING(SET_MINISLOT_SIZE) < 512)

@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2001-2021 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2022 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -12,8 +12,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #ifndef DCPLUSPLUS_WIN32_PUBLIC_HUBS_FRAME_H
@@ -120,15 +119,15 @@ private:
 	void openSelected();
 	string getText(const HubEntry& entry, size_t column) const;
 
-	void onFinished(const tstring& s, bool success);
+	void onFinished(const tstring& s, bool success, bool isCached);
 
 	void changeHubStatus(const string& aUrl);
 
 	virtual void on(DownloadStarting, const string& l) noexcept;
-	virtual void on(DownloadFailed, const string& l) noexcept;
+	virtual void on(DownloadFailed, const string& l, bool isCached) noexcept;
 	virtual void on(DownloadFinished, const string& l) noexcept;
-	virtual void on(LoadedFromCache, const string& l, const string& d) noexcept;
-	virtual void on(Corrupted, const string& l) noexcept;
+	virtual void on(LoadedFromCache, const string& l, const string& d, bool isForced) noexcept;
+	virtual void on(Corrupted, const string& l, bool isCached) noexcept;
 
 	// ClientManagerListener
 	virtual void on(ClientManagerListener::ClientConnected, Client*) noexcept;

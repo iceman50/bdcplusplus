@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2001-2021 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2022 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -12,19 +12,20 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "stdafx.h"
 #include "AppearancePage.h"
 
+#include <dcpp/LogManager.h>
 #include <dcpp/SettingsManager.h>
 #include <dcpp/File.h>
 
 #include <dwt/widgets/Grid.h>
 #include <dwt/widgets/Label.h>
 #include <dwt/widgets/LoadDialog.h>
+#include <dwt/widgets/MessageBox.h>
 #include <dwt/widgets/Spinner.h>
 
 #include "WinUtil.h"
@@ -47,6 +48,8 @@ PropPage::ListItem AppearancePage::listItems[] = {
 	{ SettingsManager::GET_USER_COUNTRY, N_("Guess user country from IP") },
 	{ SettingsManager::GEO_CITY, N_("City-level geolocation database (allows parameters such as %[city])") },
 	{ SettingsManager::GEO_REGION, N_("Region name geolocation database (allows %[region])") },
+	//DiCe
+	{ SettingsManager::USE_THEME, N_("Enable theming (restart required)") },
 	{ 0, 0 }
 };
 
@@ -169,3 +172,25 @@ void AppearancePage::write()
 		SettingsManager::getInstance()->set(SettingsManager::LANGUAGE, Text::fromT(lang));
 	}
 }
+/*
+void AppearancePage::addTheme(Widget* w) {
+	tstring path_t;
+	if(dwt::LoadDialog(w)
+	   .addFilter(str(TF_("%1% files") % _T("dcpptheme")), _T("*.dcpptheme"))
+	   .open(path_t))
+	{
+		auto path = Text::fromT(path_t);
+		if(Util::getFileExt(path) == ".dcpptheme") {
+			ThemePage(w, path).run();
+		} else {
+			WinUtil::Theme theme { };
+			try {
+				WinUtil::addTheme(path, theme);
+			} catch(const Exception& e) {
+				dwt::MessageBox(w).show(tstring(T_("Cannot install theme:") + Text::toT(theme.name)) + _T("\r\n\r\n") + Text::toT(e.getError()),
+										Text::toT(Util::getFileName(path)), dwt::MessageBox::BOX_OK, dwt::MessageBox::BOX_ICONSTOP);
+			}
+		}
+	}
+}
+*/

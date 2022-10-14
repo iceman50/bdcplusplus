@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2001-2021 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2022 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -12,8 +12,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "stdafx.h"
@@ -48,6 +47,7 @@
 #include "StylesPage.h"
 #include "TabsPage.h"
 #include "WindowsPage.h"
+#include "ThemePage.h"
 
 #include "NotificationsPage.h"
 
@@ -68,7 +68,7 @@ using dwt::GridInfo;
 
 using dwt::ToolTip;
 
-const int SettingsDialog::pluginPagePos = 23; // remember to change when adding pages...
+const int SettingsDialog::pluginPagePos = 24; // remember to change when adding pages...
 
 SettingsDialog::SettingsDialog(dwt::Widget* parent) :
 dwt::ModalDialog(parent),
@@ -127,10 +127,15 @@ bool SettingsDialog::initDialog() {
 		const size_t setting = SETTING(SETTINGS_PAGE);
 		auto addPage = [&](const tstring& title, PropPage* page, unsigned icon, HTREEITEM parent) -> HTREEITEM {
 			auto index = pages.size();
-			images->add(dwt::Icon(icon, size));
+			if(WinUtil::useTheme()) {
+				try { images->add(dwt::Icon(WinUtil::iconFilename(icon), size)); } catch(const dwt::DWTException&) { images->add(dwt::Icon(icon, size)); }
+			} else {
+				images->add(dwt::Icon(icon, size));
+			}
+
 			page->onVisibilityChanged([=](bool b) { if(b) {
-				setSmallIcon(WinUtil::createIcon(icon, 16));
-				setLargeIcon(WinUtil::createIcon(icon, 32));
+					setSmallIcon(WinUtil::createIcon(icon, 16));
+					setLargeIcon(WinUtil::createIcon(icon, 32));
 			} });
 			auto item = tree->insert(title, parent, TVI_LAST, 0, true, index);
 			if(index == setting)
@@ -164,6 +169,7 @@ bool SettingsDialog::initDialog() {
 			addPage(T_("Styles"), new StylesPage(container), IDI_STYLES, item);
 			addPage(T_("Tabs"), new TabsPage(container), IDI_TABS, item);
 			addPage(T_("Windows"), new WindowsPage(container), IDI_WINDOWS, item);
+			addPage(T_("Themes"), new ThemePage(container), IDI_STYLES, item);
 		}
 
 		addPage(T_("Notifications"), new NotificationsPage(container), IDI_NOTIFICATIONS, TVI_ROOT);
