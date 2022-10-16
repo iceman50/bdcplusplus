@@ -357,7 +357,6 @@ bool FavoriteManager::onHttpFinished(const string& buf) noexcept {
 		}
 	} catch(const Exception&) {
 		success = false;
-		fire(FavoriteManagerListener::Corrupted(), useHttp ? publicListServer : Util::emptyString);
 	}
 
 	if(success) {

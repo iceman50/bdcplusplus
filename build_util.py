@@ -539,7 +539,7 @@ def msvcproj_workarounds(target, source, env):
         contents
     )
 
-    # update the platform toolset to the VS 2019 one.
+    # update the platform toolset to the VS 2022 one.
     # TODO remove when SCons adds this.
     contents = contents.replace(
         b'<UseOfMfc>false</UseOfMfc>',
