@@ -172,25 +172,3 @@ void AppearancePage::write()
 		SettingsManager::getInstance()->set(SettingsManager::LANGUAGE, Text::fromT(lang));
 	}
 }
-/*
-void AppearancePage::addTheme(Widget* w) {
-	tstring path_t;
-	if(dwt::LoadDialog(w)
-	   .addFilter(str(TF_("%1% files") % _T("dcpptheme")), _T("*.dcpptheme"))
-	   .open(path_t))
-	{
-		auto path = Text::fromT(path_t);
-		if(Util::getFileExt(path) == ".dcpptheme") {
-			ThemePage(w, path).run();
-		} else {
-			WinUtil::Theme theme { };
-			try {
-				WinUtil::addTheme(path, theme);
-			} catch(const Exception& e) {
-				dwt::MessageBox(w).show(tstring(T_("Cannot install theme:") + Text::toT(theme.name)) + _T("\r\n\r\n") + Text::toT(e.getError()),
-										Text::toT(Util::getFileName(path)), dwt::MessageBox::BOX_OK, dwt::MessageBox::BOX_ICONSTOP);
-			}
-		}
-	}
-}
-*/

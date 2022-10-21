@@ -1759,6 +1759,11 @@ void MainWindow::completeGeoUpdate(bool v6, bool success) {
 }
 
 void MainWindow::addTheme(Widget* w) {
+	if(!SETTING(USE_THEME)) { 
+		dwt::MessageBox(w).show(tstring(T_("Cannot install theme, please enable themes in settings")) + _T("\r\n\r\n"),
+								Text::toT("Theme error"), dwt::MessageBox::BOX_OK, dwt::MessageBox::BOX_ICONSTOP);
+	}
+
 	tstring path_t;
 	if(dwt::LoadDialog(w)
 	   .addFilter(str(TF_("%1% files") % _T("dcpptheme")), _T("*.dcpptheme"))
@@ -1768,12 +1773,9 @@ void MainWindow::addTheme(Widget* w) {
 		if(Util::getFileExt(path) == ".dcpptheme") {
 			ThemeInfoDlg(w, path).run();
 		} else {
-			LogManager::getInstance()->message("MainWindow::addTheme(*)Run LINE" + Util::toString(__LINE__));
 			auto theme = WinUtil::extractTheme(path);
-			LogManager::getInstance()->message("MainWindow::addTheme(*)Run LINE" + Util::toString(__LINE__));
 			try {
 				WinUtil::addTheme(theme);
-				LogManager::getInstance()->message("MainWindow::addTheme(*)Run LINE" + Util::toString(__LINE__));
 			} catch(const Exception& e) {
 				dwt::MessageBox(w).show(tstring(T_("Cannot install theme:") + Text::toT(theme.name)) + _T("\r\n\r\n") + Text::toT(e.getError()),
 										Text::toT(Util::getFileName(path)), dwt::MessageBox::BOX_OK, dwt::MessageBox::BOX_ICONSTOP);

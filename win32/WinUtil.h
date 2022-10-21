@@ -337,15 +337,13 @@ public:
 
 	static void getHubStatus(const string& aUrl, tstring& statusText, int& statusIcon);
 
-	static bool useTheme() { return SETTING(USE_THEME); }
-	static string currentTheme() { return SETTING(LOADED_THEME); }
 	static string getThemePath();
 
 	static vector<WinUtil::Theme> themeList;
 	static Theme loadedTheme;
 
 	static WinUtil::Theme extractTheme(const string& path);
-	static void addTheme(const Theme& theme);
+	static void addTheme(const Theme& theme, bool hTheme = true);
 	static void handleTheme(const Theme& theme);
 	static void defaultTheme();
 	static vector<WinUtil::Theme>::iterator findThemeIter(const string& uuid);

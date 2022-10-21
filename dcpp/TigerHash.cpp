@@ -33,7 +33,7 @@
 
 #include <algorithm>
 #include <cstring>
-#include <boost/detail/endian.hpp>
+#include <boost/predef/other/endian.h>
 
 #include "debug.h"
 

@@ -127,7 +127,7 @@ bool SettingsDialog::initDialog() {
 		const size_t setting = SETTING(SETTINGS_PAGE);
 		auto addPage = [&](const tstring& title, PropPage* page, unsigned icon, HTREEITEM parent) -> HTREEITEM {
 			auto index = pages.size();
-			if(WinUtil::useTheme()) {
+			if(SETTING(USE_THEME)) {
 				try { images->add(dwt::Icon(WinUtil::iconFilename(icon), size)); } catch(const dwt::DWTException&) { images->add(dwt::Icon(icon, size)); }
 			} else {
 				images->add(dwt::Icon(icon, size));

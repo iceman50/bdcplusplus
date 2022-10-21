@@ -137,7 +137,7 @@ selected(-1)
 		if(!userIcons) {
 			const dwt::Point size(16, 16);
 			userIcons = dwt::ImageListPtr(new dwt::ImageList(size));
-			if(WinUtil::useTheme()) {
+			if(SETTING(USE_THEME)) {
 				try {
 					userIcons->add(dwt::Icon(WinUtil::iconFilename(IDI_FAVORITE_USER_OFF), size));
 					userIcons->add(dwt::Icon(WinUtil::iconFilename(IDI_FAVORITE_USER_ON), size));

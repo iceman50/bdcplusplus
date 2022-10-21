@@ -67,7 +67,7 @@ balloonBg(0)
 
 		const dwt::Point size(16, 16);
 		dwt::ImageListPtr images(new dwt::ImageList(size));
-		if(WinUtil::useTheme()) {
+		if(SETTING(USE_THEME)) {
 			try {
 			images->add(dwt::Icon(WinUtil::iconFilename(IDI_CANCEL), size));
 			images->add(dwt::Icon(WinUtil::iconFilename(IDI_SOUND), size));

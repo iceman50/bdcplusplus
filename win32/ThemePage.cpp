@@ -30,6 +30,7 @@
 #include <dcpp/format.h>
 #include <dcpp/LogManager.h>
 #include <dcpp/ScopedFunctor.h>
+#include <dcpp/version.h>
 
 #include "WinUtil.h"
 
@@ -237,9 +238,13 @@ void ThemePage::handleSelectionChange() {
 									   T_("<Information unavailable>") : Text::toT(value)));
 		}
 	};
-	//???
+	//Test this
 	auto theme = WinUtil::findTheme(sel());
-	if(theme == nullptr) { defaultTheme(*theme); }
+	if(theme == nullptr) { 
+		WinUtil::Theme defTheme = {  };
+		defaultTheme(defTheme);
+		theme = &defTheme;
+	}
 
 	addInfo(T_("Name: "), theme->name, Name);
 	addInfo(T_("Version: "), Util::toString(theme->version), Version);
@@ -264,7 +269,9 @@ void ThemePage::handleSelectionChange() {
 		update(logData);
 
 		table->Control::redraw(true);
+		table->setColor(theme->textColor, theme->background);
 	}
+
 }
 
 void ThemePage::refreshList() {
@@ -272,7 +279,7 @@ void ThemePage::refreshList() {
 	if(WinUtil::themeList.empty()) {
 		TStringList row(COLUMN_COUNT);
 		row[COLUMN_THEME] = Text::toT("No theme installed");
-		row[COLUMN_UUID] = Text::toT("00000000-0000-0000-0000-000000000000");
+		row[COLUMN_UUID] = Text::toT("{00000000-0000-0000-0000-000000000000}");
 		installed->insert(row, 0, 0);
 		installed->setEnabled(false);
 		table->setEnabled(false);
@@ -303,6 +310,12 @@ void ThemePage::defaultTheme(WinUtil::Theme& theme) {
 		return sm->getDefault(setting);
 	};
 
+	theme.name = "Default";
+	theme.uuid = "{00000000-0000-0000-0000-000000000000}";
+	theme.description = "Default theme";
+	theme.author = "DC++";
+	theme.website = "https://dcplusplus.sourceforge.io/";
+	theme.version = VERSIONFLOAT;
 	theme.textColor = getDefault(SettingsManager::TEXT_COLOR);
 	theme.background = getDefault(SettingsManager::BACKGROUND_COLOR);
 	theme.uploadText = getDefault(SettingsManager::UPLOAD_TEXT_COLOR);

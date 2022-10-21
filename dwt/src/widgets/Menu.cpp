@@ -292,8 +292,9 @@ tstring Menu::getText(unsigned index) const {
 void Menu::setText(unsigned index, const tstring& text) {
 	MENUITEMINFO mi = { sizeof(MENUITEMINFO), MIIM_STRING };
 	mi.dwTypeData = (TCHAR*) text.c_str();
-	if ( ::SetMenuItemInfo( itsHandle, index, TRUE, & mi ) == FALSE )
+	if ( ::SetMenuItemInfo( itsHandle, index, TRUE, & mi ) == FALSE ) {
 		dwtWin32DebugFail("Couldn't set item info in Menu::setText");
+	}
 }
 
 void Menu::setTitle(const tstring& title, const IconPtr& icon, bool drawSidebar /* = false */) {

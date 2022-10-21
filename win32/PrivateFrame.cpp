@@ -76,6 +76,10 @@ bool PrivateFrame::gotMessage(TabViewPtr parent, const ChatMessage& message, con
 			}
 		}
 
+		//Show the hub in which this PM is associated TODO - SETTING(SHOW_HUBHINT_IN_PM))
+		//This will only show on new windows
+		p->addStatus(Text::toT(p->replyTo.getUser().hint));
+
 		WinUtil::notify(WinUtil::NOTIFICATION_PM_WINDOW, Text::toT(message.message), [user] { activateWindow(user); });
 
 	} else {

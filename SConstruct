@@ -70,7 +70,7 @@ msvc_flags = {
 }
 
 msvc_xxflags = {
-    'common': [],
+    'common': ['/std:c++17'],
     'debug': [],
     'release': []
 }
@@ -435,7 +435,7 @@ if dev.is_win32():
 if dev.is_win32():
     dev.build('help/')
 
-dev.build('test/')
+#dev.build('test/')
 dev.build('utils/')
 
 if dev.is_win32():

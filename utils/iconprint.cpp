@@ -1,0 +1,103 @@
+
+#include <iostream>
+#include <string>
+#include <vector>
+
+using namespace std;
+
+const std::vector<string> icoMap =
+{
+	{"DCPlusPlus.ico"},
+	{"PublicHubs.ico"},
+	{"Search.ico"},
+	{"FavoriteHubs.ico"},
+	{"UserOn.ico"},
+	{"Directory.ico"},
+	{"HubOn.ico"},
+	{"Notepad.ico"},
+	{"Queue.ico"},
+	{"FinishedDL.ico"},
+	{"ADLSearch.ico"},
+	{"FinishedUL.ico"},
+	{"Users.ico"},
+	{"NetStats.ico"},
+	{"Magnet.ico"},
+	{"HubOff.ico"},
+	{"UserOff.ico"},
+	{"GroupedByFiles.ico"},
+	{"GroupedByUsers.ico"},
+	{"Exit.ico"},
+	{"Chat.ico"},
+	{"Help.ico"},
+	{"OpenDLDir.ico"},
+	{"OpenFileList.ico"},
+	{"Reconnect.ico"},
+	{"Settings.ico"},
+	{"TrayPM.ico"},
+	{"Trusted.ico"},
+	{"Secure.ico"},
+	{"Recents.ico"},
+	{"WhatsThis.ico"},
+	{"Download.ico"},
+	{"Upload.ico"},
+	{"UploadFiltering.ico"},
+	{"Changelog.ico"},
+	{"Donate.ico"},
+	{"GetStarted.ico"},
+	{"Indexing.ico"},
+	{"Links.ico"},
+	{"Refresh.ico"},
+	{"Slots.ico"},
+	{"OK.ico"},
+	{"Cancel.ico"},
+	{"Left.ico"},
+	{"Right.ico"},
+	{"User.ico"},
+	{"UserAway.ico"},
+	{"UserBot.ico"},
+	{"UserNoCon.ico"},
+	{"UserNoSlot.ico"},
+	{"UserOp.ico"}, 
+	{"Up.ico"},
+	{"File.ico"},
+	{"Exec.ico"},
+	{"FavoriteUserOn.ico"},
+	{"FavoriteUserOff.ico"},
+	{"BallGreen.ico"},
+	{"BallRed.ico"},
+	{"SlotsFull.ico"},
+	{"Advanced.ico"},
+	{"Clock.ico"},
+	{"Styles.ico"},
+	{"Bandwidthlimiter.ico"},
+	{"ConnGrey.ico"},
+	{"ConnBlue.ico"},
+	{"Expert.ico"},
+	{"FavoriteDirs.ico"},
+	{"Logs.ico"},
+	{"Notifications.ico"},
+	{"Proxy.ico"},
+	{"Tabs.ico"},
+	{"Windows.ico"},
+	{"Balloon.ico"},
+	{"Sound.ico"},
+	{"ULimit.ico"},
+	{"DLimit.ico"},
+	{"OpenOwnFileList.ico"},
+	{"Plugins.ico"},
+	{"UserReg.ico"},
+	{"Remove.ico"},
+	{"Pause.ico"},
+	{"Play.ico"},
+	{"Increment.ico"},
+	{"Decrement.ico"},
+	{"RemoveQueue.ico"}
+};
+
+int main() {
+	for (auto& icoList : icoMap) {
+		cout << "\t\t<File>" + icoList + "</File>\n" ;
+	}
+
+	return 0;
+}

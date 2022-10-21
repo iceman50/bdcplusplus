@@ -54,10 +54,8 @@ bool ThemeInfoDlg::handleInitDialog(const string& path) {
 	grid->setSpacing(6);
 
 	 const auto theme = WinUtil::extractTheme(path);
-	 LogManager::getInstance()->message("theme name - " + theme.name + " \r\n UUID " + theme.uuid + " \r\n bgColor " + Util::toString(theme.background) + " \r\n textColor " + Util::toString(theme.textColor) + " \r\n");
 	try {
-		WinUtil::addTheme(theme);
-		LogManager::getInstance()->message(theme.name + " \r\n" + theme.uuid + " \r\n" + Util::toString(theme.background) + " \r\n" + Util::toString(theme.textColor) + " \r\n");
+		WinUtil::addTheme(theme, false);
 	} catch(const Exception& e) {
 		resize(dwt::Rectangle());
 		auto err = Text::toT(e.getError());

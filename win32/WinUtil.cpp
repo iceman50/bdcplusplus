@@ -230,6 +230,19 @@ void WinUtil::init() {
 
 	initUserMatching();
 
+	if(SETTING(USE_THEME)) {
+		loadThemes();
+		auto loaded = findTheme(SETTING(LOADED_THEME));
+		if(loaded != nullptr) {
+			loadTheme(loaded->uuid, WinUtil::loadedTheme);
+			LogManager::getInstance()->message("WinUtil::init loadedTheme - " + loadedTheme.name + " - UUID " + loadedTheme.uuid + "\r\n");
+		} else {
+			//Should we disable themes until one is installed?
+			//or do we revert and call defaultTheme() ?
+			LogManager::getInstance()->message("WinUtil::init SETTING(LOADED_THEME) is returning a nullptr please reload your theme");
+		}
+	}
+
 	{
 		// default link color: shift the hue, set lum & sat to middle values
 		auto hls = RGB2HLS(textColor);
@@ -303,16 +316,6 @@ void WinUtil::init() {
 	registerMagnetHandler();
 	registerDcextHandler();
 	registerThemeHandler();
-
-	if(useTheme()) {
-		loadThemes();
-		auto loaded = findTheme(currentTheme()); // This is incorrect 
-		if(loaded != nullptr) {
-			loadTheme(loaded->uuid, WinUtil::loadedTheme);
-			LogManager::getInstance()->message("WinUtil::init loadedTheme - " + loadedTheme.name + " - UUID " + loadedTheme.uuid + "\r\n");
-		}		
-	}
-
 }
 
 void WinUtil::initSeeds() {
@@ -1549,7 +1552,7 @@ void WinUtil::addUserItems(Menu* menu, const HintedUserList& users, TabViewPtr p
 		PrivateFrame::openWindow(parent, u); });
 
 	dwt::IconPtr icon;
-	if(WinUtil::useTheme()) {
+	if(SETTING(USE_THEME)) {
 		try { icon = new dwt::Icon(WinUtil::iconFilename(IDI_FAVORITE_USER_ON)); } catch(const dwt::DWTException&) { icon = new dwt::Icon(IDI_FAVORITE_USER_ON); }
 	} else {
 		icon = new dwt::Icon(IDI_FAVORITE_USER_ON);
@@ -1638,8 +1641,8 @@ pair<int, bool> WinUtil::tableSortSetting(int columnCount, int setting, int defa
 }
 
 dwt::IconPtr WinUtil::createIcon(unsigned id, long size) {
-	if(useTheme()) {
-		tstring iconPath = Text::toT(themeFolder + currentTheme());
+	if(SETTING(USE_THEME)) {
+		tstring iconPath = Text::toT(themeFolder + SETTING(LOADED_THEME));
 		tstring iconf;
 
 		auto item = icoMap.find(id);
@@ -1708,6 +1711,8 @@ void WinUtil::getHubStatus(const string& url, tstring& statusText, int& statusIc
 	}
 }
 
+namespace fs = std::filesystem;
+
 WinUtil::Theme WinUtil::extractTheme(const string& path) {
 	const auto dir = Util::getTempPath() + "dcpptheme" PATH_SEPARATOR_STR;
 	const auto info_path = dir + "dcpptheme.xml";
@@ -1759,25 +1764,26 @@ WinUtil::Theme WinUtil::extractTheme(const string& path) {
 		LogManager::getInstance()->message(msg + "\r\n");
 	};
 
-	theme.path = themeFolder + theme.uuid + PATH_SEPARATOR_STR;
+	theme.path = Util::getPath(Util::PATH_RESOURCES) + themeFolder + theme.uuid + PATH_SEPARATOR_STR;
 	File::ensureDirectory(theme.path);
 	log("File::ensureDirectory(theme.path) = " + theme.path);
 	Archive(path).extract(theme.path);
 //	File::renameFile(dir, theme.path);
+	fs::path p = dir;
+//	std::filesystem::copy_file(p, std::filesystem::path(theme.path));
+//	for(fs::directory_iterator next(p), end; next != end; ++next) next->path();
 
 	return theme;
 }
 
 
-void WinUtil::addTheme(const Theme& theme) {
-	SettingsManager::getInstance()->set(SettingsManager::LOADED_THEME, theme.uuid);
-
-	auto it = findThemeIter(theme.uuid);
-	if(it == themeList.end()) {
-		themeList.push_back(move(theme));
+void WinUtil::addTheme(const Theme& theme, bool hTheme) {	
+	if(findTheme(theme.uuid) == nullptr) {
+		themeList.push_back(theme);
 	}
-
-	handleTheme(theme);
+	if(hTheme) {
+		handleTheme(theme);
+	}
 }
 
 void WinUtil::loadTheme(const string& uuid, Theme& theme) {
@@ -1821,12 +1827,7 @@ void WinUtil::loadTheme(const string& uuid, Theme& theme) {
 
 		xml.stepOut();
 	}
-
-	auto it = findThemeIter(theme.uuid);
-	if(it == themeList.end()) {
-		themeList.push_back(move(theme));
-		LogManager::getInstance()->message(theme.name + " / " + theme.uuid + "WinUtil::Load themeList.push_back  \r\n");
-	}
+	addTheme(theme, false);
 }
 
 namespace {
@@ -1859,9 +1860,6 @@ void WinUtil::handleTheme(const Theme& theme) {
 
 	::EnumChildWindows(mainWindow->handle(), updateColors, 0);
 	LogManager::getInstance()->message("Please restart DC++ to see full effects of theme");
-//	auto font = WinUtil::font->handle();
-//	::EnumChildWindows(mainWindow->handle(), updateFont, reinterpret_cast<LPARAM>(font));//not really necessary since we require a restart
-
 }
 
 void WinUtil::defaultTheme() {
@@ -1881,7 +1879,7 @@ void WinUtil::defaultTheme() {
 }
 
 string WinUtil::getThemePath() {
-	auto theme = findTheme(currentTheme());
+	auto theme = findTheme(SETTING(LOADED_THEME));
 	if(theme == nullptr) {
 		LogManager::getInstance()->message("getThemePath()->theme == nullptr");
 		return Util::emptyString;
@@ -1899,13 +1897,13 @@ void WinUtil::saveThemes() {
 	Lock lock(WinUtil::cs);
 
 	try {
-		if(themeList.empty()) { return; }
+		if(themeList.empty()) { LogManager::getInstance()->message("themeList.empty == true // WinUtil::saveThemes"); return; }
 
 		SimpleXML xml;
 		xml.addTag("Themes");
 		xml.stepIn();
 		for(auto& themes: themeList) {
-//				if(themes.name == "Default") { continue; } //We don't need to save the Default since it will always be loaded on WinUtil::init()
+//			if(themes.path == Util::emptyString) { continue; }
 			xml.addTag("Theme");
 			xml.addChildAttrib("Uuid", themes.uuid);
 			xml.addChildAttrib("Name", themes.name);
@@ -1939,7 +1937,7 @@ void WinUtil::loadThemes() {
 			while(xml.findChild("Theme")) {
 				Theme theme {};
 				loadTheme(xml.getChildAttrib("Uuid"), theme);
-				themeList.push_back(move(theme));
+				LogManager::getInstance()->message("Theme " + theme.uuid + " is loaded");
 			}
 			xml.stepOut();
 		}

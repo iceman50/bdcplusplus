@@ -87,7 +87,7 @@ hubs(0)
 			
 			const dwt::Point size(16, 16);
 			hubIcons = dwt::ImageListPtr(new dwt::ImageList(size));
-			if(WinUtil::useTheme()) {
+			if(SETTING(USE_THEME)) {
 				try {
 				hubIcons->add(dwt::Icon(WinUtil::iconFilename(IDI_HUB), size));
 				hubIcons->add(dwt::Icon(WinUtil::iconFilename(IDI_HUB_OFF), size));
