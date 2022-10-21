@@ -77,7 +77,7 @@ bool PrivateFrame::gotMessage(TabViewPtr parent, const ChatMessage& message, con
 		}
 
 		if(SETTING(SHOW_HUBHINT_IN_PM)) {
-			p->addStatus(Text::toT(p->replyTo.getUser().hint));
+			p->addStatus(Text::toT(hubHint));
 		}
 
 		WinUtil::notify(WinUtil::NOTIFICATION_PM_WINDOW, Text::toT(message.message), [user] { activateWindow(user); });
