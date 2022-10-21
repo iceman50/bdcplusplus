@@ -61,6 +61,7 @@ AdvancedPage::ListItem AdvancedPage::listItems[] = {
 			}
 		}
 	},
+	{ SettingsManager::SHOW_HUBHINT_IN_PM, N_("Show hub hint in PM status") },
 	{ 0, 0 }
 };
 

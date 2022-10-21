@@ -117,7 +117,7 @@ const string SettingsManager::settingTags[] =
 	"UsersFilterFavorite", "UsersFilterOnline", "UsersFilterQueue", "UsersFilterWaiting",
 	"RegisterSystemStartup", "DontLogCCPMChat", 
 	//DiCe Addon SETTINGS::BOOL
-	"TabsOnBottom", "AboutCfgDisclaimer", "UseTheme",
+	"TabsOnBottom", "AboutCfgDisclaimer", "UseTheme", "ShowHubHintInPM",
 	"SENTRY",
 	// Int64
 	"TotalUpload", "TotalDownload", "SharingSkiplistMinSize", "SharingSkiplistMaxSize",
@@ -380,6 +380,7 @@ SettingsManager::SettingsManager() {
 	//DiCe Addons
 	setDefault(TABS_ON_BOTTOM, true);
 	setDefault(AC_DISCLAIM, true);
+	setDefault(SHOW_HUBHINT_IN_PM, true);
 
 	setSearchTypeDefaults();
 
