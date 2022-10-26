@@ -24,6 +24,7 @@
 #include "LogManager.h"
 #include "Mapper_MiniUPnPc.h"
 #include "Mapper_NATPMP.h"
+#include "Mapper_WinUPnP.h"
 #include "ScopedFunctor.h"
 #include "SearchManager.h"
 #include "Util.h"
@@ -41,9 +42,11 @@ renewal(0)
 	// IPv4 mappers.
 	addMapper<Mapper_NATPMP>(false);
 	addMapper<Mapper_MiniUPnPc>(false);
+	addMapper<Mapper_WinUPnP>(false);
 
 	// IPv6 mappers.
 	addMapper<Mapper_MiniUPnPc>(true);
+	addMapper<Mapper_WinUPnP>(true);
 }
 
 StringList MappingManager::getMappers(bool v6) const {
