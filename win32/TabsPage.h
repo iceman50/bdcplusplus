@@ -29,8 +29,6 @@ public:
 	virtual void write();
 
 private:
-	//DiCe Addon
-	CheckBoxPtr tabsOnBottom;
 
 	RadioButtonPtr dcppDraw;
 	RadioButtonPtr buttonStyle;
@@ -41,9 +39,6 @@ private:
 
 	static ListItem listItems[];
 	TablePtr options;
-
-	//DiCe addon
-	PropPage::ItemList items;
 
 	void createPreview();
 };

@@ -41,10 +41,12 @@ private:
 	TextBoxPtr email;
 	TextBoxPtr userIp;
 	TextBoxPtr userIp6;
+	TextBoxPtr tabText;
 	ComboBoxPtr encoding;
 	ComboBoxPtr showJoins;
 	ComboBoxPtr favShowJoins;
 	ComboBoxPtr logMainChat;
+	ComboBoxPtr nmdcTls;
 	ComboBoxPtr groups;
 
 	FavoriteHubEntry *entry;

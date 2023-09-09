@@ -121,6 +121,8 @@ public:
 	GETSET(bool, autoReconnect, AutoReconnect);
 	GETSET(string, encoding, Encoding);
 
+	GETSET(string, tabText, TabText);
+
 protected:
 	friend class ClientManager;
 	Client(const string& hubURL, char separator, bool secure_);

@@ -40,8 +40,8 @@
 #endif // _WIN32
 
 #elif defined(_MSC_VER)
-#if _MSC_VER < 1800 || _MSC_FULL_VER < 180021114
-#error Visual Studio 2013 with the Nov 2013 CTP is required
+#if _MSC_VER < 1910 || _MSC_FULL_VER < 191025017
+#error Visual Studio 2017 required
 #endif
 
 //disable the deprecated warnings for the CRT functions.
@@ -80,8 +80,8 @@
 
 #ifdef _WIN32
 
-#if _WIN32_WINNT < 0x600 || WINVER < 0x600
-#error _WIN32_WINNT / WINVER must require Windows Vista (0x600)
+#if _WIN32_WINNT < 0x601 || WINVER < 0x601
+#error _WIN32_WINNT / WINVER must require Windows 7 (0x601)
 #endif
 
 #if _WIN32_IE < 0x600

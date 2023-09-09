@@ -46,6 +46,10 @@
 #include "HoldRedraw.h"
 #include "TypedTable.h"
 
+//DiCe
+#include "BDCUtil.h"
+#include "DirectoryListingFrame.h"
+
 using dwt::Grid;
 using dwt::GridInfo;
 using dwt::Label;
@@ -1034,6 +1038,12 @@ void HubFrame::on(GetPassword, Client*) noexcept {
 }
 
 void HubFrame::on(HubUpdated, Client*) noexcept {
+	if(!client->getTabText().empty()) {
+		tstring hubNameT = Text::toT(client->getTabText());
+			callAsync([this, hubNameT] { setText(hubNameT); });
+			return;
+	}
+
 	string hubName = client->getHubName();
 	if(!client->getHubDescription().empty()) {
 		hubName += " - " + client->getHubDescription();
@@ -1149,6 +1159,7 @@ void HubFrame::addAsFavorite() {
 		if(!client->getPassword().empty())  {
 			entry.setPassword(client->getPassword());
 		}
+		entry.setTabText(client->getTabText());
 		FavoriteManager::getInstance()->addFavorite(entry);
 		addStatus(T_("Favorite hub added"));
 	} else {
@@ -1300,6 +1311,7 @@ void HubFrame::tabMenuImpl(dwt::Menu* menu) {
 		menu->appendItem(T_("Copy address with &keyprint to clipboard"), [this] { handleCopyHub(true); });
 	menu->appendItem(T_("&Search hub"), [this] { handleSearchHub(); }, WinUtil::menuIcon(IDI_SEARCH));
 	menu->appendItem(T_("&Disconnect"), [this] { disconnect(false); }, WinUtil::menuIcon(IDI_HUB_OFF));
+	menu->appendItem(T_("Set hub tab text"), [this] { handleSetHubTabText(); });
 
 	prepareMenu(menu, UserCommand::CONTEXT_HUB, url);
 
@@ -1335,7 +1347,22 @@ void HubFrame::handleSearchHub() {
 
 void HubFrame::handleDoubleClickUsers() {
 	if(users->hasSelected()) {
-		users->getSelectedData()->getList(getParent());
+		if(users->getSelectedData()->getUser() == client->getMyIdentity().getUser()) { 
+			DirectoryListingFrame::openOwnList(getParent());
+		} else {
+			switch(SETTING(ACTION_DOUBLECLICK_USER)) {
+			case BDCUtil::ACTION_GETLIST:			users->getSelectedData()->getList(getParent()); break;
+			case BDCUtil::ACTION_BROWSELIST:		users->getSelectedData()->browseList(getParent()); break;
+			case BDCUtil::ACTION_MATCHQUEUE:		users->getSelectedData()->matchQueue(); break;
+			case BDCUtil::ACTION_PRIVATEMESSAGE:	users->getSelectedData()->pm(getParent()); break;
+			case BDCUtil::ACTION_ADDFAVORITE:		users->getSelectedData()->addFav(); break;
+			case BDCUtil::ACTION_GRANTSLOT:			users->getSelectedData()->grant(); break;
+			case BDCUtil::ACTION_REMOVEFROMQUEUE:	users->getSelectedData()->removeFromQueue(); break;
+			case BDCUtil::ACTION_IGNORECHAT:		users->getSelectedData()->ignoreChat(true); break;
+			case BDCUtil::ACTION_UNIGNORECHAT:		users->getSelectedData()->ignoreChat(false); break;
+			default: break;
+			}
+		}
 	}
 }
 
@@ -1514,6 +1541,22 @@ void HubFrame::redirect(string&& target) {
 	client = ClientManager::getInstance()->getClient(url);
 	client->addListener(this);
 	client->connect();
+}
+
+void HubFrame::handleSetHubTabText() {
+	ParamDlg dlg(this, T_("Set Hub Tab text"), T_("Tab text"), Text::toT(client->getTabText()));
+
+	if (dlg.run() == IDOK) {
+		tstring tmp = dlg.getValue();
+		client->setTabText(Text::fromT(tmp));
+		client->fire(ClientListener::HubUpdated(), client);
+
+		FavoriteHubEntryPtr fav = FavoriteManager::getInstance()->getFavoriteHubEntry(client->getHubUrl());
+		if(fav != nullptr) {
+			fav->setTabText(client->getTabText());
+			FavoriteManager::getInstance()->save();
+		}
+	}
 }
 
 void HubFrame::showFilterOpts() {

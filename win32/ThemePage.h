@@ -34,8 +34,20 @@ public:
 	virtual ~ThemePage();
 
 	virtual void layout();
-	virtual void write();
-	
+	virtual void write() {};
+
+	struct Theme {
+		string name;
+		COLORREF textColor;
+		COLORREF background;
+		COLORREF uploadText;
+		COLORREF uploadBg;
+		COLORREF downloadText;
+		COLORREF downloadBg;
+		COLORREF linkColor;
+		COLORREF logColor;
+	};
+
 private:
 
 	enum {
@@ -59,9 +71,6 @@ private:
 
 		const tstring text;
 
-		virtual void update() { }
-		virtual void write() { }
-
 		COLORREF txtColor;
 		COLORREF bgColor;
 
@@ -70,25 +79,31 @@ private:
 		const int bgColorSetting;
 	}; //ThemeData
 
-	WinUtil::Theme theme {};
 
 	ThemeData *globalData, *ulData, *dlData, *linkData, *logData;
 
 	typedef TypedTable<ThemeData> Table;
 	typedef Table* TTablePtr;
 	TTablePtr table;
-
-	TablePtr installed;
 	GridPtr themeInfo;
+	ComboBoxPtr cbCtrlTheme;
+	ButtonPtr expTheme, modTheme;
 
 	void update(ThemeData* const data);
-	void handleSelectionChange();
+	void refreshPreview();
 
-	void refreshList();
-	void addEntry(size_t idx, const string& uuid);
-	string sel() const;
-	void defaultTheme(WinUtil::Theme& theme);
+	void currentTheme();
+	void defaultTheme();
+	void handleTheme();
+	void populateThemes();
 
+	typedef std::map<string, string> themeMap;
+	themeMap themes;
+	Theme defTheme, curTheme;
+
+public:
+	void loadTheme(const string& path);
+	void saveTheme(const string& path);
 };
 
 #endif // !defined(DCPLUSPLUS_WIN32_THEME_DLG_H)

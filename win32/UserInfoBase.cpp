@@ -136,6 +136,22 @@ tstring UserInfoBase::getInfo(int flags) const {
 			addLine(str(TF_("%1%: %2%") % descr % Text::toT(value)));
 	};
 
+	StringList status;
+	if(status.empty()) {
+		if(id.getStatus() & Identity::NORMAL) { status.push_back(_("Normal")); }
+		if(id.getStatus() & Identity::AWAY) { status.push_back(_("Away")); }
+		if(id.getStatus() & Identity::SERVER) { status.push_back(_("Server")); }
+		if(id.getStatus() & Identity::FIREBALL) { status.push_back(_("Fireball")); }
+		if(id.getStatus() & Identity::TLS) { status.push_back(_("TLS")); }
+		//Technically status should never be empty BUT we should add a safeguard
+		if(status.empty()) { status.push_back(_("None")); }
+		
+		addLine(str(TF_("Status: %1%") % Text::toT(Util::toString(status))));
+	} else {
+		status.clear();
+		addLine(T_("None"));
+	}
+
 	if(id.isHidden())
 		addLine(T_("Hidden user"));
 	if(id.isBot())

@@ -121,7 +121,7 @@ const string SettingsManager::settingTags[] =
 	"UsersFilterFavorite", "UsersFilterOnline", "UsersFilterQueue", "UsersFilterWaiting",
 	"RegisterSystemStartup", "DontLogCCPMChat", 
 	//DiCe Addon SETTINGS::BOOL
-	"TabsOnBottom", "AboutCfgDisclaimer", "UseTheme", "ShowHubHintInPM",
+	"TabsOnBottom", "AboutCfgDisclaimer", "UseTheme", "EnableNmdcTls",
 	"SENTRY",
 	// Int64
 	"TotalUpload", "TotalDownload", "SharingSkiplistMinSize", "SharingSkiplistMaxSize",

@@ -43,6 +43,9 @@
 #include "UploadPage.h"
 #include "UploadFilteringPage.h"
 
+//DiCe Addon
+#include "BDCPage.h"
+
 #include "AppearancePage.h"
 #include "StylesPage.h"
 #include "TabsPage.h"
@@ -68,7 +71,7 @@ using dwt::GridInfo;
 
 using dwt::ToolTip;
 
-const int SettingsDialog::pluginPagePos = 24; // remember to change when adding pages...
+const int SettingsDialog::pluginPagePos = 25; // remember to change when adding pages...
 
 SettingsDialog::SettingsDialog(dwt::Widget* parent) :
 dwt::ModalDialog(parent),
@@ -162,6 +165,11 @@ bool SettingsDialog::initDialog() {
 		{
 			HTREEITEM item = addPage(T_("Sharing"), new UploadPage(container), IDI_UPLOAD, TVI_ROOT);
 			addPage(T_("Filtering"), new UploadFilteringPage(container), IDI_UPLOAD_FILTERING, item);
+		}
+
+		{
+			HTREEITEM item = addPage(T_("BDC++"), new BDCPage(container), IDI_FAVORITE_USER_ON, TVI_ROOT);
+			addPage(T_("Themes"), new ThemePage(container), IDI_STYLES, item);
 		}
 
 		{

@@ -27,9 +27,11 @@
 #include <dwt/widgets/Label.h>
 #include <dwt/widgets/Link.h>
 
+#include <dcpp/File.h>
 #include <dcpp/format.h>
 #include <dcpp/LogManager.h>
 #include <dcpp/ScopedFunctor.h>
+#include <dcpp/SimpleXML.h>
 #include <dcpp/version.h>
 
 #include "WinUtil.h"
@@ -44,12 +46,6 @@ static const ColumnInfo tcol[COLUMN_LAST] = {
 	{ "", 100, false }
 };
 
-enum { COLUMN_THEME, COLUMN_UUID, COLUMN_COUNT }; // This is for installed(TablePtr)
-static const ColumnInfo columns[COLUMN_COUNT] = {
-	{ "", 100, false },
-	{ "", 0, false } // hidden column to store the UUID
-};
-
 ThemePage::ThemeData::ThemeData(tstring text, int textColorSetting, int bgColorSetting) :
 	text(text),
 	textColorSetting(textColorSetting),
@@ -60,9 +56,14 @@ ThemePage::ThemeData::ThemeData(tstring text, int textColorSetting, int bgColorS
 ThemePage::ThemePage(dwt::Widget* parent) :
 PropPage(parent, 1, 1),
 table(0),
-installed(0),
-themeInfo(0)
+//installed(0),
+themeInfo(0),
+cbCtrlTheme(0),
+expTheme(0),
+modTheme(0)
 {
+	currentTheme();
+
 	grid->column(0).mode = GridInfo::FILL;
 	grid->row(0).mode = GridInfo::FILL;
 	grid->row(0).align = GridInfo::STRETCH;
@@ -98,20 +99,31 @@ themeInfo(0)
 			row->column(1).mode = GridInfo::FILL;
 
 			{
-				Table::Seed seed = WinUtil::Seeds::Dialog::table;
-				seed.style |= LVS_SINGLESEL | LVS_NOCOLUMNHEADER;
-				installed = row->addChild(seed);
+				//Table::Seed seed = WinUtil::Seeds::Dialog::combo;
+				//seed.style |= LVS_SINGLESEL | LVS_NOCOLUMNHEADER;
+				//installed = row->addChild(seed);
+				cbCtrlTheme = row->addChild(WinUtil::Seeds::Dialog::comboBox);
+				cbCtrlTheme->onSelectionChanged([this] { handleTheme(); refreshPreview(); /*table->Control::redraw(true);*/ });
 			}
 
 			{
-				auto group = row->addChild(GroupBox::Seed(T_("Theme information")));
-				themeInfo = group->addChild(Grid::Seed(1, 1));
+				auto group = row->addChild(GroupBox::Seed(T_("Theme options"))); // Modify / Export
+				themeInfo = group->addChild(Grid::Seed(2, 1));
 				themeInfo->column(0).mode = GridInfo::FILL;
+
+				expTheme = themeInfo->addChild(WinUtil::Seeds::Dialog::button);
+				expTheme->setText(T_("E&xport theme"));
+				expTheme->onClicked([] { /*exportTheme()*/ });
+
+				modTheme = themeInfo->addChild(WinUtil::Seeds::Dialog::button);
+				modTheme->setText(T_("M&odify theme"));
+				modTheme->onClicked([] { /*modifyTheme()*/ });
+
 			}
 	}
 	
 	WinUtil::makeColumns(table, tcol, COLUMN_LAST);
-	WinUtil::makeColumns(installed, columns, COLUMN_COUNT);
+	//WinUtil::makeColumns(installed, columns, COLUMN_COUNT);
 
 	TStringList groups(GROUP_LAST);
 	groups[GROUP_GENERAL] = T_("General");
@@ -126,31 +138,19 @@ themeInfo(0)
 		return data;
 	};
 
-	theme = WinUtil::loadedTheme;
-	if (theme.uuid.empty()) { // Empty theme let's just load defaults
-		defaultTheme(theme);
-	}
+	populateThemes();
 
-	LogManager::getInstance()->message(theme.name + " " + theme.uuid + "WinUtil::loadedTheme \r\n");
-	globalData = add(T_("Global application style"), GROUP_GENERAL, static_cast<int>(theme.textColor), static_cast<int>(theme.background));
-	ulData = add(T_("Uploads"), GROUP_TRANSFERS, static_cast<int>(theme.uploadText), static_cast<int>(theme.uploadBg));
-	dlData = add(T_("Downloads"), GROUP_TRANSFERS, static_cast<int>(theme.downloadText), static_cast<int>(theme.downloadBg));
-	linkData = add(T_("Links"), GROUP_CHAT, static_cast<int>(theme.linkColor), -1);
-	logData = add(T_("Logs"), GROUP_CHAT, static_cast<int>(theme.logColor), -1);
+	//Use default theme until I can get to this and fix 
+	globalData = add(T_("Global application style"), GROUP_GENERAL, static_cast<int>(curTheme.textColor), static_cast<int>(curTheme.background));
+	ulData = add(T_("Uploads"), GROUP_TRANSFERS, static_cast<int>(curTheme.uploadText), static_cast<int>(curTheme.uploadBg));
+	dlData = add(T_("Downloads"), GROUP_TRANSFERS, static_cast<int>(curTheme.downloadText), static_cast<int>(curTheme.downloadBg));
+	linkData = add(T_("Links"), GROUP_CHAT, static_cast<int>(curTheme.linkColor), -1);
+	logData = add(T_("Logs"), GROUP_CHAT, static_cast<int>(curTheme.logColor), -1);
 
-	update(globalData);
-	update(ulData);
-	update(dlData);
-	update(linkData);
-	update(logData);
+	refreshPreview();
 
 	layout();
 	centerWindow();
-
-	refreshList();
-	handleSelectionChange();
-
-	installed->onSelectionChanged([this] { handleSelectionChange(); });
 }
 
 ThemePage::~ThemePage() {
@@ -160,11 +160,6 @@ void ThemePage::layout() {
 	PropPage::layout();
 
 	table->setColumnWidth(COLUMN_TEXT, table->getWindowSize().x - 30);
-	installed->setColumnWidth(COLUMN_THEME, installed->getWindowSize().x - 30);
-}
-
-void ThemePage::write() {
-	table->forEach(&ThemePage::ThemeData::write);
 }
 
 const tstring& ThemePage::ThemeData::getText(int) const {
@@ -198,130 +193,192 @@ void ThemePage::update(ThemeData* const data) {
 	} else {
 		table->update(data);
 	}
+
+	table->getParent()->layout();
 }
 
-void ThemePage::handleSelectionChange() {
-	auto selected = installed->hasSelected();
-	ScopedFunctor([&] { themeInfo->layout(); themeInfo->redraw(); });
+void ThemePage::refreshPreview() {
+	currentTheme();
 
-	HoldRedraw hold { themeInfo };
-	HoldRedraw hold2 { table };
+	globalData->txtColor = curTheme.textColor;
+	globalData->bgColor = curTheme.background;
+	update(globalData);
 
-	themeInfo->clearRows();
-	auto children = themeInfo->getChildren<Control>();
-	boost::for_each(std::vector<Control*>(children.first, children.second), [](Control* w) { w->close(); });
+	ulData->txtColor = curTheme.uploadText;
+	ulData->bgColor = curTheme.uploadBg;
+	update(ulData);
 
-	themeInfo->addRow(GridInfo(0, GridInfo::FILL, GridInfo::STRETCH));
+	dlData->txtColor = curTheme.downloadText;
+	dlData->bgColor = curTheme.downloadBg;
+	update(dlData);
 
-	if(installed->countSelected() != 1) {
-		themeInfo->addChild(Label::Seed(T_("No theme has been selected")));
-		return;
-	}
+	linkData->txtColor = curTheme.linkColor;
+	update(linkData);
+	logData->txtColor = curTheme.logColor;
+	update(logData);
 
-	auto infoGrid = themeInfo->addChild(Grid::Seed(0, 2));
-	infoGrid->column(1).mode = GridInfo::FILL;
-	infoGrid->setSpacing(themeInfo->getSpacing());
+	/*currentTheme();*/
+}
 
-	enum Type { Name, Version, Description, Author, Website };
-
-	auto addInfo = [this, infoGrid](tstring name, const string& value, Type type) {
-		if(type == Description) {
-			infoGrid->addRow(GridInfo(0, GridInfo::FILL, GridInfo::STRETCH));
-		} else {
-			infoGrid->addRow();
-		}
-		infoGrid->addChild(Label::Seed(name));
-		if(type == Website && !value.empty()) {
-			infoGrid->addChild(Link::Seed(Text::toT(value), true, WinUtil::parseLink));
-		} else {
-			infoGrid->addChild(Label::Seed(value.empty() ?
-									   T_("<Information unavailable>") : Text::toT(value)));
-		}
+void ThemePage::currentTheme() {
+	auto get = [&](SettingsManager::IntSetting setting) -> COLORREF {
+		auto sm = SettingsManager::getInstance();
+		return sm->get(setting);
 	};
-	//Test this
-	auto theme = WinUtil::findTheme(sel());
-	if(theme == nullptr) { 
-		WinUtil::Theme defTheme = {  };
-		defaultTheme(defTheme);
-		theme = &defTheme;
-	}
 
-	addInfo(T_("Name: "), theme->name, Name);
-	addInfo(T_("Version: "), Util::toString(theme->version), Version);
-	addInfo(T_("Description: "), theme->description, Description);
-	addInfo(T_("Author: "), theme->author, Author);
-	addInfo(T_("Website: "), theme->website, Website);
-
-//	auto t = table->getData(0);/*0..4*/
-	{// Rethink this, it's broken currently
-		globalData->txtColor = theme->textColor;
-		globalData->bgColor = theme->background;
-		ulData->txtColor = theme->uploadText;
-		ulData->bgColor = theme->uploadBg;
-		dlData->txtColor = theme->downloadText;
-		dlData->bgColor = theme->downloadBg;
-		linkData->txtColor = theme->linkColor;
-		logData->txtColor = theme->logColor;
-		update(globalData);
-		update(ulData);
-		update(dlData);
-		update(linkData);
-		update(logData);
-
-		table->Control::redraw(true);
-		table->setColor(theme->textColor, theme->background);
-	}
-
+	curTheme.name = SETTING(SettingsManager::LOADED_THEME);
+	curTheme.textColor = get(SettingsManager::TEXT_COLOR);
+	curTheme.background = get(SettingsManager::BACKGROUND_COLOR);
+	curTheme.background = get(SettingsManager::BACKGROUND_COLOR);
+	curTheme.uploadText = get(SettingsManager::UPLOAD_TEXT_COLOR);
+	curTheme.uploadBg = get(SettingsManager::UPLOAD_BG_COLOR);
+	curTheme.downloadText = get(SettingsManager::DOWNLOAD_TEXT_COLOR);
+	curTheme.downloadBg = get(SettingsManager::DOWNLOAD_BG_COLOR);
+	curTheme.linkColor = get(SettingsManager::LINK_COLOR);
+	curTheme.logColor = get(SettingsManager::LOG_COLOR);
 }
 
-void ThemePage::refreshList() {
-	installed->clear();
-	if(WinUtil::themeList.empty()) {
-		TStringList row(COLUMN_COUNT);
-		row[COLUMN_THEME] = Text::toT("No theme installed");
-		row[COLUMN_UUID] = Text::toT("{00000000-0000-0000-0000-000000000000}");
-		installed->insert(row, 0, 0);
-		installed->setEnabled(false);
-		table->setEnabled(false);
-		return;
-	}
-	for(auto& themes : WinUtil::themeList) {
-		addEntry(installed->size(), themes.uuid);
-	}
-	installed->setEnabled(true);
-	table->setEnabled(true);
-}
-
-void ThemePage::addEntry(size_t idx, const string& uuid) {
-	TStringList row(COLUMN_COUNT);
-	auto theme = WinUtil::findTheme(uuid);
-	row[COLUMN_THEME] = Text::toT(theme->name);
-	row[COLUMN_UUID] = Text::toT(uuid);
-	installed->insert(row, 0, idx);
-}
-
-string ThemePage::sel() const {
-	return Text::fromT(installed->getText(installed->getSelected(), COLUMN_UUID));
-}
-
-void ThemePage::defaultTheme(WinUtil::Theme& theme) {
+void ThemePage::defaultTheme() {
 	auto getDefault = [&](SettingsManager::IntSetting setting) -> int {
 		auto sm = SettingsManager::getInstance();
 		return sm->getDefault(setting);
 	};
 
-	theme.name = "Default";
-	theme.uuid = "{00000000-0000-0000-0000-000000000000}";
-	theme.description = "Default theme";
-	theme.author = "DC++";
-	theme.website = "https://dcplusplus.sourceforge.io/";
-	theme.version = VERSIONFLOAT;
-	theme.textColor = getDefault(SettingsManager::TEXT_COLOR);
-	theme.background = getDefault(SettingsManager::BACKGROUND_COLOR);
-	theme.uploadText = getDefault(SettingsManager::UPLOAD_TEXT_COLOR);
-	theme.uploadBg = getDefault(SettingsManager::UPLOAD_BG_COLOR);
-	theme.downloadText = getDefault(SettingsManager::DOWNLOAD_TEXT_COLOR);	
-	theme.downloadBg = getDefault(SettingsManager::DOWNLOAD_BG_COLOR);
-	theme.linkColor = getDefault(SettingsManager::LINK_COLOR);
-	theme.logColor = getDefault(SettingsManager::LOG_COLOR);
+	defTheme.name = "Default";
+	//defTheme.uuid = "{00000000-0000-0000-0000-000000000000}";
+	//defTheme.description = "Default theme";
+	//defTheme.author = APPNAME;
+	//defTheme.website = "https://dcplusplus.sourceforge.io/";
+	defTheme.textColor = getDefault(SettingsManager::TEXT_COLOR);
+	defTheme.background = getDefault(SettingsManager::BACKGROUND_COLOR);
+	defTheme.uploadText = getDefault(SettingsManager::UPLOAD_TEXT_COLOR);
+	defTheme.uploadBg = getDefault(SettingsManager::UPLOAD_BG_COLOR);
+	defTheme.downloadText = getDefault(SettingsManager::DOWNLOAD_TEXT_COLOR);
+	defTheme.downloadBg = getDefault(SettingsManager::DOWNLOAD_BG_COLOR);
+	defTheme.linkColor = getDefault(SettingsManager::LINK_COLOR);
+	defTheme.logColor = getDefault(SettingsManager::LOG_COLOR);
+}
+
+void ThemePage::handleTheme() {
+	auto sel = Text::fromT(cbCtrlTheme->getText());
+	themeMap::iterator i = themes.find(sel);
+	if(i != themes.end()) {
+		loadTheme(i->second);
+	}
+}
+
+void ThemePage::populateThemes() {
+	cbCtrlTheme->clear();
+	themes.clear();
+
+	if(themes.empty()) {
+		string path = Util::getPath(Util::PATH_RESOURCES) + "Themes" + PATH_SEPARATOR_STR;
+		for(FileFindIter i(path + "*.dcpptheme"), end; i != end; ++i) {
+			LogManager::getInstance()->message("Path = " + path + " File: " + i->getFileName());
+			string filepath = path + i->getFileName();
+			themes.emplace(i->getFileName(), filepath);
+		}
+	}
+
+	auto def = cbCtrlTheme->insertValue(0, T_("Select a theme"));
+	for(themeMap::const_iterator t = themes.begin(); t != themes.end(); ++t) {
+		cbCtrlTheme->addValue(Text::toT(t->first));
+	}
+	cbCtrlTheme->setSelected(def);
+}
+
+void ThemePage::loadTheme(const string& path) {
+	auto sm = SettingsManager::getInstance();
+
+	auto log = [](const string& message) {
+		LogManager::getInstance()->message(message);
+	};
+
+	log("curTheme.name = " + curTheme.name);
+	log("LoadTheme(" + path + ")");
+
+	SimpleXML xml;
+	try {
+		xml.fromXML(File(path, File::READ, File::OPEN).read());
+		if(xml.findChild("dcpptheme")) {
+			xml.stepIn();
+
+			auto parse = [&xml, sm, &log](string tag, string& out) {
+				xml.resetCurrentChild();
+				if(xml.findChild(tag)) {
+					out = xml.getChildData();
+					log(tag + " xml data = "+ out);
+					sm->set(SettingsManager::LOADED_THEME, xml.getChildData());
+				}
+			};
+
+			auto parseColor = [&xml, sm, &log](string tag, COLORREF& out, SettingsManager::IntSetting setting) {
+				xml.resetCurrentChild();
+				if (xml.findChild(tag)) {
+					string color = xml.getChildData();
+					log(tag + " xml color data = " + Util::toString(out));
+					out = Util::toInt(color);
+					sm->set(setting, static_cast<COLORREF>(Util::toInt(xml.getChildData())));
+				}
+			};
+
+
+			//		Theme theme;
+			parse("Name", curTheme.name);
+			parseColor("TextColor", curTheme.textColor, SettingsManager::TEXT_COLOR);
+			parseColor("BgColor", curTheme.background, SettingsManager::BACKGROUND_COLOR);
+			parseColor("ULBarTextColor", curTheme.uploadText, SettingsManager::UPLOAD_TEXT_COLOR);
+			parseColor("ULBarBgColor", curTheme.uploadBg, SettingsManager::UPLOAD_BG_COLOR);
+			parseColor("DLBarTextColor", curTheme.downloadText, SettingsManager::DOWNLOAD_TEXT_COLOR);
+			parseColor("DLBarBgColor", curTheme.downloadBg, SettingsManager::DOWNLOAD_BG_COLOR);
+			parseColor("LinkColor", curTheme.linkColor, SettingsManager::LINK_COLOR);
+			parseColor("LogColor", curTheme.logColor, SettingsManager::LOG_COLOR);
+
+			//auto sm = SettingsManager::getInstance();
+			//sm->set(SettingsManager::TEXT_COLOR, curTheme.textColor);
+			//sm->set(SettingsManager::BACKGROUND_COLOR, curTheme.background);
+			//sm->set(SettingsManager::LINK_COLOR, curTheme.linkColor);
+			//sm->set(SettingsManager::LOG_COLOR, curTheme.logColor);
+			//sm->save();
+
+			xml.stepOut();
+		}
+
+		refreshPreview();
+	} catch(const Exception& e) {
+		dcdebug("ThemePage::loadTheme: %s\n", e.getError().c_str());
+	}
+	//sm->save();
+}
+
+void ThemePage::saveTheme(const string& path) {
+	SimpleXML xml;
+	xml.addTag("dcpptheme");
+	xml.stepIn();
+
+	xml.addChildAttrib("Name", curTheme.name);
+	//xml.addChildAttrib("UUID", curTheme.uuid);
+	//xml.addChildAttrib("Description", curTheme.description);
+	//xml.addChildAttrib("Author", curTheme.author);
+	//xml.addChildAttrib("Website", curTheme.website);
+	//xml.addChildAttrib("Version", curTheme.version);
+	xml.addChildAttrib("TextColor", curTheme.textColor);
+	xml.addChildAttrib("BgColor", curTheme.background);
+	xml.addChildAttrib("ULBarTextColor", curTheme.uploadText);
+	xml.addChildAttrib("ULBarBgColor", curTheme.uploadBg);
+	xml.addChildAttrib("DLBarTextColor", curTheme.downloadText);
+	xml.addChildAttrib("DLBarBgColor", curTheme.downloadBg);
+	xml.addChildAttrib("LinkColor", curTheme.linkColor);
+	xml.addChildAttrib("LogColor", curTheme.logColor);
+
+	xml.stepOut();
+
+	try {
+		File ff(path, File::WRITE, File::CREATE | File::TRUNCATE);
+		BufferedOutputStream<false> f(&ff);
+		f.write(SimpleXML::utf8Header);
+		xml.toXML(&f);
+	} catch(const FileException&) {
+		// ...
+	}
 }

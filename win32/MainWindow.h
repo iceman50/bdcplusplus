@@ -51,6 +51,7 @@ class MainWindow :
 public:
 	enum Status {
 		STATUS_STATUS,
+		STATUS_SHARED,
 		STATUS_AWAY,
 		STATUS_COUNTS,
 		STATUS_SLOTS,
@@ -211,6 +212,7 @@ private:
 	void handleSlotsMenu();
 	void handleReconnect();
 	void forwardHub(void (HubFrame::*f_t)());
+	void handleTaskbarOverlay();
 
 	// Other events
 	void handleSized(const dwt::SizedEvent& sz);
@@ -246,14 +248,10 @@ private:
 	void updateGeo(bool v6);
 	void completeGeoUpdate(bool v6, bool success);
 
-	void addTheme(Widget* w);
-
 	bool filter(MSG& msg);
 
 	bool handleClosing();
 	void handleRestore();
-
-//	LRESULT handleTBCustomDraw(NMTBCUSTOMDRAW& data);
 
 	static DWORD WINAPI stopper(void* p);
 

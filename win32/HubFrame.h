@@ -235,6 +235,7 @@ private:
 	void handleCopyHub(bool keyprinted);
 	void handleSearchHub();
 	void handleAddAsFavorite();
+	void handleSetHubTabText();
 
 	void showFilterOpts();
 	void hideFilterOpts(dwt::Widget* w);

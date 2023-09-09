@@ -31,11 +31,13 @@ class HubEntry {
 public:
 	HubEntry(const string& aName, const string& aServer, const string& aDescription, const string& aUsers) :
 	name(aName), server(aServer), description(aDescription), country(Util::emptyString),
+		tabText(Util::emptyString),
 	rating(Util::emptyString), reliability(0.0), shared(0), minShare(0), users(Util::toInt(aUsers)), minSlots(0), maxHubs(0), maxUsers(0) { }
 
 	HubEntry(const string& aName, const string& aServer, const string& aDescription, const string& aUsers, const string& aCountry,
 		const string& aShared, const string& aMinShare, const string& aMinSlots, const string& aMaxHubs, const string& aMaxUsers,
 		const string& aReliability, const string& aRating) : name(aName), server(aServer), description(aDescription), country(aCountry),
+		tabText(Util::emptyString),
 		rating(aRating), reliability((float)(Util::toFloat(aReliability) / 100.0)), shared(Util::toInt64(aShared)), minShare(Util::toInt64(aMinShare)),
 		users(Util::toInt(aUsers)), minSlots(Util::toInt(aMinSlots)), maxHubs(Util::toInt(aMaxHubs)), maxUsers(Util::toInt(aMaxUsers))
 	{
@@ -46,6 +48,7 @@ public:
 	GETSET(string, server, Server);
 	GETSET(string, description, Description);
 	GETSET(string, country, Country);
+	GETSET(string, tabText, TabText);
 	GETSET(string, rating, Rating);
 	GETSET(float, reliability, Reliability);
 	GETSET(int64_t, shared, Shared);
@@ -60,10 +63,12 @@ class FavoriteHubEntry : public HubSettings {
 public:
 	FavoriteHubEntry() : encoding(Text::systemCharset) { }
 	FavoriteHubEntry(const HubEntry& rhs) : name(rhs.getName()), server(rhs.getServer()),
+		tabText(rhs.getTabText()),
 		hubDescription(rhs.getDescription()), encoding(Text::systemCharset) { }
 
 	GETSET(string, name, Name);
 	GETSET(string, server, Server);
+	GETSET(string, tabText, TabText);
 	GETSET(string, hubDescription, HubDescription);
 	GETSET(string, password, Password);
 	GETSET(string, encoding, Encoding);

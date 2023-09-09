@@ -81,7 +81,6 @@
 #include "StatsFrame.h"
 #include "SystemFrame.h"
 #include "TextFrame.h"
-#include "ThemeInfoDlg.h"
 #include "ThemePage.h"
 #include "TransferView.h"
 #include "UsersFrame.h"
@@ -215,6 +214,12 @@ fullSlots(false)
 	onRaw([this](WPARAM, LPARAM) { return handleEndSession(); }, dwt::Message(WM_ENDSESSION));
 	onRaw([this](WPARAM, LPARAM l) { return handleCopyData(l); }, dwt::Message(WM_COPYDATA));
 	onRaw([this](WPARAM, LPARAM) { return handleWhereAreYou(); }, dwt::Message(SingleInstance::WMU_WHERE_ARE_YOU));
+	//In the event that explorer.exe crashes lets make sure the overlay icon is reset
+	UINT tbcMsg = ::RegisterWindowMessage(L"TaskbarButtonCreated");
+	if(tbcMsg != WM_NULL) {
+		::ChangeWindowMessageFilterEx(this->handle(), tbcMsg, 1, 0);
+		onRaw([this, tbcMsg](WPARAM, LPARAM) { handleTaskbarOverlay(); return 0; }, dwt::Message(tbcMsg));
+	}
 
 	filterIter = dwt::Application::instance().addFilter([this](MSG &msg) { return filter(msg); });
 
@@ -303,6 +308,7 @@ fullSlots(false)
 	//DiCe Addon
 //	useDarkMode(this->getParentHandle());
 //	setDarkMode(this->getParentHandle());
+	handleTaskbarOverlay();
 }
 
 void MainWindow::initWindow() {
@@ -354,9 +360,6 @@ void MainWindow::initMenu() {
 		file->appendItem(T_("Open crash log"), [this] { TextFrame::openWindow(getTabView(), Text::fromT(CrashLogger::getPath())); });
 		file->appendSeparator();
 
-		file->appendItem(T_("Add theme"), [this] { addTheme(this); }, WinUtil::menuIcon(IDI_STYLES));
-		file->appendSeparator();
-
 		file->appendItem(T_("Settings\tCtrl+F3"), [this] { handleSettings(); }, WinUtil::menuIcon(IDI_SETTINGS));
 		file->appendSeparator();
 
@@ -394,7 +397,7 @@ void MainWindow::initMenu() {
 		viewIndexes[NotepadFrame::id] = viewMenu->appendItem(T_("&Notepad\tCtrl+N"),
 			[this] { NotepadFrame::openWindow(getTabView()); }, WinUtil::menuIcon(IDI_NOTEPAD));
 		viewIndexes[SystemFrame::id] = viewMenu->appendItem(T_("System Log"),
-			[this] { SystemFrame::openWindow(getTabView()); });
+			[this] { SystemFrame::openWindow(getTabView()); }, WinUtil::menuIcon(IDI_LOGS));
 		viewIndexes[StatsFrame::id] = viewMenu->appendItem(T_("Network Statistics"),
 			[this] { StatsFrame::openWindow(getTabView()); }, WinUtil::menuIcon(IDI_NET_STATS));
 
@@ -434,7 +437,7 @@ void MainWindow::initMenu() {
 
 	{
 		auto help = mainMenu->appendPopup(T_("&Help"));
-		help->appendItem(T_("About DC++"), [this] { handleAbout(); }, WinUtil::menuIcon(IDI_DCPP));
+		help->appendItem(T_("About BDC++"), [this] { handleAbout(); }, WinUtil::menuIcon(IDI_DCPP));
 		help->appendSeparator();
 
 		help = help->appendPopup(T_("Links"), WinUtil::menuIcon(IDI_LINKS));
@@ -549,7 +552,7 @@ void MainWindow::initToolbar() {
 	toolbar->setLayout(StringTokenizer<string>(SETTING(TOOLBAR), ',').getTokens());
 	toolbar->onCustomized([this] { handleToolbarCustomized(); });
 	toolbar->onContextMenu([this](const dwt::ScreenCoordinate &sc) { return handleToolbarContextMenu(sc); });
-//	toolbar->onCustomDraw([this](NMTBCUSTOMDRAW& data) { return handleTBCustomDraw(data); });
+	//toolbar->onCustomDraw([this](NMTBCUSTOMDRAW& data) { return handleTBCustomDraw(data); });
 
 	rebar->add(toolbar);
 
@@ -568,6 +571,7 @@ void MainWindow::initStatusBar() {
 	/// @todo set to resizedrag width really
 	status->setSize(STATUS_DUMMY, 32);
 
+	status->setIcon(STATUS_SHARED, WinUtil::statusIcon(IDI_UP));
 	status->setIcon(STATUS_COUNTS, WinUtil::statusIcon(IDI_HUB));
 	status->setIcon(STATUS_SLOTS, WinUtil::statusIcon(IDI_SLOTS));
 	{
@@ -967,6 +971,10 @@ void MainWindow::forwardHub(void (HubFrame::*f)()) {
 	}
 }
 
+void MainWindow::handleTaskbarOverlay() {
+	tabs->setOverlayIcon(tabs->getActive(), WinUtil::createIcon(away ? IDI_RED_BALL : IDI_GREEN_BALL, 16), away ? _T("Away") : _T("Available"));
+}
+
 void MainWindow::handleQuickConnect() {
 	if(!WinUtil::checkNick())
 		return;
@@ -1191,12 +1199,17 @@ void MainWindow::updateStatus() {
 	if(!status)
 		return;
 
+	tstring f = Text::toT(Util::toString(ShareManager::getInstance()->getSharedFiles()));
+	tstring s = Text::toT(Util::formatBytes(ShareManager::getInstance()->getShareSize()));
+	status->setText(STATUS_SHARED, str(TF_("%1% shared in %2% files") % s % f));
+	status->setToolTip(STATUS_SHARED, str(TF_("%1% shared in %2% files") % s % f));
+
 	if(Util::getAway() != away) {
 		away = !away;
 		updateAwayStatus();
 	}
 
-	tstring s = Text::toT(Client::getCounts());
+	s = Text::toT(Client::getCounts());
 	status->setText(STATUS_COUNTS, s);
 	status->setToolTip(STATUS_COUNTS, str(TF_("Hubs: %1%") % s));
 
@@ -1238,6 +1251,8 @@ void MainWindow::updateAwayStatus() {
 	status->setIcon(STATUS_AWAY, WinUtil::statusIcon(away ? IDI_USER_AWAY : IDI_USER));
 	status->setToolTip(STATUS_AWAY, away ? (T_("Status: Away - Double-click to switch to Available")) :
 		(T_("Status: Available - Double-click to switch to Away")));
+
+	handleTaskbarOverlay();
 }
 
 MainWindow::~MainWindow() {
@@ -1300,7 +1315,6 @@ void MainWindow::handleSettings() {
 	auto prevURLReg = SETTING(URL_HANDLER);
 	auto prevMagnetReg = SETTING(MAGNET_REGISTER);
 	auto prevDcextReg = SETTING(DCEXT_REGISTER);
-	auto prevThemeReg = SETTING(THEME_REGISTER);
 	auto prevSystemStartupReg = SETTING(REGISTER_SYSTEM_STARTUP);
 	auto prevSettingsSave = SETTING(SETTINGS_SAVE_INTERVAL);
 
@@ -1382,8 +1396,6 @@ void MainWindow::handleSettings() {
 			WinUtil::registerMagnetHandler();
 		if(SETTING(DCEXT_REGISTER) != prevDcextReg)
 			WinUtil::registerDcextHandler();
-		if(SETTING(THEME_REGISTER) != prevThemeReg)
-			WinUtil::registerThemeHandler();
 		
 		if(SETTING(REGISTER_SYSTEM_STARTUP) != prevSystemStartupReg)
 			WinUtil::setApplicationStartup();
@@ -1758,31 +1770,6 @@ void MainWindow::completeGeoUpdate(bool v6, bool success) {
 	}
 }
 
-void MainWindow::addTheme(Widget* w) {
-	if(!SETTING(USE_THEME)) { 
-		dwt::MessageBox(w).show(tstring(T_("Cannot install theme, please enable themes in settings")) + _T("\r\n\r\n"),
-								Text::toT("Theme error"), dwt::MessageBox::BOX_OK, dwt::MessageBox::BOX_ICONSTOP);
-	}
-
-	tstring path_t;
-	if(dwt::LoadDialog(w)
-	   .addFilter(str(TF_("%1% files") % _T("dcpptheme")), _T("*.dcpptheme"))
-	   .open(path_t))
-	{
-		auto path = Text::fromT(path_t);
-		if(Util::getFileExt(path) == ".dcpptheme") {
-			ThemeInfoDlg(w, path).run();
-		} else {
-			auto theme = WinUtil::extractTheme(path);
-			try {
-				WinUtil::addTheme(theme);
-			} catch(const Exception& e) {
-				dwt::MessageBox(w).show(tstring(T_("Cannot install theme:") + Text::toT(theme.name)) + _T("\r\n\r\n") + Text::toT(e.getError()),
-										Text::toT(Util::getFileName(path)), dwt::MessageBox::BOX_OK, dwt::MessageBox::BOX_ICONSTOP);
-			}
-		}
-	}
-}
 
 void MainWindow::parseCommandLine(const tstring& cmdLine) {
 	// this string may or may not contain the executable's path at the beginning.
@@ -1801,10 +1788,6 @@ void MainWindow::parseCommandLine(const tstring& cmdLine) {
 		auto path = Text::fromT(cmdLine.substr(i + 6));
 		Util::sanitizeUrl(path);
 		PluginInfoDlg(this, path).run();
-	} else if((i = cmdLine.find(_T("dcpptheme:"))) != tstring::npos) {
-		auto path = Text::fromT(cmdLine.substr(i + 10));
-		Util::sanitizeUrl(path);
-		ThemeInfoDlg(this, path).run();
 	}
 }
 
@@ -2022,25 +2005,6 @@ void MainWindow::handleTrayUpdate() {
 		Util::formatBytes(UploadManager::getInstance()->getRunningAverage()) %
 		UploadManager::getInstance()->getUploadCount())));
 }
-/*
-LRESULT MainWindow::handleTBCustomDraw(NMTBCUSTOMDRAW& data) {
-	switch(data.nmcd.dwDrawStage) {
-	case CDDS_PREPAINT:
-		return CDRF_NOTIFYITEMDRAW;
-
-	case CDDS_ITEMPREPAINT:
-		return CDRF_NOTIFYSUBITEMDRAW;
-
-	case CDDS_SUBITEM | CDDS_ITEMPREPAINT:
-	{
-
-	}
-	// Fall through
-	default:
-		return CDRF_DODEFAULT;
-	}
-}
-*/
 
 void MainWindow::on(ConnectionManagerListener::Connected, ConnectionQueueItem* cqi, UserConnection* uc) noexcept {
 	if(cqi->getType() == CONNECTION_TYPE_PM) {

@@ -409,6 +409,7 @@ void FavoriteManager::save() {
 			xml.addChildAttrib("Server", i->getServer());
 			xml.addChildAttrib("Encoding", i->getEncoding());
 			xml.addChildAttrib("Group", i->getGroup());
+			xml.addChildAttrib("TabText", i->getTabText());
 			i->save(xml);
 		}
 
@@ -521,6 +522,7 @@ void FavoriteManager::load(SimpleXML& aXml) {
 			e->setServer(aXml.getChildAttrib("Server"));
 			e->setEncoding(aXml.getChildAttrib("Encoding"));
 			e->setGroup(aXml.getChildAttrib("Group"));
+			e->setTabText(aXml.getChildAttrib("TabText"));
 			e->load(aXml);
 			favoriteHubs.push_back(e);
 		}

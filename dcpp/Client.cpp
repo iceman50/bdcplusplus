@@ -87,6 +87,8 @@ void Client::reloadSettings(bool updateNick) {
 
 		if(!fav->getEncoding().empty())
 			setEncoding(fav->getEncoding());
+
+		setTabText(fav->getTabText());
 	}
 
 	if(updateNick)

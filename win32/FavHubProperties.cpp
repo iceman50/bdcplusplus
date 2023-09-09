@@ -48,6 +48,7 @@ description(0),
 email(0),
 userIp(0),
 userIp6(0),
+tabText(0),
 encoding(0),
 showJoins(0),
 favShowJoins(0),
@@ -66,13 +67,12 @@ bool FavHubProperties::handleInitDialog() {
 	grid->column(0).mode = GridInfo::FILL;
 	grid->column(1).mode = GridInfo::FILL;
 
+	bool isAdcHub = Util::isAdcUrl(entry->getServer()) || Util::isAdcsUrl(entry->getServer());
+	int rows = isAdcHub ? 3 : 4;
+
 	{
 		auto group = grid->addChild(GroupBox::Seed(T_("Hub")));
-		grid->setWidget(group, 0, 0, 1, 2);
-
-		bool isAdcHub = Util::isAdcUrl(entry->getServer()) || Util::isAdcsUrl(entry->getServer());
-
-		int rows = isAdcHub ? 3 : 4;
+		grid->setWidget(group, 0, 0, 1, 2);		
 
 		auto cur = group->addChild(Grid::Seed(rows, 2));
 		cur->column(0).align = GridInfo::BOTTOM_RIGHT;
@@ -104,7 +104,7 @@ bool FavHubProperties::handleInitDialog() {
 		auto group = grid->addChild(GroupBox::Seed(T_("Identification (leave blank for defaults)")));
 		grid->setWidget(group, 1, 0, 1, 2);
 
-		auto cur = group->addChild(Grid::Seed(6, 2));
+		auto cur = group->addChild(Grid::Seed(7, 2));
 		cur->column(0).align = GridInfo::BOTTOM_RIGHT;
 		cur->column(1).mode = GridInfo::FILL;
 
@@ -136,10 +136,16 @@ bool FavHubProperties::handleInitDialog() {
 		userIp6 = cur->addChild(WinUtil::Seeds::Dialog::textBox);
 		userIp6->setText(Text::toT(entry->get(HubSettings::UserIp6)));
 		WinUtil::preventSpaces(userIp6);
+
+		cur->addChild(Label::Seed(T_("Tab text")));
+		tabText = cur->addChild(WinUtil::Seeds::Dialog::textBox);
+		tabText->setText(Text::toT(entry->getTabText()));
+		tabText->setTextLimit(32); //Superficial can be pasted over
+
 	}
 
 	{
-		auto cur = grid->addChild(Grid::Seed(3, 2));
+		auto cur = grid->addChild(Grid::Seed(rows, 2));
 		grid->setWidget(cur, 2, 0, 1, 2);
 		cur->column(0).mode = GridInfo::FILL;
 		cur->column(0).align = GridInfo::BOTTOM_RIGHT;
@@ -158,6 +164,13 @@ bool FavHubProperties::handleInitDialog() {
 		logMainChat = cur->addChild(WinUtil::Seeds::Dialog::comboBox);
 		WinUtil::fillTriboolCombo(logMainChat);
 		logMainChat->setSelected(toInt(entry->get(HubSettings::LogMainChat)));
+
+		if (!isAdcHub) {
+			cur->addChild(Label::Seed(T_("Enable TLS C-C Connections")));
+			nmdcTls = cur->addChild(WinUtil::Seeds::Dialog::comboBox);
+			WinUtil::fillTriboolCombo(nmdcTls);
+			nmdcTls->setSelected(toInt(entry->get(HubSettings::NmdcTls)));
+		}
 	}
 
 	{
