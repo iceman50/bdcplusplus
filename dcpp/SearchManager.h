@@ -88,6 +88,12 @@ public:
 		return timeToSearch() <= 0;
 	}
 
+	void genSUDPKey(string& aKey);
+	static void testSUDP();
+	bool decryptPacket(string& x, size_t aLen, const ByteVector& aBuf);
+	static string encryptSUDP(const uint8_t* aKey, const string& aCmd);
+	static bool decryptSUDP(const uint8_t* aKey, const ByteVector& aData, size_t aDataLen, string& result_);
+
 private:
 	friend class CommandHandler<SearchManager>;
 
@@ -108,6 +114,11 @@ private:
 	virtual int run();
 
 	virtual ~SearchManager();
+
+	vector<pair<uint8_t*, uint64_t>> searchKeys;
+	CriticalSection cs;
+
+	void on(TimerManagerListener::Minute, uint64_t aTick) noexcept;
 };
 
 } // namespace dcpp

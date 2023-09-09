@@ -54,6 +54,7 @@ const string AdcHub::UDP6_FEATURE("UDP6");
 const string AdcHub::NAT0_FEATURE("NAT0");
 const string AdcHub::SEGA_FEATURE("SEGA");
 const string AdcHub::CCPM_FEATURE("CCPM");
+const string AdcHub::SUD1_FEATURE("SUD1");
 const string AdcHub::BASE_SUPPORT("ADBASE");
 const string AdcHub::BAS0_SUPPORT("ADBAS0");
 const string AdcHub::TIGR_SUPPORT("ADTIGR");
@@ -778,7 +779,7 @@ StringList AdcHub::parseSearchExts(int flag) {
 	return ret;
 }
 
-void AdcHub::search(int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken, const StringList& aExtList) {
+void AdcHub::search(int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken, const StringList& aExtList, const string& aKey) {
 	if(state != STATE_NORMAL)
 		return;
 
@@ -879,6 +880,12 @@ void AdcHub::search(int aSizeMode, int64_t aSize, int aFileType, const string& a
 
 		for(auto& i: aExtList)
 			c.addParam("EX", i);
+	}
+
+	//DiCe Edit SUDP - Need to verify if an ADCS hub and add Key
+	//
+	if(isSecure() && !aKey.empty() && Util::strnicmp("adcs://", getHubUrl().c_str(), 7) == 0) {		
+		c.addParam("KY", aKey);
 	}
 
 	sendSearch(c);
@@ -1028,6 +1035,9 @@ void AdcHub::infoImpl() {
 		auto &kp = CryptoManager::getInstance()->getKeyprint();
 		addParam(lastInfoMap, c, "KP", CryptoManager::getInstance()->keyprintToString(kp));
 	}
+
+	if(SETTING(ENABLE_SUDP))
+		su += "," + SUD1_FEATURE;
 
 	bool addV4 = !sock->isV6Valid() || (get(HubSettings::Connection) != SettingsManager::INCOMING_DISABLED);
 	bool addV6 = sock->isV6Valid() || (get(HubSettings::Connection6) != SettingsManager::INCOMING_DISABLED);

@@ -121,7 +121,7 @@ const string SettingsManager::settingTags[] =
 	"UsersFilterFavorite", "UsersFilterOnline", "UsersFilterQueue", "UsersFilterWaiting",
 	"RegisterSystemStartup", "DontLogCCPMChat", 
 	//DiCe Addon SETTINGS::BOOL
-	"TabsOnBottom", "AboutCfgDisclaimer", "UseTheme", "EnableNmdcTls",
+	"TabsOnBottom", "AboutCfgDisclaimer", "UseTheme", "EnableNmdcTls", "EnableSUDP",
 	"SENTRY",
 	// Int64
 	"TotalUpload", "TotalDownload", "SharingSkiplistMinSize", "SharingSkiplistMaxSize",
@@ -386,6 +386,7 @@ SettingsManager::SettingsManager() {
 	setDefault(AC_DISCLAIM, true);
 	setDefault(ENABLE_NMDC_TLS, true);
 	setDefault(ACTION_DOUBLECLICK_USER, BDCUtil::ACTION_GETLIST);
+	setDefault(ENABLE_SUDP, true);
 
 	setSearchTypeDefaults();
 

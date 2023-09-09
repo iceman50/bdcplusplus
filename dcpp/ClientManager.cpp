@@ -447,7 +447,7 @@ void ClientManager::userCommand(const HintedUser& user, const UserCommand& uc, P
 	ou->getClient().sendUserCmd(uc, params);
 }
 
-void ClientManager::sendUDP(AdcCommand& cmd, const OnlineUser& user) {
+void ClientManager::sendUDP(AdcCommand& cmd, const OnlineUser& user, const string& aKey) {
 	dcassert(cmd.getType() == AdcCommand::TYPE_UDP);
 	if(!user.getIdentity().isUdpActive()) {
 		cmd.setType(AdcCommand::TYPE_DIRECT);
@@ -455,13 +455,20 @@ void ClientManager::sendUDP(AdcCommand& cmd, const OnlineUser& user) {
 		const_cast<Client&>(user.getClient()).send(cmd);
 	} else {
 		auto v6Status = ConnectivityManager::getInstance()->getConnectivityStatus(true);
-		sendUDP(v6Status ? user.getIdentity().getIp() : user.getIdentity().getIp4(), v6Status ? user.getIdentity().getUdpPort() : user.getIdentity().getUdp4Port(), cmd.toString(getMe()->getCID()));
+		sendUDP(v6Status ? user.getIdentity().getIp() : user.getIdentity().getIp4(), v6Status ? user.getIdentity().getUdpPort() : user.getIdentity().getUdp4Port(), cmd.toString(getMe()->getCID()), aKey);
 	}
 }
 
-void ClientManager::sendUDP(const string& ip, const string& port, const string& data) {
+
+void ClientManager::sendUDP(const string& ip, const string& port, const string& data, const string& aKey) {
 	if(PluginManager::getInstance()->onUDP(true, ip, port, data))
 		return;
+
+	if(!aKey.empty() && Encoder::isBase32(aKey.c_str())) {
+		uint8_t keyChar[16];
+		Encoder::fromBase32(aKey.c_str(), keyChar, 16);
+		SearchManager::encryptSUDP(keyChar, data);
+	}
 
 	try {
 		udp.writeTo(ip, port, data);
@@ -529,23 +536,23 @@ void ClientManager::on(AdcSearch, Client*, const AdcCommand& cmd, const OnlineUs
 	SearchManager::getInstance()->respond(cmd, from);
 }
 
-void ClientManager::search(int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken) {
+void ClientManager::search(int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken, const string& aKey) {
 	Lock l(cs);
 
 	for(auto i: clients) {
 		if(i->isConnected()) {
-			i->search(aSizeMode, aSize, aFileType, aString, aToken, StringList() /*ExtList*/);
+			i->search(aSizeMode, aSize, aFileType, aString, aToken, StringList() /*ExtList*/, aKey);
 		}
 	}
 }
 
-void ClientManager::search(StringList& who, int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken, const StringList& aExtList) {
+void ClientManager::search(StringList& who, int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken, const StringList& aExtList, const string& aKey) {
 	Lock l(cs);
 
 	for(auto& client: who) {
 		for(auto c: clients) {
 			if(c->isConnected() && c->getHubUrl() == client) {
-				c->search(aSizeMode, aSize, aFileType, aString, aToken, aExtList);
+				c->search(aSizeMode, aSize, aFileType, aString, aToken, aExtList, aKey);
 			}
 		}
 	}

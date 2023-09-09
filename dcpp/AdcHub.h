@@ -39,7 +39,7 @@ public:
 	virtual void hubMessage(const string& aMessage, bool thirdPerson = false);
 	virtual void privateMessage(const OnlineUser& user, const string& aMessage, bool thirdPerson = false);
 	virtual void sendUserCmd(const UserCommand& command, const ParamMap& params);
-	virtual void search(int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken, const StringList& aExtList);
+	virtual void search(int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken, const StringList& aExtList, const string& aKey = Util::emptyString);
 	virtual void password(const string& pwd);
 	virtual void infoImpl();
 
@@ -71,6 +71,7 @@ public:
 	static const string UCM0_SUPPORT;
 	static const string BLO0_SUPPORT;
 	static const string ZLIF_SUPPORT;
+	static const string SUD1_FEATURE;
 
 private:
 	friend class ClientManager;
