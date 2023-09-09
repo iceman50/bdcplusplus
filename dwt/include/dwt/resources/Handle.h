@@ -45,7 +45,7 @@ struct NullPolicy {
 	void release(H) { }
 };
 
-template<typename H> const H NullPolicy<H>::NULL_HANDLE = NULL;
+template<typename H> const H NullPolicy<H>::NULL_HANDLE = nullptr;
 
 /** A policy for GDI objects (bitmap, pen, brush etc) */
 template<typename H>

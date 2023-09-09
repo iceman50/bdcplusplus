@@ -131,8 +131,8 @@ public:
 
 	// tab controls only use WM_DRAWITEM
 	static bool handlePainting(DRAWITEMSTRUCT& t) {
-		TabInfo* ti = reinterpret_cast<TabInfo*>(t.itemData);
-		return ti->control->handlePainting(t, ti);
+		TCITEMEXTRADATA* itemData = reinterpret_cast<TCITEMEXTRADATA*>(t.itemData);
+		return itemData->tabInfo->control->handlePainting(t, itemData->tabInfo);
 	}
 	static bool handlePainting(MEASUREITEMSTRUCT) { return false; }
 
@@ -156,6 +156,16 @@ private:
 		TabInfo(TabView* control, ContainerPtr w, IconPtr icon) :
 		control(control), w(w), icon(icon), handleContextMenu(nullptr), marked(false) { }
 	};
+
+	struct TCITEMEXTRADATA {
+		TabInfo* tabInfo;
+		char dummyByte; // needed so the size of the extra data != pointer size, see L#2019492
+	};
+
+	struct TCITEMEXTRA {
+		TCITEMHEADER tabItem;
+		TCITEMEXTRADATA data;
+	}; 
 
 	class Dropper;
 
@@ -236,9 +246,6 @@ private:
 
 	// aspects::Font
 	void setFontImpl();
-
-	// aspects::Help
-	void helpImpl(unsigned& id);
 
 	// aspects::Selection
 	int getSelectedImpl() const;

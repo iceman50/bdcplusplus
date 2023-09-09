@@ -208,9 +208,6 @@ private:
 	void handleClicked();
 	void handleRightClicked();
 	void handleDblClicked();
-
-	// aspects::Help
-	void helpImpl(unsigned& id);
 };
 
 // end namespace dwt

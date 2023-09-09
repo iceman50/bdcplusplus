@@ -264,9 +264,6 @@ private:
 	const TBBUTTON& getSeparator() const;
 	const Button* getButton(unsigned position) const;
 	int getIntId(const std::string& id) const;
-
-	// aspects::Help
-	void helpImpl(unsigned& id);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

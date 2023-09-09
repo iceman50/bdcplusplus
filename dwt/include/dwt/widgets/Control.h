@@ -42,7 +42,6 @@
 #include "../aspects/DragDrop.h"
 #include "../aspects/Enabled.h"
 #include "../aspects/Fonts.h"
-#include "../aspects/Help.h"
 #include "../aspects/Keyboard.h"
 #include "../aspects/Mouse.h"
 #include "../aspects/Painting.h"
@@ -65,7 +64,6 @@ class Control:
 	public aspects::DragDrop<Control>,
 	public aspects::Enabled<Control>,
 	public aspects::Fonts<Control>,
-	public aspects::Help<Control>,
 	public aspects::Keyboard<Control>,
 	public aspects::Mouse<Control>,
 	public aspects::Painting<Control>,

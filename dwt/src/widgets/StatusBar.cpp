@@ -128,7 +128,6 @@ void StatusBar::setWidget(unsigned part, Control* widget, const Rectangle& paddi
 	dwtassert(part < parts.size(), "Invalid part number");
 	auto p = new WidgetPart(widget, padding);
 	p->desiredSize = widget->getPreferredSize().x;
-	p->helpId = widget->getHelpId();
 	parts.insert(parts.erase(parts.begin() + part), p);
 }
 
@@ -299,13 +298,6 @@ void StatusBar::handleDblClicked() {
 	Part* part = getClickedPart();
 	if(part && part->dblClickF)
 		part->dblClickF();
-}
-
-void StatusBar::helpImpl(unsigned& id) {
-	// we have the help id of the whole status bar; convert to the one of the specific part the user just clicked on
-	Part* part = getClickedPart();
-	if(part && part->helpId)
-		id = part->helpId;
 }
 
 }

@@ -277,16 +277,6 @@ LRESULT ToolBar::handleReset() {
 	return 0;
 }
 
-void ToolBar::helpImpl(unsigned& id) {
-	// we have the help id of the whole toolbar; convert to the one of the specific button the user just clicked on
-	int position = hitTest(ScreenCoordinate(Point::fromLParam(::GetMessagePos())));
-	if(position >= 0) {
-		const Button* button = getButton(position);
-		if(button)
-			id = button->helpId;
-	}
-}
-
 const TBBUTTON& ToolBar::getSeparator() const {
 	static TBBUTTON sep = { 0, 0, 0, BTNS_SEP };
 	return sep;
