@@ -1,5 +1,14 @@
 -- 0.88x --
+* Update Boost to version 1.83
+* Require SSSE4.2 for 64-bit builds (cologic)
+* Modernize UsersFrame to show expanded user information (iceman50)
+* Add SetOverlayIcon to dwt::Taskbar, DC++ will now show a green or red icon overlay on the taskbar icon
+  depending on away status (iceman50)
+* [L#2019492] Fix a possible crash in DWT tab view control (emtee, iceman50)
+* Display originating hub info on new incoming private messages (iceman50)
+* [L#1494814] Support MSVC project generation for Visual Studio 2022 (iceman50)
 * Fix saving preferred port mapper setting for IPv4 (emtee) 
+* Update OpenSSL to version 3.1.1
 
 -- 0.880 2022-10-20 --
 * Upgrade license to GPLv3 for future license compatibility with some libraries
@@ -17,6 +26,7 @@
 * Upgrade compiler for better performance; allows further optimizations to modern Windows versions (cologic, emtee)
 * Allow copy of hub address with keyprint on secure hubs (code adapted from AirDC++) (emtee)
 * Require SSSE3 for 64-bit builds (cologic)
+* Documentation and translations updated as usual, thanks everyone
 
 -- 0.871 2022-04-01 --
 * Update OpenSSL to version 1.1.1n
@@ -2320,7 +2330,7 @@ Minor:
   open or granting). We'll see how long it takes until someone reports this as a bug...
 * Added ability to set default away message (hm...perhaps this should use the last message set?)
 * Redesigned the appearance dialog a bit (like the advanced options now)
-* If DC++ receives "banned" during the login phase, it'll stop automatically reconnecting (n�jd nu, nev? =)
+* If DC++ receives "banned" during the login phase, it'll stop automatically reconnecting (n jd nu, nev? =)
 * The splash screen no longer shows on the task bar (avoids flicker when loading is fast) and is not topmost (use
   alt-esc instead of alt-tab to switch to it if you lose it...and it can't be an option because it's shown prior to
   any settings being loaded).
@@ -2442,7 +2452,7 @@ Minor:
 * Collective thanks to all who have donated $$$ to me, I didn't think people would do it, but they
   actually have, amounts ranging from $1 to $200...keep 'em coming =) (keep in mind tho that paypal steals 30 cents
   and some percentage (4 i think) from me when you pay with a credit card). Oh, I think you can also donate in 
-  � (euros) now, which is, of course, my preferred currency =)
+    (euros) now, which is, of course, my preferred currency =)
 * The forum and lichlord.org are currently down for maintenance, and the owner is waiting for new network equipment. 
   I would open an alternative forum if I could get the old posts, but because all network connections to the server are      
   broken it's difficult to get the old posts out of it for the moment (physical access to the server is somewhat 

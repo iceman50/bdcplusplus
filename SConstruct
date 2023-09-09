@@ -33,7 +33,7 @@ gcc_flags = {
 }
 
 gcc_xxflags = {
-    'common': [],
+    'common': ['-std=c++17'],
     'debug': [],
     'release': []
 }
@@ -66,11 +66,11 @@ msvc_flags = {
         '/wd4706', '/wd4800', '/wd4996', '/wd4005'
     ],
     'debug': ['/MDd'],
-    'release': ['/MD', '/O2']
+    'release': ['/MD', '/O2', '/d2archAVX2'] # Testing /d2archAVX2
 }
 
 msvc_xxflags = {
-    'common': ['/std:c++17'],
+    'common': ['/std:c++17'], 
     'debug': [],
     'release': []
 }
@@ -99,7 +99,6 @@ msvc_link_flags = {
 msvc_defs = {
     'common': [
         '_REENTRANT', 'BOOST_MOVE_USE_STANDARD_LIBRARY_MOVE',
-#        'snprintf=_snprintf',
     ],
     'debug': ['_DEBUG', '_HAS_ITERATOR_DEBUGGING=0', '_SECURE_SCL=0'],
     'release': ['NDEBUG']
@@ -184,8 +183,6 @@ TARGET_ARCH = defEnv['arch']
 if TARGET_ARCH == 'x64':
     TARGET_ARCH = 'amd64'
 
-# TODO MSVC_USE_SCRIPT disables SCons' automatic env setup as it doesn't know
-# about VC 12 yet.
 env = Environment(
     ENV=os.environ, tools=[defEnv['tools']], options=opts,
     TARGET_ARCH=TARGET_ARCH, MSVS_ARCH=TARGET_ARCH, MSVC_USE_SCRIPT=True
