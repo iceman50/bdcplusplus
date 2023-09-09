@@ -179,12 +179,6 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) noexcept {
 			continue;
 
 		u->getIdentity().set(i.c_str(), i.substr(2));
-
-		if((i.substr(0, 2) == "VE") || (i.substr(0, 2) == "AP")) {
-			if(i.find("BDC++") != string::npos) {
-				u->getUser()->setFlag(User::BDC);
-			}
-		}
 	}
 
 	if(u->getIdentity().supports(ADCS_FEATURE)) {

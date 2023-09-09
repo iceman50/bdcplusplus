@@ -34,7 +34,6 @@ AdvancedPage::ListItem AdvancedPage::listItems[] = {
 	{ SettingsManager::URL_HANDLER, N_("Register with Windows to handle dchub://, nmdcs:// adc:// and adcs:// URL links") },
 	{ SettingsManager::MAGNET_REGISTER, N_("Register with Windows to handle magnet: URI links") },
 	{ SettingsManager::DCEXT_REGISTER, N_("Register with Windows to handle .dcext files") },
-	{ SettingsManager::THEME_REGISTER, N_("Register with Windows to handle .dcpptheme files") },
 	{ SettingsManager::KEEP_LISTS, N_("Don't delete file lists when exiting") },
 	{ SettingsManager::AUTO_KICK, N_("Automatically disconnect users who leave the hub") },
 	{ SettingsManager::SFV_CHECK, N_("Enable automatic SFV checking") },
@@ -61,7 +60,6 @@ AdvancedPage::ListItem AdvancedPage::listItems[] = {
 			}
 		}
 	},
-	{ SettingsManager::SHOW_HUBHINT_IN_PM, N_("Show hub hint in PM status") },
 	{ 0, 0 }
 };
 

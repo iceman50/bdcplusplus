@@ -62,7 +62,9 @@ bool PrivateFrame::gotMessage(TabViewPtr parent, const ChatMessage& message, con
 			return false;
 		}
 
-		auto p = new PrivateFrame(parent, HintedUser(user, hubHint));
+		const auto& hintedUser = HintedUser(user, hubHint);
+		auto p = new PrivateFrame(parent, hintedUser);
+
 		if(!SETTING(POPUNDER_PM))
 			p->activate();
 
@@ -76,9 +78,7 @@ bool PrivateFrame::gotMessage(TabViewPtr parent, const ChatMessage& message, con
 			}
 		}
 
-		if(SETTING(SHOW_HUBHINT_IN_PM)) {
-			p->addStatus(Text::toT(hubHint));
-		}
+		p->addStatus(Text::toT(str(F_("Message through hub - %1%") % Text::fromT(WinUtil::getHubName(hintedUser)))));
 
 		WinUtil::notify(WinUtil::NOTIFICATION_PM_WINDOW, Text::toT(message.message), [user] { activateWindow(user); });
 

@@ -48,8 +48,6 @@ PropPage::ListItem AppearancePage::listItems[] = {
 	{ SettingsManager::GET_USER_COUNTRY, N_("Guess user country from IP") },
 	{ SettingsManager::GEO_CITY, N_("City-level geolocation database (allows parameters such as %[city])") },
 	{ SettingsManager::GEO_REGION, N_("Region name geolocation database (allows %[region])") },
-	//DiCe
-	{ SettingsManager::USE_THEME, N_("Enable theming (restart required)") },
 	{ 0, 0 }
 };
 

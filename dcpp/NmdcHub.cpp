@@ -30,6 +30,7 @@
 #include "StringTokenizer.h"
 #include "ThrottleManager.h"
 #include "PluginManager.h"
+#include "UploadManager.h"
 #include "UserCommand.h"
 #include "version.h"
 
@@ -143,10 +144,6 @@ void NmdcHub::clearUsers() {
 
 void NmdcHub::updateFromTag(Identity& id, const string& tag) {
 	StringTokenizer<string> tok(tag, ',');
-
-	if(tag.find("<BDC++") != string::npos){
-		id.getUser()->setFlag(User::BDC);
-	}
 
 	for(auto& i: tok.getTokens()) {
 		if(i.size() < 2)
@@ -453,11 +450,21 @@ void NmdcHub::onLine(const string& aLine) noexcept {
 		string port = param.substr(j+1);
 		bool secure = false;
 
-		if(port.size() && port[port.size() - 1] == 'S') {
+		if(port.empty()) {
+			return;
+		}
+
+		if(port[port.size() - 1] == 'S') {
+
+			if(!get(HubSettings::NmdcTls)) {
+				return; 
+			}
+
 			port.erase(port.size() - 1);
 
-			if(CryptoManager::getInstance()->TLSOk())
+			if(CryptoManager::getInstance()->TLSOk()) {
 				secure = true;
+			}
 		}
 		// For simplicity, we make the assumption that users on a hub have the same character encoding
 		ConnectionManager::getInstance()->nmdcConnect(server, port, getMyNick(), getHubUrl(), getEncoding(), secure);
@@ -816,10 +823,22 @@ void NmdcHub::checkNick(string& nick) {
 void NmdcHub::connectToMe(const OnlineUser& aUser) {
 	checkstate();
 	dcdebug("NmdcHub::connectToMe %s\n", aUser.getIdentity().getNick().c_str());
+
 	string nick = fromUtf8(aUser.getIdentity().getNick());
-	ConnectionManager::getInstance()->nmdcExpect(nick, getMyNick(), getHubUrl());
-	bool secure = CryptoManager::getInstance()->TLSOk() && aUser.getUser()->isSet(User::TLS);
-	send("$ConnectToMe " + nick + " " + localIp + ":" + ConnectionManager::getInstance()->getPort() + (secure ? "S" : "") + "|");
+	bool secure = false;
+
+	if(get(HubSettings::NmdcTls)) {
+		secure = (CryptoManager::getInstance()->TLSOk() && aUser.getUser()->isSet(User::TLS));
+	}
+
+	const string& port = ( secure ? ConnectionManager::getInstance()->getSecurePort() : ConnectionManager::getInstance()->getPort());
+
+	if(port.size()) {
+		ConnectionManager::getInstance()->nmdcExpect(nick, getMyNick(), getHubUrl());
+		send("$ConnectToMe " + nick + " " + localIp + ":" + port + (secure ? "S" : "") + "|");
+	}
+	
+	
 }
 
 void NmdcHub::revConnectToMe(const OnlineUser& aUser) {
@@ -869,13 +888,23 @@ void NmdcHub::myInfo(bool alwaysSend) {
 		uploadSpeed = SETTING(UPLOAD_SPEED);
 	}
 
+	if(Util::getAway()) {
+		statusMode |= Identity::AWAY;
+	}
+
+	if(UploadManager::getInstance()->getFileServerStatus()) {
+		statusMode |= Identity::SERVER;
+	}
+
+	if(UploadManager::getInstance()->getFireballStatus()) {
+		statusMode |= Identity::FIREBALL;
+	}
+
 	if(CryptoManager::getInstance()->TLSOk()) {
 		statusMode |= Identity::TLS;
 	}
 
-	if (Util::getAway()) {
-		statusMode |= Identity::AWAY;
-	}
+
 
 	string uMin = (SETTING(MIN_UPLOAD_SPEED) == 0) ? Util::emptyString : tmp5 + Util::toString(SETTING(MIN_UPLOAD_SPEED));
 	string myInfoA =

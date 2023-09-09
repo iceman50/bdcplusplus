@@ -97,11 +97,13 @@ private:
 			switch(col) {
 			case COLUMN_FAVORITE: return isFavorite ? FAVORITE_ON_ICON : FAVORITE_OFF_ICON;
 			case COLUMN_SLOT: return grantSlot ? GRANT_ON_ICON : GRANT_OFF_ICON;
-			case COLUMN_CLIENT: return isUnknown ? UNKNOWN_USER_ICON : isBot ? BOT_USER_ICON : isBDC ? FAVORITE_ON_ICON : NORMAL_USER_ICON;
+			case COLUMN_CLIENT: return isUnknown ? UNKNOWN_USER_ICON : isBot ? BOT_USER_ICON : NORMAL_USER_ICON;
 			case COLUMN_PROTOCOL: return isNMDC ? GRANT_OFF_ICON : GRANT_ON_ICON;
 			default: return -1;
 			}
 		}
+
+		int getStyle(HFONT& font, COLORREF& textColor, COLORREF& bgColor, int) const;
 
 		static int compareItems(const UserInfo* a, const UserInfo* b, int col) {
 			switch(col) {
@@ -122,10 +124,9 @@ private:
 
 		bool isUnknown;
 		bool isBot;
-		bool isBDC;
 		bool isNMDC;
 
-		string app = "Bot";
+		string app;
 		string ver;
 	};
 
@@ -137,8 +138,10 @@ private:
 	typedef WidgetUsers* WidgetUsersPtr;
 	WidgetUsersPtr users;
 
-	dwt::ScrolledContainerPtr scroll;
 	GridPtr userInfo;
+	TextBoxPtr infoBox;
+
+	tstring infoText;
 
 	ListFilter filter;
 
@@ -151,6 +154,7 @@ private:
 	void addUser(const UserPtr& aUser);
 	void updateUser(const UserPtr& aUser);
 	void updateUserInfo();
+	void updateAllUsers();
 
 	void handleDescription();
 	void handleRemove();

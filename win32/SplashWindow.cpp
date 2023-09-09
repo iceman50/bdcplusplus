@@ -22,6 +22,7 @@
 #include <dcpp/Text.h>
 #include <dcpp/version.h>
 
+#include <dwt/Point.h>
 #include <dwt/widgets/ProgressBar.h>
 
 #include "resource.h"

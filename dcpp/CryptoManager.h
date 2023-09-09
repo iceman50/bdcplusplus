@@ -24,8 +24,13 @@
 
 #include "Exception.h"
 #include "Singleton.h"
-
 #include "SSL.h"
+
+#ifndef X509_V_ERR_UNSPECIFIED
+#define X509_V_ERR_UNSPECIFIED 1
+#endif
+
+#include <Boost/optional.hpp>
 
 namespace dcpp {
 
@@ -63,20 +68,18 @@ public:
 
 	void loadCertificates() noexcept;
 	void generateCertificate();
-	bool checkCertificate() noexcept;
+	bool checkCertificate(int minValidityDays) noexcept;
 	const ByteVector& getKeyprint() const noexcept;
 
 	bool TLSOk() const noexcept;
 
-	static void locking_function(int mode, int n, const char* /*file*/, int /*line*/);
-	static DH* tmp_dh_cb(SSL* /*ssl*/, int /*is_export*/, int keylength);
-	static RSA* tmp_rsa_cb(SSL* /*ssl*/, int /*is_export*/, int keylength);
 	static int verify_callback(int preverify_ok, X509_STORE_CTX *ctx);
-
-	static string keyprintToString(const ByteVector& kp) noexcept;
 
 	static int idxVerifyData;
 
+	// Options that can also be shared with external contexts
+	static void setContextOptions(SSL_CTX* aSSL, bool aServer);
+	static string keyprintToString(const ByteVector& aKP) noexcept;
 private:
 
 	friend class Singleton<CryptoManager>;
@@ -85,18 +88,16 @@ private:
 	virtual ~CryptoManager();
 
 	ssl::SSL_CTX clientContext;
+	ssl::SSL_CTX clientVerContext;
 	ssl::SSL_CTX serverContext;
+	ssl::SSL_CTX serverVerContext;
 
 	void sslRandCheck();
 
 	int getKeyLength(TLSTmpKeys key);
-	DH* getTmpDH(int keyLen);
-	RSA* getTmpRSA(int keyLen);
 
 	bool certsLoaded;
 
-	static void* tmpKeysMap[KEY_LAST];
-	static CriticalSection* cs;
 	static char idxVerifyDataName[];
 	static SSLVerifyData trustedKeyprint;
 
@@ -113,6 +114,7 @@ private:
 	static string getNameEntryByNID(X509_NAME* name, int nid) noexcept;
 
 	void loadKeyprint(const string& file) noexcept;
+
 };
 
 } // namespace dcpp

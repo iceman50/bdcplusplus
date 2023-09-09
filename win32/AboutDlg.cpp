@@ -30,6 +30,8 @@
 #include <dwt/widgets/Label.h>
 #include <dwt/widgets/Link.h>
 
+#include "BDCUtil.h"
+
 #include "resource.h"
 #include "WinUtil.h"
 
@@ -38,30 +40,7 @@ using dwt::GridInfo;
 using dwt::Label;
 using dwt::Link;
 
-static const char thanks[] = "Big thanks to all donators and people who have contributed with ideas "
-"and code! Thanks go out to sourceforge.net for hosting the project. "
-"This product uses bzip2 <www.bzip.org>, thanks to Julian Seward and team for providing it. "
-"This product uses zlib <www.zlib.net>, thanks to Jean-loup Gailly and Mark Adler for providing it. "
-"This product includes parts of the geoip-api-c library created by MaxMind, Inc., available from <https://github.com/maxmind/geoip-api-c>. "
-"This product includes free updated GeoIP legacy databases provided by mailfud.org, available from <https://mailfud.org/geoip-legacy/>. "
-"This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit <https://www.openssl.org/>. "
-"This product uses the MiniUPnP client library <https://miniupnp.tuxfamily.org> and libnatpmp by Thomas Bernard. "
-"This product uses libdwarf <https://www.prevanders.net/dwarf.html> by SGI & David Anderson. "
-"The following people have contributed code to DC++ (I hope I haven't missed someone, they're "
-"roughly in chronological order...=):\r\n"
-"geoff, carxor, luca rota, dan kline, mike, anton, zc, sarf, farcry, kyrre aalerud, opera, "
-"patbateman, xeroc, fusbar, vladimir marko, kenneth skovhede, ondrea, who, "
-"sedulus, sandos, henrik engstr\303\266m, dwomac, robert777, saurod, atomicjo, bzbetty, orkblutt, "
-"distiller, citruz, dan fulger, cologic, christer palm, twink, ilkka sepp\303\244l\303\244, johnny, ciber, "
-"theparanoidone, gadget, naga, tremor, joakim tosteberg, pofis, psf8500, lauris ievins, "
-"defr, ullner, fleetcommand, liny, xan, olle svensson, mark gillespie, jeremy huddleston, "
-"bsod, sulan, jonathan stone, tim burton, izzzo, guitarm, paka, nils maier, jens oknelid, yoji, "
-"krzysztof tyszecki, poison, mikejj, pur, bigmuscle, martin, jove, bart vullings, "
-"steven sheehy, tobias nygren, dorian, stephan hohe, mafa_45, mikael eman, james ross, "
-"stanislav maslovski, david grundberg, pavel andreev, yakov suraev, kulmegil, smir, emtee, individ, "
-"pseudonym, crise, ben, ximin luo, razzloss, andrew browne, darkklor, vasily.n, netcelli, "
-"gennady proskurin, iceman50, flow84, alexander sashnov, yorhel, irainman, maksis, "
-"pavel pimenov, konstantin, night, klondike, rolex. Keep it coming!";
+static tstring info;
 
 AboutDlg::AboutDlg(dwt::Widget* parent) :
 dwt::ModalDialog(parent),
@@ -69,6 +48,9 @@ grid(0),
 version(0),
 c(nullptr)
 {
+	info.clear();
+	BDCUtil::getSysInfo(info);
+	BDCUtil::getNetStats(info);
 	onInitDialog([this] { return handleInitDialog(); });
 }
 
@@ -94,17 +76,16 @@ bool AboutDlg::handleInitDialog() {
 	ls.style |= SS_CENTER;
 
 	{
-		auto cur = grid->addChild(gs)->addChild(Grid::Seed(5, 1));
+		auto cur = grid->addChild(gs)->addChild(Grid::Seed(3, 1));
 		cur->column(0).mode = GridInfo::FILL;
 		cur->column(0).align = GridInfo::CENTER;
 
 		cur->addChild(Label::Seed(WinUtil::createIcon(IDI_DCPP, 48)));
 
-		ls.caption = Text::toT(dcpp::fullVersionString) + _T("\n(c) Copyright 2001-2022 Jacek Sieka\n");
-		ls.caption += T_("Ex-main project contributors: Todd Pederzani, poy\nEx-codeveloper: Per Lind\303\251n\nOriginal DC++ logo design: Martin Skogevall\nGraphics: Radox and various GPL and CC authors\n\nDC++ is licenced under GPL.");
+		ls.caption = Text::toT(dcpp::fullVersionString) + _T("\n(c) Copyright 2022-2023 iceman50\r\nThanks to the DC++ Team!");
 		cur->addChild(ls);
 
-		cur->addChild(Link::Seed(_T("https://dcplusplus.sourceforge.io/"), true));
+		cur->addChild(Link::Seed(_T("https://github.com/iceman50/bdcplusplus"), true));
 
 		auto ts = WinUtil::Seeds::Dialog::textBox;
 		ts.style |= ES_READONLY;
@@ -113,53 +94,18 @@ bool AboutDlg::handleInitDialog() {
 		gs.caption = T_("TTH");
 		ts.caption = WinUtil::tth;
 		cur->addChild(gs)->addChild(ts);
-
-		gs.caption = T_("Compiler");
-		// see also CrashLogger.cpp for similar tests.
-#ifdef __MINGW32__
-#ifdef HAVE_OLD_MINGW
-		ts.caption = Text::toT("MinGW's GCC " __VERSION__);
-#else
-		ts.caption = Text::toT("MinGW-w64's GCC " __VERSION__);
-#endif
-#elif defined(_MSC_VER)
-		ts.caption = Text::toT("MS Visual Studio " + Util::toString(_MSC_VER));
-#else
-		ts.caption = _T("Unknown");
-#endif
-#ifdef _DEBUG
-		ts.caption += _T(" (debug)");
-#endif
-#ifdef _WIN64
-		ts.caption += _T(" (x64)");
-#endif
-		cur->addChild(gs)->addChild(ts);
 	}
 
 	{
-		gs.caption = T_("Greetz and Contributors");
+		gs.caption = T_("Client info");
 		auto seed = WinUtil::Seeds::Dialog::textBox;
 		seed.style &= ~ES_AUTOHSCROLL;
 		seed.style |= ES_MULTILINE | WS_VSCROLL | ES_READONLY;
-		seed.caption = Text::toT(thanks);
+		seed.caption = info;
 		grid->addChild(gs)->addChild(seed);
 	}
 
-	{
-		gs.caption = T_("Totals");
-		auto cur = grid->addChild(gs)->addChild(Grid::Seed(2, 1));
-		cur->column(0).mode = GridInfo::FILL;
-
-		ls.caption = str(TF_("Upload: %1%, Download: %2%") % Text::toT(Util::formatBytes(SETTING(TOTAL_UPLOAD))) % Text::toT(Util::formatBytes(SETTING(TOTAL_DOWNLOAD))));
-		cur->addChild(ls);
-
-		ls.caption = (SETTING(TOTAL_DOWNLOAD) > 0)
-			? str(TF_("Ratio (up/down): %1$0.2f") % (((double)SETTING(TOTAL_UPLOAD)) / ((double)SETTING(TOTAL_DOWNLOAD))))
-			: T_("No transfers yet");
-		cur->addChild(ls);
-	}
-
-	gs.caption = T_("Latest stable version");
+	gs.caption = T_("Latest stable DC++ version");
 	ls.caption = T_("Downloading...");
 	version = grid->addChild(gs)->addChild(ls);
 
@@ -169,7 +115,7 @@ bool AboutDlg::handleInitDialog() {
 	buttons.first->setFocus();
 	buttons.second->setVisible(false);
 
-	setText(T_("About DC++"));
+	setText(T_("About BDC++"));
 	setSmallIcon(WinUtil::createIcon(IDI_DCPP, 16));
 	setLargeIcon(WinUtil::createIcon(IDI_DCPP, 32));
 

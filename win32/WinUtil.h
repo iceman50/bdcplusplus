@@ -130,24 +130,6 @@ public:
 
 	static Notification notifications[NOTIFICATION_LAST];
 
-	struct Theme {
-		string name;
-		string uuid;
-		string description;
-		string author;
-		string website;
-		double version;
-		COLORREF textColor;
-		COLORREF background;
-		COLORREF uploadText;
-		COLORREF uploadBg;
-		COLORREF downloadText;
-		COLORREF downloadBg;
-		COLORREF linkColor;
-		COLORREF logColor;
-		string path;
-	};
-
 	static tstring tth;
 
 	static dwt::BrushPtr bgBrush;
@@ -314,7 +296,6 @@ public:
 	static void registerHubHandlers();
 	static void registerMagnetHandler();
 	static void registerDcextHandler();
-	static void registerThemeHandler();
 
 	static void setApplicationStartupRegister();
 	static void setApplicationStartupUnregister();
@@ -337,18 +318,7 @@ public:
 
 	static void getHubStatus(const string& aUrl, tstring& statusText, int& statusIcon);
 
-	static string getThemePath();
-
-	static vector<WinUtil::Theme> themeList;
-	static Theme loadedTheme;
-
-	static WinUtil::Theme extractTheme(const string& path);
-	static void addTheme(const Theme& theme, bool hTheme = true);
-	static void handleTheme(const Theme& theme);
-	static void defaultTheme();
-	static vector<WinUtil::Theme>::iterator findThemeIter(const string& uuid);
-	static WinUtil::Theme* findTheme(const string& uuid);
-	static void removeTheme(const WinUtil::Theme& theme);
+	static string themeFolder;
 
 private:
 	static void initUserMatching();
@@ -356,15 +326,6 @@ private:
 	static bool urlDcADCRegistered;
 	static bool urlMagnetRegistered;
 	static bool dcextRegistered;
-	static bool themeRegistered;
-
-	//Is this really needed?
-	static CriticalSection cs;
-
-	static string themeFolder;
-	static void saveThemes();
-	static void loadThemes();
-	static void loadTheme(const string& uuid, Theme& theme);
 };
 
 #endif // !defined(WIN_UTIL_H)

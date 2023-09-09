@@ -28,6 +28,8 @@
 #include "SearchManager.h"
 #include "StringTokenizer.h"
 
+#include <win32/BDCUtil.h>
+
 namespace dcpp {
 
 StringList SettingsManager::connectionSpeeds;
@@ -62,7 +64,7 @@ const string SettingsManager::settingTags[] =
 	"SoundMainChat", "SoundPM", "SoundPMWindow", "SoundFinishedDL", "SoundFinishedFL", "LastSharedFolder",
 	"SharingSkiplistExtensions", "SharingSkiplistRegEx", "SharingSkiplistPaths", "WhitelistOpenURIs",
 	//DiCe STR SETTINGS
-	"InfoViewerFont","ACFrameOrder", "ACFrameWidths", "LoadedTheme", "ThemeList",
+	"InfoViewerFont","ACFrameOrder", "ACFrameWidths", "LoadedTheme", "ThemeDirectory", "IconDirectory",
 	//
 	"SENTRY",
 	// Ints
@@ -89,6 +91,8 @@ const string SettingsManager::settingTags[] =
 	"MinUploadSpeed", "PMLastLogLines", "SearchHistory", "SetMinislotSize",
 	"SettingsSaveInterval", "Slots", "TabStyle", "TabWidth", "ToolbarSize", "AutoSearchInterval",
 	"MaxExtraSlots", "TestingStatus",
+	//DiCe INT SETTINGS
+	"ActionDBLClickUser",
 	"SENTRY",
 	// Bools
 	"AddFinishedInstantly", "AdlsBreakOnFirst",
@@ -99,7 +103,7 @@ const string SettingsManager::settingTags[] =
 	"BoldHub", "BoldPm", "BoldQueue", "BoldSearch", "BoldSystemLog", "ClearSearch",
 	"ClickableChatLinks",
 	"CompressTransfers", "ConfirmADLSRemoval", "ConfirmExit", "ConfirmHubClosing",
-	"ConfirmHubRemoval", "ConfirmItemRemoval", "ConfirmUserRemoval", "DcextRegister", "ThemeRegister",
+	"ConfirmHubRemoval", "ConfirmItemRemoval", "ConfirmUserRemoval", "DcextRegister",
 	"DontDlAlreadyQueued", "DontDLAlreadyShared", "EnableCCPM", "FavShowJoins",
 	"FilterMessages",
 	"FinishedDLOnlyFull", "FollowLinks", "GeoCity", "GeoRegion", "GetUserCountry", "GetUserInfo",
@@ -380,7 +384,8 @@ SettingsManager::SettingsManager() {
 	//DiCe Addons
 	setDefault(TABS_ON_BOTTOM, true);
 	setDefault(AC_DISCLAIM, true);
-	setDefault(SHOW_HUBHINT_IN_PM, true);
+	setDefault(ENABLE_NMDC_TLS, true);
+	setDefault(ACTION_DOUBLECLICK_USER, BDCUtil::ACTION_GETLIST);
 
 	setSearchTypeDefaults();
 
@@ -394,10 +399,10 @@ SettingsManager::SettingsManager() {
 	setDefault(UPLOAD_BG_COLOR, RGB(205, 60, 55));
 	setDefault(DOWNLOAD_TEXT_COLOR, RGB(255, 255, 255));
 	setDefault(DOWNLOAD_BG_COLOR, RGB(55, 170, 85));
-	setDefault(USE_THEME, false);
 	setDefault(LOADED_THEME, "Default");
-	setDefault(THEME_REGISTER, false);
-	setDefault(THEME_LIST, Util::emptyString);
+	setDefault(USE_THEME, false);
+	setDefault(THEME_DIRECTORY, Util::getPath(Util::PATH_USER_CONFIG) + "Themes");
+	setDefault(ICONS_DIRECTORY, Util::emptyString);
 #endif
 }
 
@@ -707,6 +712,7 @@ HubSettings SettingsManager::getHubSettings() const {
 	ret.get(HubSettings::ShowJoins) = get(SHOW_JOINS);
 	ret.get(HubSettings::FavShowJoins) = get(FAV_SHOW_JOINS);
 	ret.get(HubSettings::LogMainChat) = get(LOG_MAIN_CHAT);
+	ret.get(HubSettings::NmdcTls) = get(ENABLE_NMDC_TLS);
 
 	ret.get(HubSettings::Connection) = CONNSETTING(INCOMING_CONNECTIONS);
 	ret.get(HubSettings::Connection6) = CONNSETTING(INCOMING_CONNECTIONS6);

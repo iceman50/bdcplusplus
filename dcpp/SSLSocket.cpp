@@ -35,6 +35,11 @@ SSLSocket::SSLSocket(CryptoManager::SSLContext context, const string& hostName_)
 	ctx = CryptoManager::getInstance()->getSSLContext(context);
 }
 
+#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#   define SSL_get1_peer_certificate SSL_get_peer_certificate
+#endif
+
+
 void SSLSocket::connect(const string& aIp, const string& aPort) {
 	Socket::connect(aIp, aPort);
 

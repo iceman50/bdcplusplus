@@ -36,7 +36,7 @@
 
 namespace dcpp {
 
-UploadManager::UploadManager() noexcept : running(0), extra(0), lastGrant(0), lastFreeSlots(-1) {
+UploadManager::UploadManager() noexcept : running(0), extra(0), lastGrant(0), lastFreeSlots(-1), highSpeedStartTick(0), isFireball(false), isFileServer(false) {
 	ClientManager::getInstance()->addListener(this);
 	TimerManager::getInstance()->addListener(this);
 }
@@ -584,7 +584,7 @@ void UploadManager::on(AdcCommand::GFI, UserConnection* aSource, const AdcComman
 }
 
 // TimerManagerListener
-void UploadManager::on(TimerManagerListener::Second, uint64_t) noexcept {
+void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept {
 	{
 		Lock l(cs);
 		UploadList ticks;
@@ -601,6 +601,35 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t) noexcept {
 	}
 		
 	notifyQueuedUsers();
+	//DiCe Edit
+	if (!isFireball) {
+		if (getRunningAverage() >= 102400) { // > 100k/s upload
+			if (highSpeedStartTick > 0) {
+				if ((aTick - highSpeedStartTick) > 60000) {
+					isFireball = true;
+					ClientManager::getInstance()->infoUpdated();
+					return;
+				}
+
+			} else {
+				highSpeedStartTick = aTick;
+			}
+
+		} else {
+			highSpeedStartTick = 0;
+		}
+
+		if (!isFileServer) {
+			if (
+				((time(NULL) - BDCUtil::getStartTime()) > 7200) && // > 2h uptime
+				(Socket::getTotalUp() > 209715200) && // > 200m uploaded
+				(ShareManager::getInstance()->getShareSize() > 2147483648) // > 2g shared
+				) {
+				isFileServer = true;
+				ClientManager::getInstance()->infoUpdated();
+			}
+		}
+	}
 }
 
 void UploadManager::on(ClientManagerListener::UserDisconnected, const UserPtr& aUser) noexcept {

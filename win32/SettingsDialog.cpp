@@ -169,7 +169,6 @@ bool SettingsDialog::initDialog() {
 			addPage(T_("Styles"), new StylesPage(container), IDI_STYLES, item);
 			addPage(T_("Tabs"), new TabsPage(container), IDI_TABS, item);
 			addPage(T_("Windows"), new WindowsPage(container), IDI_WINDOWS, item);
-			addPage(T_("Themes"), new ThemePage(container), IDI_STYLES, item);
 		}
 
 		addPage(T_("Notifications"), new NotificationsPage(container), IDI_NOTIFICATIONS, TVI_ROOT);
@@ -222,20 +221,6 @@ bool SettingsDialog::initDialog() {
 }
 
 BOOL CALLBACK SettingsDialog::EnumChildProc(HWND hwnd, LPARAM lParam) {
-//	SettingsDialog* dialog = reinterpret_cast<SettingsDialog*>(lParam);
-//	dwt::Control* widget = dwt::hwnd_cast<dwt::Control*>(hwnd);
-
-	//DiCe - Let's try to colorize everything
-	/*
-	{
-		TreePtr fTree = dynamic_cast<TreePtr>(widget);
-		if (fTree) {
-			fTree->setColor(WinUtil::textColor, WinUtil::bgColor);
-		}
-		dialog->setColor(WinUtil::textColor, WinUtil::bgColor);
-	}
-	*/
-
 	return TRUE;
 }
 

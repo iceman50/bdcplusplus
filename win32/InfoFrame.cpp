@@ -92,8 +92,8 @@ static const FieldName fields[] =
 };
 
 static tstring displayInfo(const InfoFrame::InfoMap& userInfo) {
-	auto info = move(userInfo);
-	auto ret = tstring();
+	auto info = userInfo;
+	auto ret = Util::emptyStringT;
 
 	for(auto f = fields; !f->field.empty(); ++f) {
 		auto i = info.find(f->field);

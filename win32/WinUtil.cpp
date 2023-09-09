@@ -57,6 +57,7 @@
 #include "MainWindow.h"
 #include "PrivateFrame.h"
 #include "ACFrame.h"
+#include "BDCUtil.h"
 
 using dwt::Container;
 using dwt::Grid;
@@ -89,10 +90,7 @@ MainWindow* WinUtil::mainWindow = 0;
 bool WinUtil::urlDcADCRegistered = false;
 bool WinUtil::urlMagnetRegistered = false;
 bool WinUtil::dcextRegistered = false;
-bool WinUtil::themeRegistered = false;
-decltype(WinUtil::themeList) WinUtil::themeList;
-WinUtil::Theme WinUtil::loadedTheme;
-decltype(WinUtil::cs) WinUtil::cs;
+
 string WinUtil::themeFolder = Util::getPath(Util::PATH_RESOURCES) + "Themes" + PATH_SEPARATOR_STR;
 
 const Button::Seed WinUtil::Seeds::button;
@@ -122,91 +120,91 @@ const Button::Seed WinUtil::Seeds::Dialog::button;
 //New Icons need to be added here, otherwise new icons will not appear unless using embedded icons(resource.h and DCPlusPlus.rc)
 static const map<int, tstring> icoMap = 
 {
-	{IDI_DCPP , _T("DCPlusPlus.ico")},
-	{IDI_PUBLICHUBS, _T("PublicHubs.ico")},
-	{IDI_SEARCH, _T("Search.ico")},
-	{IDI_FAVORITE_HUBS, _T("FavoriteHubs.ico")},
-	{IDI_PRIVATE, _T("UserOn.ico")},
-	{IDI_DIRECTORY, _T("Directory.ico")},
-	{IDI_HUB, _T("HubOn.ico")},
-	{IDI_NOTEPAD, _T("Notepad.ico")},
-	{IDI_QUEUE, _T("Queue.ico")},
-	{IDI_FINISHED_DL, _T("FinishedDL.ico")},
-	{IDI_ADLSEARCH, _T("ADLSearch.ico")},
-	{IDI_FINISHED_UL, _T("FinishedUL.ico")},
-	{IDI_USERS, _T("Users.ico")},
-	{IDI_NET_STATS, _T("NetStats.ico")},
-	{IDI_MAGNET, _T("Magnet.ico")},
-	{IDI_HUB_OFF, _T("HubOff.ico")},
-	{IDI_PRIVATE_OFF, _T("UserOff.ico")},
-	{IDI_GROUPED_BY_FILES, _T("GroupedByFiles.ico")},
-	{IDI_GROUPED_BY_USERS, _T("GroupedByUsers.ico")},
-	{IDI_EXIT, _T("Exit.ico")},
-	{IDI_CHAT, _T("Chat.ico")},
-	{IDI_HELP, _T("Help.ico")},
-	{IDI_OPEN_DL_DIR, _T("OpenDLDir.ico")},
-	{IDI_OPEN_FILE_LIST, _T("OpenFileList.ico")},
-	{IDI_RECONNECT, _T("Reconnect.ico")},
-	{IDI_SETTINGS, _T("Settings.ico")},
-	{IDI_TRAY_PM, _T("TrayPM.ico")},
-	{IDI_TRUSTED, _T("Trusted.ico")},
-	{IDI_SECURE, _T("Secure.ico")},
-	{IDI_RECENTS, _T("Recents.ico")},
-	{IDI_WHATS_THIS, _T("WhatsThis.ico")},
-	{IDI_DOWNLOAD, _T("Download.ico")},
-	{IDI_UPLOAD, _T("Upload.ico")},
-	{IDI_UPLOAD_FILTERING, _T("UploadFiltering.ico")},
-	{IDI_CHANGELOG, _T("Changelog.ico")},
-	{IDI_DONATE, _T("Donate.ico")},
-	{IDI_GET_STARTED, _T("GetStarted.ico")},
-	{IDI_INDEXING, _T("Indexing.ico")},
-	{IDI_LINKS, _T("Links.ico")},
-	{IDI_REFRESH, _T("Refresh.ico")},
-	{IDI_SLOTS, _T("Slots.ico")},
-	{IDI_OK, _T("OK.ico")},
-	{IDI_CANCEL, _T("Cancel.ico")},
-	{IDI_LEFT, _T("Left.ico")},
-	{IDI_RIGHT, _T("Right.ico")},
-	{IDI_USER, _T("User.ico")},
-	{IDI_USER_AWAY, _T("UserAway.ico")},
-	{IDI_USER_BOT, _T("UserBot.ico")},
-	{IDI_USER_NOCON, _T("UserNoCon.ico")},
-	{IDI_USER_NOSLOT, _T("UserNoSlot.ico")},
-	{IDI_USER_OP, _T("UserOp.ico")},
-	{IDI_UP, _T("Up.ico")},
-	{IDI_FILE, _T("File.ico")},
-	{IDI_EXEC, _T("Exec.ico")},
-	{IDI_FAVORITE_USER_ON, _T("FavoriteUserOn.ico")},
-	{IDI_FAVORITE_USER_OFF, _T("FavoriteUserOff.ico")},
-	{IDI_GREEN_BALL, _T("BallGreen.ico")},
-	{IDI_RED_BALL, _T("BallRed.ico")},
-	{IDI_SLOTS_FULL, _T("SlotsFull.ico")},
-	{IDI_ADVANCED, _T("Advanced.ico")},
-	{IDI_CLOCK, _T("Clock.ico")},
-	{IDI_STYLES, _T("Styles.ico")},
-	{IDI_BW_LIMITER, _T("Bandwidthlimiter.ico")},
-	{IDI_CONN_GREY, _T("ConnGrey.ico")},
-	{IDI_CONN_BLUE, _T("ConnBlue.ico")},
-	{IDI_EXPERT, _T("Expert.ico")},
-	{IDI_FAVORITE_DIRS, _T("FavoriteDirs.ico")},
-	{IDI_LOGS, _T("Logs.ico")},
-	{IDI_NOTIFICATIONS, _T("Notifications.ico")},
-	{IDI_PROXY, _T("Proxy.ico")},
-	{IDI_TABS, _T("Tabs.ico")},
-	{IDI_WINDOWS, _T("Windows.ico")},
-	{IDI_BALLOON, _T("Balloon.ico")},
-	{IDI_SOUND, _T("Sound.ico")},
-	{IDI_ULIMIT, _T("ULimit.ico")},
-	{IDI_DLIMIT, _T("DLimit.ico")},
+	{IDI_DCPP,				 _T("DCPlusPlus.ico")},
+	{IDI_PUBLICHUBS,		 _T("PublicHubs.ico")},
+	{IDI_SEARCH,			 _T("Search.ico")},
+	{IDI_FAVORITE_HUBS,		 _T("FavoriteHubs.ico")},
+	{IDI_PRIVATE,			 _T("UserOn.ico")},
+	{IDI_DIRECTORY,			 _T("Directory.ico")},
+	{IDI_HUB,				 _T("HubOn.ico")},
+	{IDI_NOTEPAD,			 _T("Notepad.ico")},
+	{IDI_QUEUE,				 _T("Queue.ico")},
+	{IDI_FINISHED_DL,		 _T("FinishedDL.ico")},
+	{IDI_ADLSEARCH,			 _T("ADLSearch.ico")},
+	{IDI_FINISHED_UL,		 _T("FinishedUL.ico")},
+	{IDI_USERS,				 _T("Users.ico")},
+	{IDI_NET_STATS,			 _T("NetStats.ico")},
+	{IDI_MAGNET,			 _T("Magnet.ico")},
+	{IDI_HUB_OFF,			 _T("HubOff.ico")},
+	{IDI_PRIVATE_OFF,		 _T("UserOff.ico")},
+	{IDI_GROUPED_BY_FILES,	 _T("GroupedByFiles.ico")},
+	{IDI_GROUPED_BY_USERS,	 _T("GroupedByUsers.ico")},
+	{IDI_EXIT,				 _T("Exit.ico")},
+	{IDI_CHAT,				 _T("Chat.ico")},
+	{IDI_HELP,				 _T("Help.ico")},
+	{IDI_OPEN_DL_DIR,		 _T("OpenDLDir.ico")},
+	{IDI_OPEN_FILE_LIST,	 _T("OpenFileList.ico")},
+	{IDI_RECONNECT,			 _T("Reconnect.ico")},
+	{IDI_SETTINGS,			 _T("Settings.ico")},
+	{IDI_TRAY_PM,			 _T("TrayPM.ico")},
+	{IDI_TRUSTED,			 _T("Trusted.ico")},
+	{IDI_SECURE,			 _T("Secure.ico")},
+	{IDI_RECENTS,			 _T("Recents.ico")},
+	{IDI_WHATS_THIS,		 _T("WhatsThis.ico")},
+	{IDI_DOWNLOAD,			 _T("Download.ico")},
+	{IDI_UPLOAD,			 _T("Upload.ico")},
+	{IDI_UPLOAD_FILTERING,	 _T("UploadFiltering.ico")},
+	{IDI_CHANGELOG,			 _T("Changelog.ico")},
+	{IDI_DONATE,			 _T("Donate.ico")},
+	{IDI_GET_STARTED,		 _T("GetStarted.ico")},
+	{IDI_INDEXING,			 _T("Indexing.ico")},
+	{IDI_LINKS,				 _T("Links.ico")},
+	{IDI_REFRESH,			 _T("Refresh.ico")},
+	{IDI_SLOTS,				 _T("Slots.ico")},
+	{IDI_OK,				 _T("OK.ico")},
+	{IDI_CANCEL,			 _T("Cancel.ico")},
+	{IDI_LEFT,				 _T("Left.ico")},
+	{IDI_RIGHT,				 _T("Right.ico")},
+	{IDI_USER,				 _T("User.ico")},
+	{IDI_USER_AWAY,			 _T("UserAway.ico")},
+	{IDI_USER_BOT,			 _T("UserBot.ico")},
+	{IDI_USER_NOCON,		 _T("UserNoCon.ico")},
+	{IDI_USER_NOSLOT,		 _T("UserNoSlot.ico")},
+	{IDI_USER_OP,			 _T("UserOp.ico")},
+	{IDI_UP,				 _T("Up.ico")},
+	{IDI_FILE,				 _T("File.ico")},
+	{IDI_EXEC,				 _T("Exec.ico")},
+	{IDI_FAVORITE_USER_ON,	 _T("FavoriteUserOn.ico")},
+	{IDI_FAVORITE_USER_OFF,	 _T("FavoriteUserOff.ico")},
+	{IDI_GREEN_BALL,		 _T("BallGreen.ico")},
+	{IDI_RED_BALL,			 _T("BallRed.ico")},
+	{IDI_SLOTS_FULL,		 _T("SlotsFull.ico")},
+	{IDI_ADVANCED,			 _T("Advanced.ico")},
+	{IDI_CLOCK,				 _T("Clock.ico")},
+	{IDI_STYLES,			 _T("Styles.ico")},
+	{IDI_BW_LIMITER,		 _T("Bandwidthlimiter.ico")},
+	{IDI_CONN_GREY,			 _T("ConnGrey.ico")},
+	{IDI_CONN_BLUE,			 _T("ConnBlue.ico")},
+	{IDI_EXPERT,			 _T("Expert.ico")},
+	{IDI_FAVORITE_DIRS,		 _T("FavoriteDirs.ico")},
+	{IDI_LOGS,				 _T("Logs.ico")},
+	{IDI_NOTIFICATIONS,		 _T("Notifications.ico")},
+	{IDI_PROXY,				 _T("Proxy.ico")},
+	{IDI_TABS,				 _T("Tabs.ico")},
+	{IDI_WINDOWS,			 _T("Windows.ico")},
+	{IDI_BALLOON,			 _T("Balloon.ico")},
+	{IDI_SOUND,				 _T("Sound.ico")},
+	{IDI_ULIMIT,			 _T("ULimit.ico")},
+	{IDI_DLIMIT,			 _T("DLimit.ico")},
 	{IDI_OPEN_OWN_FILE_LIST, _T("OpenOwnFileList.ico")},
-	{IDI_PLUGINS, _T("Plugins.ico")},
-	{IDI_USER_REG, _T("UserReg.ico")},
-	{IDI_DELETE, _T("Remove.ico")},
-	{IDI_PAUSE, _T("Pause.ico")},
-	{IDI_PLAY, _T("Play.ico")},
-	{IDI_INCREMENT, _T("Increment.ico")},
-	{IDI_DECREMENT, _T("Decrement.ico")},
-	{IDI_REMOVEQUEUE, _T("RemoveQueue.ico")}
+	{IDI_PLUGINS,			 _T("Plugins.ico")},
+	{IDI_USER_REG,			 _T("UserReg.ico")},
+	{IDI_DELETE,			 _T("Remove.ico")},
+	{IDI_PAUSE,				 _T("Pause.ico")},
+	{IDI_PLAY,				 _T("Play.ico")},
+	{IDI_INCREMENT,			 _T("Increment.ico")},
+	{IDI_DECREMENT,			 _T("Decrement.ico")},
+	{IDI_REMOVEQUEUE,		 _T("RemoveQueue.ico")}
 };
 
 void WinUtil::init() {
@@ -229,19 +227,6 @@ void WinUtil::init() {
 	updateDownloadFont();
 
 	initUserMatching();
-
-	if(SETTING(USE_THEME)) {
-		loadThemes();
-		auto loaded = findTheme(SETTING(LOADED_THEME));
-		if(loaded != nullptr) {
-			loadTheme(loaded->uuid, WinUtil::loadedTheme);
-			LogManager::getInstance()->message("WinUtil::init loadedTheme - " + loadedTheme.name + " - UUID " + loadedTheme.uuid + "\r\n");
-		} else {
-			//Should we disable themes until one is installed?
-			//or do we revert and call defaultTheme() ?
-			LogManager::getInstance()->message("WinUtil::init SETTING(LOADED_THEME) is returning a nullptr please reload your theme");
-		}
-	}
 
 	{
 		// default link color: shift the hue, set lum & sat to middle values
@@ -315,7 +300,6 @@ void WinUtil::init() {
 	registerHubHandlers();
 	registerMagnetHandler();
 	registerDcextHandler();
-	registerThemeHandler();
 }
 
 void WinUtil::initSeeds() {
@@ -403,7 +387,7 @@ void WinUtil::initSeeds() {
 }
 
 void WinUtil::uninit() {
-	saveThemes();
+
 }
 
 void WinUtil::initFont() {
@@ -577,6 +561,30 @@ const TCHAR
 #define MSGS 19
 
 /// @todo improve - commands could be stored in a map...
+
+static const map<tstring, tstring> cmdMap = { 
+	{_T("/refresh"),								  T_("Manually refreshes DC++'s share list by going through the shared directories and adding new folders and files. DC++ automatically refreshes once an hour by default, and also refreshes after the list of shared directories is changed.")},
+	{_T("/me"),										  T_("Speak as a third person.")},
+	{_T("/slots #"),								  T_("Sets the current number of upload slots to the number you specify. If this is less than the current number of slots, no uploads are cancelled.")},
+	{_T("/dslots #",),								  T_("Sets the current number of download slots to the number you specify. If this is less than the current number of slots, no downloads are cancelled.")},
+	{_T("/search <string>"),						  T_("Opens a new search window with the specified search string. It does not automatically send the search.")},
+	{_T("/clear [lines to keep]"),					  T_("Clears the current window of all text. Optionally, you can specify how many of the latest (most recent) lines should be kept.")},
+	{_T("/dc++"),									  T_("Sends a random DC++ advertising message to the chat, including a link to the DC++ homepage and the version number.")},
+	{_T("/away [message]"),							  T_("Sets Away status. New private message windows will be responded to, once, with the message you specified, or the default away message configured in the Personal information settings page.")},
+	{_T("/back"),									  T_("Un-sets Away status.")},
+	{_T("/d <search string>"),						  T_("Launches your default web browser to the DuckDuckGo search engine with the specified search.")},
+	{_T("/g <search string>"),						  T_("Launches your default web browser to the Google search engine with the specified search.")},
+	{_T("/imdb <imdb query>"),						  T_("Launches your default web browser to the Internet Movie Database (imdb) with the specified query.")},
+	{_T("/rebuild"),								  T_("Rebuilds the HashIndex.xml and HashData.dat files, removing entries to files that are no longer shared, or old hashes for files that have since changed. This runs in the main DC++ thread, so the interface will freeze until the rebuild is finished.")},
+	{_T("/log <status, system, downloads, uploads>"), T_("If no parameter is specified, it launches the log for the hub or private chat with the associated application in Windows. If one of the parameters is specified it opens that log file. The status log is available only in the hub frame.")},
+	{_T("/help"),									  T_("Displays available commands. (The ones listed on this page.) Optionally, you can specify \"brief\" to have a brief listing.")},
+	{_T("/u <url>"),								  T_("Launches your default web browser with the given URL.")},
+	{_T("/f <search string>"),						  T_("Highlights the last occourrence of the specified search string in the chat window.")},
+	{_T("/download #"),								  T_("Set the download speed limit in KiBs. Zero or omitted value disables the limit.")},
+	{_T("/upload #""/upload #"),					  T_("Set the upload speed limit in KiBs. Zero or omitted value disables the limit.")},
+	{_T("/close"),									  T_("Closes the current window.")},
+	{_T("/about:config, /a:c, /ac"),				  T_("Opens the internal settings list debugging tool window.")}
+};
 
 const char* command_strings[] = {
 	"/refresh",

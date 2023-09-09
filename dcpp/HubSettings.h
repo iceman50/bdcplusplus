@@ -53,6 +53,7 @@ struct HubSettings
 		ShowJoins = HubBoolFirst,
 		FavShowJoins,
 		LogMainChat,
+		NmdcTls,
 		// don't forget to edit boolNames in HubSettings.cpp when adding a def here!
 
 		HubBoolLast

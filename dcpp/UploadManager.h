@@ -36,6 +36,9 @@
 #include "UserConnection.h"
 #include "GetSet.h"
 
+//DiCe
+#include <win32/BDCUtil.h>
+
 namespace dcpp {
 
 using std::max;
@@ -76,6 +79,9 @@ public:
 	void reserveSlot(const HintedUser& aUser);
 	bool isConnecting(const UserPtr& aUser) const { return connectingUsers.find(aUser) != connectingUsers.end(); }
 
+	bool getFireballStatus() const { return isFireball; }
+	bool getFileServerStatus() const { return isFileServer; }
+
 	typedef set<string> FileSet;
 	typedef unordered_map<UserPtr, FileSet, User::Hash> FilesMap;
 	void clearUserFiles(const UserPtr&);
@@ -103,6 +109,10 @@ private:
 	SlotMap connectingUsers;
 
 	int lastFreeSlots; /// amount of free slots at the previous minute
+
+	uint64_t highSpeedStartTick;
+	bool isFireball;
+	bool isFileServer;
 
 	typedef list<WaitingUser> WaitingUserList;
 
