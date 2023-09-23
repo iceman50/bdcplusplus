@@ -64,11 +64,8 @@ bool ZFilter::operator()(const void* in, size_t& insize, void* out, size_t& outs
 
 		// Starting with zlib 1.2.9, the deflateParams API has changed.
 		auto err = ::deflateParams(&zs, 0, Z_DEFAULT_STRATEGY);
-#if ZLIB_VERNUM >= 0x1290
+
 		if(err == Z_STREAM_ERROR) {
-#else
-		if(err != Z_OK) {
-#endif
 			throw Exception(_("Error during compression"));
 		}
 
@@ -77,11 +74,7 @@ bool ZFilter::operator()(const void* in, size_t& insize, void* out, size_t& outs
 		dcdebug("ZFilter: Dynamically disabled compression\n");
 
 		// Check if we ate all space already...
-#if ZLIB_VERNUM >= 0x1290
-		if(err == Z_BUF_ERROR) {
-#else
-		if(zs.avail_out == 0) {
-#endif
+		if (zs.avail_out == 0) {
 			outsize = outsize - zs.avail_out;
 			insize = insize - zs.avail_in;
 			totalOut += outsize;
