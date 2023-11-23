@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2022 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2023 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,7 +74,7 @@ bool ZFilter::operator()(const void* in, size_t& insize, void* out, size_t& outs
 		dcdebug("ZFilter: Dynamically disabled compression\n");
 
 		// Check if we ate all space already...
-		if (zs.avail_out == 0) {
+		if(zs.avail_out == 0) {
 			outsize = outsize - zs.avail_out;
 			insize = insize - zs.avail_in;
 			totalOut += outsize;

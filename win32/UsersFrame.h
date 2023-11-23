@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2022 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2023 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -82,7 +82,9 @@ private:
 		GRANT_ON_ICON,
 		NORMAL_USER_ICON,
 		UNKNOWN_USER_ICON,
-		BOT_USER_ICON
+		BOT_USER_ICON,
+		ADC_USER_ICON,
+		NMDC_USER_ICON
 	};
 
 	class UserInfo : public UserInfoBase {
@@ -97,8 +99,8 @@ private:
 			switch(col) {
 			case COLUMN_FAVORITE: return isFavorite ? FAVORITE_ON_ICON : FAVORITE_OFF_ICON;
 			case COLUMN_SLOT: return grantSlot ? GRANT_ON_ICON : GRANT_OFF_ICON;
-			case COLUMN_CLIENT: return isUnknown ? UNKNOWN_USER_ICON : isBot ? BOT_USER_ICON : NORMAL_USER_ICON;
-			case COLUMN_PROTOCOL: return isNMDC ? GRANT_OFF_ICON : GRANT_ON_ICON;
+			case COLUMN_CLIENT: return isOnline || (!isFavorite && !isOnline) ? (isUnknown ? UNKNOWN_USER_ICON : (isBot ? BOT_USER_ICON : NORMAL_USER_ICON)) : -1;
+			case COLUMN_PROTOCOL: return isOnline || (!isFavorite && !isOnline) ? (isNMDC ? NMDC_USER_ICON : ADC_USER_ICON) : -1;
 			default: return -1;
 			}
 		}
@@ -125,6 +127,7 @@ private:
 		bool isUnknown;
 		bool isBot;
 		bool isNMDC;
+		bool isOnline;
 
 		string app;
 		string ver;
@@ -154,12 +157,10 @@ private:
 	void addUser(const UserPtr& aUser);
 	void updateUser(const UserPtr& aUser);
 	void updateUserInfo();
-	void updateAllUsers();
 
 	void handleDescription();
 	void handleRemove();
 	bool handleKeyDown(int c);
-	LRESULT handleItemChanged(LPARAM lParam);
 	bool handleContextMenu(dwt::ScreenCoordinate pt);
 	bool handleClick(const dwt::MouseEvent &me);
 

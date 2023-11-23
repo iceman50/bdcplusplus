@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2022 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2023 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,13 +45,13 @@ public:
 	static void deleteInstance() {
 		if(instance)
 			delete instance;
-		instance = NULL;
+		instance = nullptr;
 	}
 protected:
 	static T* instance;
 };
 
-template<class T> T* Singleton<T>::instance = NULL;
+template<class T> T* Singleton<T>::instance = nullptr;
 
 } // namespace dcpp
 

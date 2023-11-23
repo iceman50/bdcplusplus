@@ -11,6 +11,7 @@ if dev.is_win32():
     env.Append(CPPDEFINES=[
         'errno="WSAGetLastError()"',
         'STATICLIB',
+        'NATPMP_STATICLIB',
         'WIN32'
     ])
 

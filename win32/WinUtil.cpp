@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2022 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2023 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -204,7 +204,8 @@ static const map<int, tstring> icoMap =
 	{IDI_PLAY,				 _T("Play.ico")},
 	{IDI_INCREMENT,			 _T("Increment.ico")},
 	{IDI_DECREMENT,			 _T("Decrement.ico")},
-	{IDI_REMOVEQUEUE,		 _T("RemoveQueue.ico")}
+	{IDI_REMOVEQUEUE,		 _T("RemoveQueue.ico")},
+	{IDI_DCPP_WARNING,		 _T("Warning.ico")}
 };
 
 void WinUtil::init() {
@@ -1612,7 +1613,11 @@ dwt::IconPtr WinUtil::createIcon(unsigned id, long size) {
 		if(item != icoMap.end()) {
 			iconf = item->second;
 		}
-		try { return new dwt::Icon(iconPath + iconf, dwt::Point(size, size)); } catch(const dwt::DWTException&) { log("createIcon failed to load icons path = " + Text::fromT(iconPath)); return new dwt::Icon(id, dwt::Point(size, size)); }
+		try { 
+			return new dwt::Icon(iconPath + iconf, dwt::Point(size, size)); 
+		} catch(const dwt::DWTException&) { 
+			return new dwt::Icon(id, dwt::Point(size, size)); 
+		}
 	} else {
 		return new dwt::Icon(id, dwt::Point(size, size));
 	}

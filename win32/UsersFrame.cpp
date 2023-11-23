@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2022 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2023 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -146,6 +146,8 @@ selected(-1)
 					userIcons->add(dwt::Icon(WinUtil::iconFilename(IDI_DCPP), size));
 					userIcons->add(dwt::Icon(WinUtil::iconFilename(IDI_WHATS_THIS), size));
 					userIcons->add(dwt::Icon(WinUtil::iconFilename(IDI_USER_BOT), size));
+					userIcons->add(dwt::Icon(WinUtil::iconFilename(IDI_TRUSTED), size));
+					userIcons->add(dwt::Icon(WinUtil::iconFilename(IDI_DCPP_WARNING), size));
 				} catch (const dwt::DWTException&) {
 					userIcons->add(dwt::Icon(IDI_FAVORITE_USER_OFF, size));
 					userIcons->add(dwt::Icon(IDI_FAVORITE_USER_ON, size));
@@ -154,6 +156,8 @@ selected(-1)
 					userIcons->add(dwt::Icon(IDI_DCPP, size));
 					userIcons->add(dwt::Icon(IDI_WHATS_THIS, size));
 					userIcons->add(dwt::Icon(IDI_USER_BOT, size));
+					userIcons->add(dwt::Icon(IDI_TRUSTED, size));
+					userIcons->add(dwt::Icon(IDI_DCPP_WARNING, size));
 				}
 			} else {
 				userIcons->add(dwt::Icon(IDI_FAVORITE_USER_OFF, size));
@@ -163,6 +167,8 @@ selected(-1)
 				userIcons->add(dwt::Icon(IDI_DCPP, size));
 				userIcons->add(dwt::Icon(IDI_WHATS_THIS, size));
 				userIcons->add(dwt::Icon(IDI_USER_BOT, size));
+				userIcons->add(dwt::Icon(IDI_TRUSTED, size));
+				userIcons->add(dwt::Icon(IDI_DCPP_WARNING, size));
 			}
 		}
 
@@ -180,7 +186,6 @@ selected(-1)
 		users->onContextMenu([this](dwt::ScreenCoordinate pt) { return handleContextMenu(pt); });
 		users->setSmallImageList(userIcons);
 		users->onLeftMouseDown([this](const dwt::MouseEvent &me) { return handleClick(me); });
-		users->setTimer([this] { updateAllUsers(); return true; }, 5000);
 
 		userInfo = splitter->addChild(Grid::Seed(1,1));
 		userInfo->column(0).mode = GridInfo::FILL;
@@ -286,7 +291,8 @@ UsersFrame::UserInfo::UserInfo(const UserPtr& u, bool visible) :
 UserInfoBase(HintedUser(u, Util::emptyString)),
 isUnknown(false),
 isBot(false),
-isNMDC(u->isNMDC())
+isNMDC(u->isNMDC()),
+isOnline(u->isOnline())
 {
 	ver = app = _("Unknown");
 	update(u, visible);
@@ -323,38 +329,38 @@ void UsersFrame::UserInfo::remove() {
 
 void UsersFrame::UserInfo::update(const UserPtr& u, bool visible) {
 	auto ident = ClientManager::getInstance()->getIdentities(u);
-	if(ident.empty()) {
-		return;
-	}
 
-	auto info = ident[0].getInfo();
-	for(size_t i = 1; i < ident.size(); ++i) {
-		for(auto& j: ident[i].getInfo()) {
-			info[j.first] = j.second;
+	if(!ident.empty()) {
+		auto info = ident[0].getInfo();
+		for(size_t i = 1; i < ident.size(); ++i) {
+			for(auto& j: ident[i].getInfo()) {
+				info[j.first] = j.second;
+			}
 		}
-	}	
 
-	if(ident[0].isBot() || ident[0].isHub() || ident[0].isHidden()) {
-		isBot = true;
-	}
-
-	auto application = ident[0].getApplication();
-	if(application.empty() && !isBot) {
-		isUnknown = true;
-	} else {
-		isUnknown = false;
-		const auto& idx = application.find(' ');
-		app = application.substr(0, idx);
-		if(app == "++") {
-			app = APPNAME;//++ is DC++ let's make it look nicer in the table
+		if(ident[0].isBot() || ident[0].isHub() || ident[0].isHidden()) {
+			isBot = true;
 		}
-		ver = application.substr(idx + 1);
+
+		auto application = ident[0].getApplication();
+		if(application.empty() && !isBot) {
+			isUnknown = true;
+		} else {
+			isUnknown = false;
+			const auto& idx = application.find(' ');
+			app = application.substr(0, idx);
+			if(app == "++") {
+				app = APPNAME;//++ is DC++ let's make it look nicer in the table
+		}
+			ver = application.substr(idx + 1);
+		}
+
+		columns[COLUMN_CLIENT] = app.empty() ? T_("Bot") : Text::toT(app);
+		columns[COLUMN_VERSION] = ver.empty() ? T_("Bot") : Text::toT(ver);
+		columns[COLUMN_PROTOCOL] = isNMDC ? T_("NMDC") : T_("ADC");
 	}
 
-	columns[COLUMN_CLIENT] = app.empty() ? T_("Bot") : Text::toT(app);
-	columns[COLUMN_VERSION] = ver.empty() ? T_("Bot") : Text::toT(ver);
-	columns[COLUMN_PROTOCOL] = isNMDC ? T_("NMDC") : T_("ADC");
-
+	isOnline = u->isOnline();
 	auto fu = FavoriteManager::getInstance()->getFavoriteUser(u);
 	if(fu) {
 		isFavorite = true;
@@ -364,14 +370,8 @@ void UsersFrame::UserInfo::update(const UserPtr& u, bool visible) {
 			return;
 		}
 		columns[COLUMN_DESCRIPTION] = Text::toT(fu->getDescription());
-
-		if(u->isOnline()) {
-			columns[COLUMN_SEEN] = T_("Online");
-			columns[COLUMN_HUB] = WinUtil::getHubNames(u->getCID()).first;
-		} else {
-			columns[COLUMN_SEEN] = fu->getLastSeen() > 0 ? Text::toT(Util::formatTime("%Y-%m-%d %H:%M", fu->getLastSeen())) : T_("Offline");
-			columns[COLUMN_HUB] = Text::toT(fu->getUrl());
-		}
+		columns[COLUMN_SEEN] = isOnline ? T_("Online") : fu->getLastSeen() > 0 ? Text::toT(Util::formatTime("%Y-%m-%d %H:%M", fu->getLastSeen())) : T_("Offline");
+		columns[COLUMN_HUB] = isOnline ? WinUtil::getHubNames(u->getCID()).first : Text::toT(fu->getUrl());
 	} else {
 		isFavorite = false;
 		grantSlot = false;
@@ -380,12 +380,9 @@ void UsersFrame::UserInfo::update(const UserPtr& u, bool visible) {
 		if(!visible) {
 			return;
 		}
-		if(u->isOnline()) {
-			columns[COLUMN_SEEN] = T_("Online");
-			columns[COLUMN_HUB] = WinUtil::getHubNames(u->getCID()).first;
-		} else {
-			columns[COLUMN_SEEN] = T_("Offline");
-		}
+
+		columns[COLUMN_SEEN] = isOnline ? T_("Online") : T_("Offline");
+		columns[COLUMN_HUB] = WinUtil::getHubNames(u->getCID()).first;
 	}
 
 	columns[COLUMN_CID] = Text::toT(u->getCID().toBase32());
@@ -441,6 +438,7 @@ void UsersFrame::updateUserInfo() {
 		return;
 
 	infoText.clear();
+	infoBox->setText(T_("No information available"));
 
 	if(users->countSelected() != 1) {
 		return;
@@ -492,17 +490,6 @@ void UsersFrame::updateUserInfo() {
 	}
 
 	infoBox->setText(infoText);
-}
-
-void UsersFrame::updateAllUsers() {
-	auto size = users->size();
-	HoldRedraw hold { users };
-	for(int i = 0; i <= static_cast<int>(size); ++i) {
-		auto ui = users->getData(i);
-		if(!ui) continue;
-		auto &user = ui->getUser();
-		updateUser(user);
-	}
 }
 
 void UsersFrame::handleDescription() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2022 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2023 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,12 +20,12 @@
 #define APPNAME "DC++"
 
 // don't forget to update the .rc file as well!
-#define VERSIONSTRING "0.880"
-#define VERSIONFLOAT 0.880
+#define VERSIONSTRING "0.881"
+#define VERSIONFLOAT 0.881
 
 //DiCe Edits
 #define MODNAME "BDC++"
-#define MODVER "0.880.2"
+#define MODVER "0.881.1"
 
 namespace dcpp {
 extern const std::string fullVersionString;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2022 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2023 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -192,14 +192,25 @@ int SSLSocket::checkSSL(int ret) {
 					}
 					sys_err = getLastError();
 				}
-				throw SSLSocketException(sys_err);
+				if(sys_err != 0) {
+					throw SSLSocketException(sys_err);
+				} else {
+					throw SSLSocketException(_("TLS error: connection reset by the peer"));
+				}
 			}
 		default:
-			/* don't bother getting error messages from the codes because 1) there is some
-			additional management necessary (eg SSL_load_error_strings) and 2) openssl error codes
-			aren't shown to the end user; they only hit standard output in debug builds. */
+			auto sys_error = ERR_get_error();
+			string error;
+			int v_err = SSL_get_verify_result(ssl);
+			if (v_err == X509_V_ERR_APPLICATION_VERIFICATION) {
+				error = _("Keyprint mismatch");
+			} else if (v_err != X509_V_OK) {
+				error = X509_verify_cert_error_string(v_err);
+			} else {
+				error = ERR_error_string(sys_error, NULL);
+			}
 			dcdebug("TLS error: call ret = %d, SSL_get_error = %d, ERR_get_error = %d\n", ret, err, ERR_get_error());
-			throw SSLSocketException(_("TLS error"));
+			throw SSLSocketException(_("TLS error") + (error.empty() ? "" : + ": " + error));
 		}
 	}
 	return ret;

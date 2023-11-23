@@ -10,9 +10,8 @@ from build_util import Dev, gen_po_name
 # TODO enable "-fdebug-types-section" when
 # <https://sourceware.org/bugzilla/show_bug.cgi?id=20645> is resolved.
 
-# TODO enable LTO once we move to a compiler based on gcc 8.2.1 or later
-# where https://www.mail-archive.com/gcc-bugs@gcc.gnu.org/msg580583.html
-# is fixed.
+# TODO enable LTO once feasible.
+# See <https://bugs.launchpad.net/dcplusplus/+bug/2031546>
 
 # Disabled GCC warnings:
 #   -Wno-missing-field-initializers: Overzealous; makes sense to disable.
@@ -33,7 +32,7 @@ gcc_flags = {
 }
 
 gcc_xxflags = {
-    'common': ['-std=c++17'],
+    'common': [],
     'debug': [],
     'release': []
 }
@@ -66,11 +65,11 @@ msvc_flags = {
         '/wd4706', '/wd4800', '/wd4996', '/wd4005'
     ],
     'debug': ['/MDd'],
-    'release': ['/MD', '/O2', '/d2archAVX2'] # Testing /d2archAVX2
+    'release': ['/MD', '/O2']
 }
 
 msvc_xxflags = {
-    'common': ['/std:c++17'], 
+    'common': ['/std:c++17'],
     'debug': [],
     'release': []
 }
@@ -252,8 +251,7 @@ if 'gcc' in env['TOOLS']:
     if env['arch'] == 'x86':
         env.Append(CCFLAGS=['-march=nocona', '-mtune=generic']) # Through SSE3
     elif env['arch'] == 'x64':
-        # Require SSSE3 for pshufb, which, e.g., helps bzip2 compression speed
-        env.Append(CCFLAGS=['-march=core2',  '-mtune=generic']) # Through SSSE3
+        env.Append(CCFLAGS=['-march=nehalem',  '-mtune=generic']) # Through SSE4
 
 if 'msvc' in env['TOOLS']:
     env['pch'] = True

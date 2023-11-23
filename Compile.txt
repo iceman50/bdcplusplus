@@ -42,6 +42,9 @@
 
 		* Html Help Workshop (only needed to build help files)
 		<https://msdn.microsoft.com/en-us/library/ms669985%28VS.85%29.aspx>
+		Downloads for HTMLHelp binaries are broken at the official MSDN page at the moment. Until that's
+		fixed you can get an archived version of the tool from
+		<http://web.archive.org/web/20160201063255/http://download.microsoft.com/download/0/A/9/0A939EF6-E31C-430F-A3DF-DFAE7960D564/htmlhelp.exe>
 
 		Make sure that hhc.exe is in your PATH environment variable.
 
