@@ -39,7 +39,7 @@ void UserInfoBase::matchQueue() {
 	try {
 		QueueManager::getInstance()->addList(user, QueueItem::FLAG_MATCH_QUEUE);
 	} catch(const Exception& e) {
-		LogManager::getInstance()->message(e.getError());
+		LogManager::getInstance()->message(e.getError(), LogMessage::TYPE_ERROR, LogMessage::LOG_SHARE);
 	}
 }
 void UserInfoBase::getList(TabViewPtr parent) {
@@ -48,7 +48,7 @@ void UserInfoBase::getList(TabViewPtr parent) {
 	} catch(const QueueSelfException& e) {
 		getOwnList(parent);
 	} catch(const Exception& e) {
-		LogManager::getInstance()->message(e.getError());
+		LogManager::getInstance()->message(e.getError(), LogMessage::TYPE_ERROR, LogMessage::LOG_SHARE);
 	}
 }
 void UserInfoBase::browseList(TabViewPtr parent) {
@@ -59,14 +59,14 @@ void UserInfoBase::browseList(TabViewPtr parent) {
 	} catch(const QueueSelfException& e) {
 		getOwnList(parent);
 	} catch(const Exception& e) {
-		LogManager::getInstance()->message(e.getError());
+		LogManager::getInstance()->message(e.getError(), LogMessage::TYPE_ERROR, LogMessage::LOG_SHARE);
 	}
 }
 void UserInfoBase::getOwnList(TabViewPtr parent) {
 	try {
 		DirectoryListingFrame::openOwnList(parent);
 	} catch(const Exception& e) {
-		LogManager::getInstance()->message(e.getError());
+		LogManager::getInstance()->message(e.getError(), LogMessage::TYPE_ERROR, LogMessage::LOG_SHARE);
 	}
 }
 void UserInfoBase::addFav() {

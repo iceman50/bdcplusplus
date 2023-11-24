@@ -82,6 +82,10 @@ class InputStream;
 
 class LogManager;
 
+class LogMessage;
+typedef std::shared_ptr<LogMessage> LogMessagePtr;
+typedef std::deque<LogMessagePtr> LogMessageList;
+
 class OnlineUser;
 typedef OnlineUser* OnlineUserPtr;
 

@@ -77,7 +77,8 @@ void ConnectionManager::listen() {
 	}
 	if(CONNSETTING(TCP_PORT) != 0 && (CONNSETTING(TCP_PORT) == CONNSETTING(TLS_PORT)))
 	{
-		LogManager::getInstance()->message(_("The encrypted transfer port cannot be the same as the transfer port, encrypted transfers will be disabled"));
+		LogManager::getInstance()->message(_("The encrypted transfer port cannot be the same as the transfer port, encrypted transfers will be disabled"),
+												LogMessage::TYPE_WARNING, LogMessage::LOG_SYSTEM);
 		return;
 	}
 	secureServer.reset(new Server(true, Util::toString(CONNSETTING(TLS_PORT)), CONNSETTING(BIND_ADDRESS), CONNSETTING(BIND_ADDRESS6)));
@@ -303,7 +304,7 @@ int ConnectionManager::Server::run() noexcept {
 				port = sock.listen(port);
 
 				if(failed) {
-					LogManager::getInstance()->message(_("Connectivity restored"));
+					LogManager::getInstance()->message(_("Connectivity restored"), LogMessage::TYPE_GENERAL, LogMessage::LOG_SYSTEM);
 					failed = false;
 				}
 				break;
@@ -311,7 +312,7 @@ int ConnectionManager::Server::run() noexcept {
 				dcdebug("ConnectionManager::Server::run Stopped listening: %s\n", e.getError().c_str());
 
 				if(!failed) {
-					LogManager::getInstance()->message(str(F_("Connectivity error: %1%") % e.getError()));
+					LogManager::getInstance()->message(str(F_("Connectivity error: %1%") % e.getError()), LogMessage::TYPE_ERROR, LogMessage::LOG_SYSTEM);
 					failed = true;
 				}
 
@@ -876,7 +877,8 @@ bool ConnectionManager::checkHubCCBlock(const string& aServer, const string& aPo
 
     if(cc_blocked)
 	{
-		LogManager::getInstance()->message(str(F_("Blocked a C-C connection to a hub ('%1%:%2%'; request from '%3%')") % aServer % aPort % aHubUrl));
+		LogManager::getInstance()->message(str(F_("Blocked a C-C connection to a hub ('%1%:%2%'; request from '%3%')") % aServer % aPort % aHubUrl),
+													LogMessage::TYPE_WARNING, LogMessage::LOG_SYSTEM);
 		return true;
 	}
 
@@ -895,7 +897,8 @@ void ConnectionManager::on(UserConnectionListener::ProtocolError, UserConnection
 		}
 
 		string aServerPort = aSource->getRemoteIp() + ":" + aSource->getPort();
-		LogManager::getInstance()->message(str(F_("Blocking '%1%', potential DDoS detected (originating hub '%2%')") % aServerPort % aSource->getHubUrl() ));
+		LogManager::getInstance()->message(str(F_("Blocking '%1%', potential DDoS detected (originating hub '%2%')") % aServerPort % aSource->getHubUrl() ),
+													LogMessage::TYPE_WARNING, LogMessage::LOG_SYSTEM);
 	}
 
 	failed(aSource, aError, true);

@@ -204,7 +204,7 @@ void PluginManager::loadPlugins(function<void (const string&)> f) {
 		if(!plugin.dcMain) { continue; } // a little trick to avoid an additonal "bool enabled"
 		if(f) { f(plugin.name); }
 		try { enable(plugin, false, false); }
-		catch(const Exception& e) { LogManager::getInstance()->message(e.getError()); }
+		catch(const Exception& e) { LogManager::getInstance()->message(e.getError(), LogMessage::TYPE_ERROR, LogMessage::LOG_PLUGIN); }
 	}
 }
 
@@ -563,7 +563,7 @@ void PluginManager::enable(Plugin& plugin, bool install, bool runtime) {
 				// in-place updating to keep settings etc.
 
 				LogManager::getInstance()->message(str(F_("Updating the %1% plugin from version %2% to version %3%") %
-					string(dupe->name) % dupe->version % info.version));
+					string(dupe->name) % dupe->version % info.version), LogMessage::TYPE_GENERAL, LogMessage::LOG_PLUGIN);
 
 				if(dupe->handle) {
 					disable(*dupe, false);

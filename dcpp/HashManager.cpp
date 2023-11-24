@@ -66,7 +66,7 @@ void HashManager::hashDone(const string& aFileName, uint32_t aTimeStamp, const T
 		Lock l(cs);
 		store.addFile(aFileName, aTimeStamp, tth, true);
 	} catch (const Exception& e) {
-		LogManager::getInstance()->message(str(F_("Hashing failed: %1%") % e.getError()));
+		LogManager::getInstance()->message(str(F_("Hashing failed: %1%") % e.getError()), LogMessage::TYPE_ERROR, LogMessage::LOG_SHARE);
 		return;
 	}
 
@@ -74,12 +74,12 @@ void HashManager::hashDone(const string& aFileName, uint32_t aTimeStamp, const T
 
 	if(speed > 0) {
 		LogManager::getInstance()->message(str(F_("Finished hashing: %1% (%2% at %3%/s)") % Util::addBrackets(aFileName) %
-			Util::formatBytes(size) % Util::formatBytes(speed)));
+			Util::formatBytes(size) % Util::formatBytes(speed)), LogMessage::TYPE_GENERAL, LogMessage::LOG_SHARE);
 	} else if(size >= 0) {
 		LogManager::getInstance()->message(str(F_("Finished hashing: %1% (%2%)") % Util::addBrackets(aFileName) %
-			Util::formatBytes(size)));
+			Util::formatBytes(size)), LogMessage::TYPE_GENERAL, LogMessage::LOG_SHARE);
 	} else {
-		LogManager::getInstance()->message(str(F_("Finished hashing: %1%") % Util::addBrackets(aFileName)));
+		LogManager::getInstance()->message(str(F_("Finished hashing: %1%") % Util::addBrackets(aFileName)), LogMessage::TYPE_GENERAL, LogMessage::LOG_SHARE);
 	}
 }
 
@@ -107,7 +107,7 @@ void HashManager::HashStore::addTree(const TigerTree& tt) noexcept {
 			treeIndex.emplace(tt.getRoot(), TreeInfo(tt.getFileSize(), index, tt.getBlockSize()));
 			dirty = true;
 		} catch (const FileException& e) {
-			LogManager::getInstance()->message(str(F_("Error saving hash data: %1%") % e.getError()));
+			LogManager::getInstance()->message(str(F_("Error saving hash data: %1%") % e.getError()), LogMessage::TYPE_ERROR, LogMessage::LOG_SHARE);
 		}
 	}
 }
@@ -254,7 +254,7 @@ void HashManager::HashStore::rebuild() {
 		dirty = true;
 		save();
 	} catch (const Exception& e) {
-		LogManager::getInstance()->message(str(F_("Hashing failed: %1%") % e.getError()));
+		LogManager::getInstance()->message(str(F_("Hashing failed: %1%") % e.getError()), LogMessage::TYPE_ERROR, LogMessage::LOG_SHARE);
 	}
 }
 
@@ -309,7 +309,7 @@ void HashManager::HashStore::save() {
 
 			dirty = false;
 		} catch (const FileException& e) {
-			LogManager::getInstance()->message(str(F_("Error saving hash data: %1%") % e.getError()));
+			LogManager::getInstance()->message(str(F_("Error saving hash data: %1%") % e.getError()), LogMessage::TYPE_ERROR, LogMessage::LOG_SHARE);
 		}
 	}
 }
@@ -515,7 +515,7 @@ void HashManager::HashStore::createDataFile(const string& name) {
 		dat.write(&start, sizeof(start));
 
 	} catch (const FileException& e) {
-		LogManager::getInstance()->message(str(F_("Error creating hash data file: %1%") % e.getError()));
+		LogManager::getInstance()->message(str(F_("Error creating hash data file: %1%") % e.getError()), LogMessage::TYPE_ERROR, LogMessage::LOG_SHARE);
 	}
 }
 
@@ -594,7 +594,7 @@ int HashManager::Hasher::run() {
 		if(rebuild) {
 			HashManager::getInstance()->doRebuild();
 			rebuild = false;
-			LogManager::getInstance()->message(_("Hash database rebuilt"));
+			LogManager::getInstance()->message(_("Hash database rebuilt"), LogMessage::TYPE_GENERAL, LogMessage::LOG_SHARE);
 			continue;
 		}
 		{
@@ -667,14 +667,15 @@ int HashManager::Hasher::run() {
 				}
 
 				if(xcrc32 && xcrc32->getValue() != sfv.getCRC()) {
-					LogManager::getInstance()->message(str(F_("%1% not shared; calculated CRC32 does not match the one found in SFV file.") % Util::addBrackets(fname)));
+					LogManager::getInstance()->message(str(F_("%1% not shared; calculated CRC32 does not match the one found in SFV file.") % Util::addBrackets(fname)),
+																LogMessage::TYPE_ERROR, LogMessage::LOG_SHARE);
 				} else if(sizeLeft != 0) {
-					LogManager::getInstance()->message(str(F_("%1% not shared; hashing did not complete.") % Util::addBrackets(fname)));
+					LogManager::getInstance()->message(str(F_("%1% not shared; hashing did not complete.") % Util::addBrackets(fname)), LogMessage::TYPE_ERROR, LogMessage::LOG_SHARE);
 				} else {
 					HashManager::getInstance()->hashDone(fname, timestamp, tt, speed, size);
 				}
 			} catch(const FileException& e) {
-				LogManager::getInstance()->message(str(F_("Error hashing %1%: %2%") % Util::addBrackets(fname) % e.getError()));
+				LogManager::getInstance()->message(str(F_("Error hashing %1%: %2%") % Util::addBrackets(fname) % e.getError()), LogMessage::TYPE_ERROR, LogMessage::LOG_SHARE);
 			}
 		}
 		{

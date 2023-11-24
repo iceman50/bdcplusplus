@@ -163,7 +163,7 @@ int SearchManager::run() {
 				socket->disconnect();
 				port = socket->listen(Util::toString(CONNSETTING(UDP_PORT)));
 				if(failed) {
-					LogManager::getInstance()->message(_("Search enabled again"));
+					LogManager::getInstance()->message(_("Search enabled again"), LogMessage::TYPE_GENERAL, LogMessage::LOG_SYSTEM);
 					failed = false;
 				}
 				break;
@@ -171,7 +171,7 @@ int SearchManager::run() {
 				dcdebug("SearchManager::run Stopped listening: %s\n", e.getError().c_str());
 
 				if(!failed) {
-					LogManager::getInstance()->message(str(F_("Search disabled: %1%") % e.getError()));
+					LogManager::getInstance()->message(str(F_("Search disabled: %1%") % e.getError()), LogMessage::TYPE_ERROR, LogMessage::LOG_SYSTEM);
 					failed = true;
 				}
 

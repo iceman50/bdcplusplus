@@ -694,7 +694,7 @@ void AdcHub::connect(const OnlineUser& user, const string& token, ConnectionType
 		const string& port = secure ? ConnectionManager::getInstance()->getSecurePort() : ConnectionManager::getInstance()->getPort();
 		if(port.empty()) {
 			// Oops?
-			LogManager::getInstance()->message(str(F_("Not listening for connections - please restart %1%") % APPNAME));
+			LogManager::getInstance()->message(str(F_("Not listening for connections - please restart %1%") % APPNAME), LogMessage::TYPE_ERROR, LogMessage::LOG_SYSTEM);
 			return;
 		}
 		send(AdcCommand(AdcCommand::CMD_CTM, user.getIdentity().getSID(), AdcCommand::TYPE_DIRECT).addParam(*proto).addParam(port).addParam(token));
@@ -1131,7 +1131,7 @@ void AdcHub::on(Line l, const string& aLine) noexcept {
 	Client::on(l, aLine);
 
 	if(!Text::validateUtf8(aLine)) {
-		// @todo report to user?
+		LogManager::getInstance()->message(str(F_("ADC : invalid UTF-8 received from: %1%") % getAddress()), LogMessage::TYPE_ERROR, LogMessage::LOG_SYSTEM);
 		return;
 	}
 

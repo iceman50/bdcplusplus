@@ -15,30 +15,17 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef DCPLUSPLUS_WIN32_BDC_PAGE_H
-#define DCPLUSPLUS_WIN32_BDC_PAGE_H
+#include "stdinc.h"
 
-#include "PropPage.h"
+#include "LogMessage.h"
 
-class BDCPage : public PropPage
+namespace dcpp {
+
+std::atomic<uint64_t> idCounter { 1 };
+
+LogMessage::LogMessage(const string& aMessage, Type _type, Level _level) noexcept :
+	id(idCounter++), text(aMessage), time(GET_TIME()), type(_type), level(_level)
 {
-public:
-	BDCPage(dwt::Widget* parent);
-	virtual ~BDCPage();
+}
 
-	virtual void write();
-
-private:
-	ItemList items;
-
-	static ListItem listItems[];
-	TablePtr options;
-
-	ButtonPtr testSUDP, testLogger;
-
-	ComboBoxPtr actionDBLClickUserCb;
-
-	void testBDCLogger();
-};
-
-#endif // !defined(DCPLUSPLUS_WIN32_BDC_PAGE_H)
+}

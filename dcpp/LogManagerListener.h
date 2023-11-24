@@ -30,7 +30,8 @@ public:
 	template<int I>	struct X { enum { TYPE = I }; };
 
 	typedef X<0> Message;
-	virtual void on(Message, time_t, const string&) noexcept { }
+
+	virtual void on(Message, const LogMessagePtr&) noexcept { }
 };
 
 } // namespace dcpp

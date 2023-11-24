@@ -937,10 +937,10 @@ void QueueManager::moveFile_(const string& source, const string& target) {
 		try {
 			File::renameFile(source, newTarget);
 			LogManager::getInstance()->message(str(F_("Unable to move %1% to %2% (%3%); renamed to %4%") %
-				Util::addBrackets(source) % Util::addBrackets(target) % e1.getError() % Util::addBrackets(newTarget)));
+				Util::addBrackets(source) % Util::addBrackets(target) % e1.getError() % Util::addBrackets(newTarget)), LogMessage::TYPE_ERROR, LogMessage::LOG_SHARE);
 		} catch(const FileException& e2) {
 			LogManager::getInstance()->message(str(F_("Unable to move %1% to %2% (%3%) nor to rename to %4% (%5%)") %
-				Util::addBrackets(source) % Util::addBrackets(target) % e1.getError() % Util::addBrackets(newTarget) % e2.getError()));
+				Util::addBrackets(source) % Util::addBrackets(target) % e1.getError() % Util::addBrackets(newTarget) % e2.getError()), LogMessage::TYPE_ERROR, LogMessage::LOG_SHARE);
 		}
 	}
 }
@@ -1115,7 +1115,7 @@ void QueueManager::processList(const string& name, const HintedUser& user, int f
 	try {
 		dirList.loadFile(name);
 	} catch(const Exception&) {
-		LogManager::getInstance()->message(str(F_("Unable to open filelist: %1%") % Util::addBrackets(name)));
+		LogManager::getInstance()->message(str(F_("Unable to open filelist: %1%") % Util::addBrackets(name)), LogMessage::TYPE_ERROR, LogMessage::LOG_SHARE);
 		return;
 	}
 
@@ -1136,7 +1136,7 @@ void QueueManager::processList(const string& name, const HintedUser& user, int f
 	if(flags & QueueItem::FLAG_MATCH_QUEUE) {
 		size_t files = matchListing(dirList);
 		LogManager::getInstance()->message(str(FN_("%1%: Matched %2% file", "%1%: Matched %2% files", files) %
-			Util::toString(ClientManager::getInstance()->getNicks(user)) % files));
+			Util::toString(ClientManager::getInstance()->getNicks(user)) % files), LogMessage::TYPE_GENERAL, LogMessage::LOG_SHARE);
 	}
 }
 
@@ -1506,7 +1506,7 @@ void QueueLoader::startTag(const string& name, StringPairList& attribs, bool sim
 			if(SETTING(DONT_DL_ALREADY_SHARED)){
 				if (ShareManager::getInstance()->isTTHShared(TTHValue(tthRoot))){
 					LogManager::getInstance()->message(str(F_("The queued file %1% already exists in your share, removing from the queue") 
-						% Util::addBrackets(target)));
+						% Util::addBrackets(target)), LogMessage::TYPE_WARNING, LogMessage::LOG_SHARE);
 					return;
 				}
 			}
@@ -1662,7 +1662,7 @@ bool QueueManager::checkSfv(QueueItem* qi, Download* d) {
 			File::deleteFile(qi->getTempTarget());
 			qi->resetDownloaded();
 			dcdebug("QueueManager: CRC32 mismatch for %s\n", qi->getTarget().c_str());
-			LogManager::getInstance()->message(str(F_("CRC32 inconsistency (SFV-Check): %1%") % Util::addBrackets(qi->getTarget()))); 
+			LogManager::getInstance()->message(str(F_("CRC32 inconsistency (SFV-Check): %1%") % Util::addBrackets(qi->getTarget())), LogMessage::TYPE_WARNING, LogMessage::LOG_SHARE);
 
 			setPriority(qi->getTarget(), QueueItem::PAUSED);
 

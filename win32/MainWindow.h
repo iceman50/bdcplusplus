@@ -239,7 +239,7 @@ private:
 	void parseCommandLine(const tstring& line);
 	bool chooseFavHubGroup(const tstring& title, tstring& group);
 	void fillLimiterMenu(Menu* menu, bool upload);
-	void statusMessage(time_t t, const string& m);
+	void statusMessage(const LogMessagePtr& logMessage);
 
 	void completeVersionUpdate(bool success, const string& result);
 	void checkGeoUpdate();
@@ -268,7 +268,7 @@ private:
 	void on(HttpManagerListener::ResetStream, HttpConnection*) noexcept;
 
 	// LogManagerListener
-	void on(LogManagerListener::Message, time_t t, const string& m) noexcept;
+	void on(LogManagerListener::Message, const LogMessagePtr& logMsg) noexcept;
 
 	// QueueManagerListener
 	void on(QueueManagerListener::Finished, QueueItem* qi, const string& dir, int64_t speed) noexcept;

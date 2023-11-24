@@ -23,6 +23,7 @@
 #include "ConnectionManager.h"
 #include "ConnectivityManager.h"
 #include "CryptoManager.h"
+#include "LogManager.h"
 #include "format.h"
 #include "SearchManager.h"
 #include "ShareManager.h"
@@ -1052,6 +1053,7 @@ void NmdcHub::clearFlooders(uint64_t aTick) {
 bool NmdcHub::isProtectedIP(const string& ip) {
 	if(find(protectedIPs.begin(), protectedIPs.end(), ip) != protectedIPs.end()) {
 		fire(ClientListener::StatusMessage(), this, str(F_("This hub is trying to use your client to spam %1%, please urge hub owner to fix this") % ip));
+		LogManager::getInstance()->message(str(F_("NMDC hub %1% is trying to use your client to spam %2%") % getAddress() % ip), LogMessage::TYPE_WARNING, LogMessage::LOG_SPAM);
 		return true;
 	}
 	return false;

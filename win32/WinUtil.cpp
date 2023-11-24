@@ -1254,7 +1254,7 @@ bool registerHandler(const tstring& name, const tstring& description, bool url, 
 	if(ret) {
 		regChanged();
 	} else {
-		LogManager::getInstance()->message(str(F_("Error registering the %1% handler") % Text::fromT(name)));
+		LogManager::getInstance()->message(str(F_("Error registering the %1% handler") % Text::fromT(name)), LogMessage::TYPE_ERROR, LogMessage::LOG_SYSTEM);
 	}
 	return ret;
 }
@@ -1314,7 +1314,7 @@ void WinUtil::setApplicationStartupRegister()
 
 		if(ret != ERROR_SUCCESS)
 		{
-			LogManager::getInstance()->message(str(F_("Error registering DC++ for automatic startup (could not find or create key)")));
+			LogManager::getInstance()->message(str(F_("Error registering DC++ for automatic startup (could not find or create key)")), LogMessage::TYPE_ERROR, LogMessage::LOG_SYSTEM);
 			return;
 		}
 	}
@@ -1324,7 +1324,7 @@ void WinUtil::setApplicationStartupRegister()
 	ret = ::RegSetValueEx(hk, _T("DC++"), 0, REG_SZ, (LPBYTE) app.c_str(), sizeof(TCHAR) * (app.length() + 1));
 	if(ret != ERROR_SUCCESS)
 	{
-		LogManager::getInstance()->message(str(F_("Error registering DC++ for automatic startup (could not set key value)")));
+		LogManager::getInstance()->message(str(F_("Error registering DC++ for automatic startup (could not set key value)")), LogMessage::TYPE_ERROR, LogMessage::LOG_SYSTEM);
 	}
 
 	::RegCloseKey(hk);
@@ -1359,7 +1359,7 @@ void WinUtil::setApplicationStartupUnregister()
 			ret = ::RegDeleteValue(hk, _T("DC++"));
 			if(ret != ERROR_SUCCESS)
 			{
-				LogManager::getInstance()->message(str(F_("Error unregistering DC++ for automatic startup (could not delete key value)")));
+				LogManager::getInstance()->message(str(F_("Error unregistering DC++ for automatic startup (could not delete key value)")), LogMessage::TYPE_ERROR, LogMessage::LOG_SYSTEM);
 			}
 		}
 	}
@@ -1457,7 +1457,7 @@ void eachUser(const HintedUserList& list, const StringList& dirs, const UserFunc
 		try {
 			f(i, (j < dirs.size()) ? dirs[j] : string());
 		} catch (const Exception& e) {
-			LogManager::getInstance()->message(e.getError());
+			LogManager::getInstance()->message(e.getError(), LogMessage::TYPE_ERROR, LogMessage::LOG_SYSTEM);
 		}
 		++j;
 	}

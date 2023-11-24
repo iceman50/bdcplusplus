@@ -318,11 +318,11 @@ void ConnectivityManager::log(string&& message, tribool v6) {
 		status = move(message);
 		string proto = v6 ? "IPv6" : "IPv4";
 
-		LogManager::getInstance()->message(str(F_("Connectivity (%1%): %2%") % proto % status));
+		LogManager::getInstance()->message(str(F_("Connectivity (%1%): %2%") % proto % status), LogMessage::TYPE_GENERAL, LogMessage::LOG_SYSTEM);
 		fire(ConnectivityManagerListener::Message(), str(F_("%1%: %2%") % proto % status));
 
 	} else {
-		LogManager::getInstance()->message(message);
+		LogManager::getInstance()->message(message, LogMessage::TYPE_GENERAL, LogMessage::LOG_SYSTEM);
 	}
 }
 

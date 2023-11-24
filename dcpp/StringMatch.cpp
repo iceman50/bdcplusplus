@@ -65,7 +65,7 @@ struct Prepare : boost::static_visitor<bool> {
 			r.assign(pattern);
 			return true;
 		} catch(const std::runtime_error&) {
-			LogManager::getInstance()->message(str(F_("Invalid regular expression: %1%") % pattern));
+			LogManager::getInstance()->message(str(F_("Invalid regular expression: %1%") % pattern), LogMessage::TYPE_WARNING, LogMessage::LOG_SYSTEM);
 			return false;
 		}
 	}

@@ -574,7 +574,8 @@ ShareManager::Directory::Ptr ShareManager::buildTree(const string& realPath, opt
 		auto name = i->getFileName();
 
 		if(name.empty()) {
-			LogManager::getInstance()->message(str(F_("Invalid file name found while hashing folder %1%") % Util::addBrackets(realPath)));
+			LogManager::getInstance()->message(str(F_("Invalid file name found while hashing folder %1%") % Util::addBrackets(realPath)),
+														LogMessage::TYPE_WARNING, LogMessage::LOG_SHARE);
 			continue;
 		}
 
@@ -790,7 +791,8 @@ void ShareManager::updateIndices(Directory& dir, const decltype(std::declval<Dir
 		if(!SETTING(LIST_DUPES)) {
 			try {
 				LogManager::getInstance()->message(str(F_("Duplicate file will not be shared: %1% (Size: %2% B) Dupe matched against: %3%")
-					% Util::addBrackets(f.getRealPath()) % Util::toString(f.getSize()) % Util::addBrackets(j->second->getRealPath())));
+					% Util::addBrackets(f.getRealPath()) % Util::toString(f.getSize()) % Util::addBrackets(j->second->getRealPath())),
+												LogMessage::TYPE_WARNING, LogMessage::LOG_SHARE);
 				dir.files.erase(i);
 			} catch (const ShareException&) {
 			}
@@ -804,7 +806,8 @@ void ShareManager::updateIndices(Directory& dir, const decltype(std::declval<Dir
 
 void ShareManager::refresh(bool dirs, bool aUpdate, bool block, function<void (float)> progressF) noexcept {
 	if(refreshing.test_and_set()) {
-		LogManager::getInstance()->message(_("File list refresh in progress, please wait for it to finish before trying to refresh again"));
+		LogManager::getInstance()->message(_("File list refresh in progress, please wait for it to finish before trying to refresh again"),
+												LogMessage::TYPE_WARNING, LogMessage::LOG_SHARE);
 		return;
 	}
 
@@ -821,7 +824,7 @@ void ShareManager::refresh(bool dirs, bool aUpdate, bool block, function<void (f
 			start();
 			setThreadPriority(Thread::LOW);
 		} catch(const ThreadException& e) {
-			LogManager::getInstance()->message(str(F_("File list refresh failed: %1%") % e.getError()));
+			LogManager::getInstance()->message(str(F_("File list refresh failed: %1%") % e.getError()), LogMessage::TYPE_ERROR, LogMessage::LOG_SHARE);
 		}
 	}
 }
@@ -849,7 +852,7 @@ void ShareManager::runRefresh(function<void (float)> progressF) {
 	if(refreshDirs) {
 		HashManager::HashPauser pauser;
 
-		LogManager::getInstance()->message(_("File list refresh initiated"));
+		LogManager::getInstance()->message(_("File list refresh initiated"), LogMessage::TYPE_GENERAL, LogMessage::LOG_SHARE);
 
 		lastFullUpdate = GET_TICK();
 
@@ -884,7 +887,7 @@ void ShareManager::runRefresh(function<void (float)> progressF) {
 		}
 		refreshDirs = false;
 
-		LogManager::getInstance()->message(_("File list refresh finished"));
+		LogManager::getInstance()->message(_("File list refresh finished"), LogMessage::TYPE_GENERAL, LogMessage::LOG_SHARE);
 	}
 
 	if(update) {
@@ -955,7 +958,7 @@ void ShareManager::generateXmlList() {
 			bzXmlRef = unique_ptr<File>(new File(newXmlName, File::READ, File::OPEN));
 			setBZXmlFile(newXmlName);
 			bzXmlListLen = File::getSize(newXmlName);
-			LogManager::getInstance()->message(str(F_("File list %1% generated") % Util::addBrackets(bzXmlFile)));
+			LogManager::getInstance()->message(str(F_("File list %1% generated") % Util::addBrackets(bzXmlFile)), LogMessage::TYPE_GENERAL, LogMessage::LOG_SHARE);
 		} catch(const Exception&) {
 			// No new file lists...
 		}

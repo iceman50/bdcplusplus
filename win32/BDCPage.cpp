@@ -21,6 +21,7 @@
 #include "BDCWinUtil.h"
 #include "WinUtil.h"
 
+#include <dcpp/LogManager.h>
 #include <dcpp/SearchManager.h>
 #include <dcpp/SettingsManager.h>
 #include <dcpp/version.h>
@@ -45,6 +46,7 @@ PropPage::ListItem BDCPage::listItems[] = {
 BDCPage::BDCPage(dwt::Widget* parent) :	PropPage(parent, 1, 1),
 options(0),
 testSUDP(0),
+testLogger(0),
 actionDBLClickUserCb(0)
 {
 	grid->column(0).mode = GridInfo::FILL;
@@ -63,12 +65,18 @@ actionDBLClickUserCb(0)
 
 	{
 		auto grid = cur->addChild(GroupBox::Seed(T_("Experimental")))->addChild(Grid::Seed(1, 3));
-		grid->column(0).mode = GridInfo::STATIC;
-		grid->column(0).align = GridInfo::TOP_LEFT;
+		//grid->column(0).mode = GridInfo::STATIC;
+		//grid->column(0).align = GridInfo::TOP_LEFT;
+		//grid->column(1).mode = GridInfo::STATIC;
+		//grid->column(1).align = GridInfo::TOP_LEFT;
+
 		testSUDP = grid->addChild(WinUtil::Seeds::Dialog::button);
 		testSUDP->setText(T_("Test SUDP"));
 		testSUDP->onClicked([] { SearchManager::getInstance()->testSUDP(); });
 
+		testLogger = grid->addChild(WinUtil::Seeds::Dialog::button);
+		testLogger->setText(T_("Test BDCLogger"));
+		testLogger->onClicked([=] { testBDCLogger(); });
 	}
 
 	{
@@ -96,5 +104,24 @@ void BDCPage::write()
 	PropPage::write(options);
 
 	SettingsManager::getInstance()->set(SettingsManager::ACTION_DOUBLECLICK_USER, actionDBLClickUserCb->getSelected());
+}
+
+void BDCPage::testBDCLogger() {
+	auto logTest = [](const string& msg, LogMessage::Type type, LogMessage::Level level) {
+			auto lm = LogManager::getInstance();
+			lm->message(msg, type, level);
+		};
+
+	logTest("TYPE_DEBUG / LOG_SYSTEM", LogMessage::TYPE_DEBUG, LogMessage::LOG_SYSTEM);
+	logTest("TYPE_GENERAL / LOG_SYSTEM", LogMessage::TYPE_GENERAL, LogMessage::LOG_SYSTEM);
+	logTest("TYPE_WARNING / LOG_SYSTEM", LogMessage::TYPE_WARNING, LogMessage::LOG_SYSTEM);
+	logTest("TYPE_ERROR / LOG_SYSTEM", LogMessage::TYPE_ERROR, LogMessage::LOG_SYSTEM);
+
+	logTest("TYPE_DEBUG / LOG_HASHER", LogMessage::TYPE_DEBUG, LogMessage::LOG_SHARE);
+	logTest("TYPE_DEBUG / LOG_PRIVATE", LogMessage::TYPE_DEBUG, LogMessage::LOG_PRIVATE);
+	logTest("TYPE_DEBUG / LOG_SPAM", LogMessage::TYPE_DEBUG, LogMessage::LOG_SPAM);
+	logTest("TYPE_DEBUG / LOG_SERVER", LogMessage::TYPE_DEBUG, LogMessage::LOG_SERVER);
+	logTest("TYPE_DEBUG / LOG_PLUGIN", LogMessage::TYPE_DEBUG, LogMessage::LOG_PLUGIN);
+	logTest("TYPE_DEBUG / LOG_SHARE", LogMessage::TYPE_DEBUG, LogMessage::LOG_SHARE);
 }
 

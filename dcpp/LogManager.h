@@ -27,25 +27,20 @@
 #include "Singleton.h"
 #include "Speaker.h"
 #include "LogManagerListener.h"
+#include "LogMessage.h"
 
 namespace dcpp {
-
-using std::deque;
-using std::pair;
 
 class LogManager : public Singleton<LogManager>, public Speaker<LogManagerListener>
 {
 public:
-	typedef pair<time_t, string> Pair;
-	typedef deque<Pair> List;
-
-	enum Area { CHAT, PM, DOWNLOAD, FINISHED_DOWNLOAD, UPLOAD, SYSTEM, STATUS, LAST };
-	enum { FILE, FORMAT };
+	enum Area: uint8_t { CHAT, PM, DOWNLOAD, FINISHED_DOWNLOAD, UPLOAD, SYSTEM, STATUS, LAST };
+	enum: uint8_t { FILE, FORMAT };
 
 	void log(Area area, ParamMap& params) noexcept;
-	void message(const string& msg);
+	void message(const string& msg, LogMessage::Type type = LogMessage::TYPE_GENERAL, LogMessage::Level level = LogMessage::LOG_SYSTEM);
 
-	List getLastLogs();
+	LogMessageList getLastLogs();
 	string getPath(Area area, ParamMap& params) const;
 	string getPath(Area area) const;
 
@@ -57,7 +52,7 @@ private:
 
 	friend class Singleton<LogManager>;
 	CriticalSection cs;
-	List lastLogs;
+	LogMessageList lastLogs;
 
 	int options[LAST][2];
 

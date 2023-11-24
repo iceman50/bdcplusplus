@@ -37,7 +37,7 @@
 #include "GetSet.h"
 
 //DiCe
-#include <win32/BDCUtil.h>
+#include <win32/BDCWinUtil.h>
 
 namespace dcpp {
 

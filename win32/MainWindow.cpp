@@ -66,6 +66,7 @@
 #include "HubFrame.h"
 //DiCe Addon
 #include "InfoFrame.h"
+#include "BDCFrame.h"
 //
 #include "NotepadFrame.h"
 #include "ParamDlg.h"
@@ -404,6 +405,8 @@ void MainWindow::initMenu() {
 		//DiCe Addon
 		viewIndexes[ACFrame::id] = viewMenu->appendItem(T_("About:config"),
 			[this] { ACFrame::openWindow(getTabView()); }, WinUtil::menuIcon(IDI_DCPP));
+		viewIndexes[BDCFrame::id] = viewMenu->appendItem(T_("BDC Logger"),
+			[this] { BDCFrame::openWindow(getTabView()); }, WinUtil::menuIcon(IDI_DCPP));
 
 		viewMenu->appendItem(T_("Indexing progress"), [this] { handleHashProgress(); }, WinUtil::menuIcon(IDI_INDEXING));
 		viewMenu->appendSeparator();
@@ -1032,13 +1035,11 @@ LRESULT MainWindow::handleActivateApp(WPARAM wParam) {
 	return 0;
 }
 
-void MainWindow::statusMessage(time_t t, const string& m) {
+void MainWindow::statusMessage(const LogMessagePtr& logMessage) {
 	if(!status)
 		return;
 
-	string message(m);
-	WinUtil::reducePaths(message);
-	status->setText(STATUS_STATUS, Text::toT("[" + Util::getShortTimeString(t) + "] " + message));
+	status->setText(STATUS_STATUS, Text::toT("[" + Util::getShortTimeString(logMessage->getTime()) + "]" + logMessage->getText()));
 }
 
 bool MainWindow::chooseFavHubGroup(const tstring& title, tstring& group) {
@@ -1696,11 +1697,11 @@ void MainWindow::updateGeo(bool v6) {
 	try {
 		file.reset(new File(GeoManager::getDbPath(v6) + ".gz.tmp", File::WRITE, File::CREATE | File::TRUNCATE));
 	} catch(const FileException&) {
-		LogManager::getInstance()->message(str(F_("The %1% GeoIP database could not be updated") % geoType(v6)));
+		LogManager::getInstance()->message(str(F_("The %1% GeoIP database could not be updated") % geoType(v6)), LogMessage::TYPE_WARNING, LogMessage::LOG_SYSTEM);
 		return;
 	}
 
-	LogManager::getInstance()->message(str(F_("Updating the %1% GeoIP database...") % geoType(v6)));
+	LogManager::getInstance()->message(str(F_("Updating the %1% GeoIP database...") % geoType(v6)), LogMessage::TYPE_GENERAL, LogMessage::LOG_SYSTEM);
 	conn = HttpManager::getInstance()->download(Text::fromT(SETTING(GEO_CITY) ?
 		(v6 ? links.geoip6_city : links.geoip4_city) : (v6 ? links.geoip6 : links.geoip4)), file.get());
 }
@@ -1725,9 +1726,9 @@ void MainWindow::completeGeoUpdate(bool v6, bool success) {
 				} catch(const FileException&) { }
 
 				GeoManager::getInstance()->update(true);
-				LogManager::getInstance()->message(str(F_("The %1% GeoIP database has been successfully updated") % geoType(true)));
+				LogManager::getInstance()->message(str(F_("The %1% GeoIP database has been successfully updated") % geoType(true)), LogMessage::TYPE_GENERAL, LogMessage::LOG_SYSTEM);
 				GeoManager::getInstance()->update(false);
-				LogManager::getInstance()->message(str(F_("The %1% GeoIP database has been successfully updated") % geoType(false)));
+				LogManager::getInstance()->message(str(F_("The %1% GeoIP database has been successfully updated") % geoType(false)), LogMessage::TYPE_GENERAL, LogMessage::LOG_SYSTEM);
 
 			} else if(geoRegion == GeoRegion_Idle) {
 
@@ -1755,7 +1756,7 @@ void MainWindow::completeGeoUpdate(bool v6, bool success) {
 
 		GeoManager::getInstance()->update(v6);
 
-		LogManager::getInstance()->message(str(F_("The %1% GeoIP database has been successfully updated") % geoType(v6)));
+		LogManager::getInstance()->message(str(F_("The %1% GeoIP database has been successfully updated") % geoType(v6)), LogMessage::TYPE_GENERAL, LogMessage::LOG_SYSTEM);
 
 	} else {
 
@@ -1766,7 +1767,7 @@ void MainWindow::completeGeoUpdate(bool v6, bool success) {
 			File::deleteFile(GeoManager::getDbPath(v6) + ".gz.tmp");
 		}
 
-		LogManager::getInstance()->message(str(F_("The %1% GeoIP database could not be updated") % geoType(v6)));
+		LogManager::getInstance()->message(str(F_("The %1% GeoIP database could not be updated") % geoType(v6)), LogMessage::TYPE_WARNING, LogMessage::LOG_SYSTEM);
 	}
 }
 
@@ -2106,8 +2107,8 @@ void MainWindow::on(HttpManagerListener::ResetStream, HttpConnection* c) noexcep
 	}
 }
 
-void MainWindow::on(LogManagerListener::Message, time_t t, const string& m) noexcept {
-	callAsync([=] { statusMessage(t, m); });
+void MainWindow::on(LogManagerListener::Message, const LogMessagePtr& logMsg) noexcept {
+	callAsync([=] { statusMessage(logMsg); });
 }
 
 void MainWindow::on(QueueManagerListener::Finished, QueueItem* qi, const string& dir, int64_t speed) noexcept {
@@ -2163,5 +2164,6 @@ void MainWindow::openWindow(const string& id, const WindowParams& params) {
 	compare_id(TextFrame);
 	//DiCe Addon
 	compare_id(ACFrame);
+	compare_id(BDCFrame);
 #undef compare_id
 }

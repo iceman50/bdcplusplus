@@ -1078,7 +1078,10 @@ void HubFrame::on(NickTaken, Client*) noexcept {
 }
 
 void HubFrame::on(SearchFlood, Client*, const string& line) noexcept {
-	callAsync([=] { onStatusMessage(str(F_("Search spam detected from %1%") % line), ClientListener::FLAG_IS_SPAM); });
+	auto& msg = str(F_("Search spam detected from %1%") % line);
+	callAsync([=] { onStatusMessage(msg, ClientListener::FLAG_IS_SPAM); 
+					LogManager::getInstance()->message(msg, LogMessage::TYPE_WARNING, LogMessage::LOG_SPAM);
+		});
 }
 
 void HubFrame::on(ClientLine, Client*, const string& line, int type) noexcept {

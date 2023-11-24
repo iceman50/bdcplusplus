@@ -27,24 +27,24 @@ void LogManager::log(Area area, ParamMap& params) noexcept {
 	log(getPath(area, params), Util::formatParams(getSetting(area, FORMAT), params));
 }
 
-void LogManager::message(const string& msg) {
-	if(SETTING(LOG_SYSTEM)) {
+void LogManager::message(const string& msg, LogMessage::Type type, LogMessage::Level level) {
+	if (SETTING(LOG_SYSTEM)) {
 		ParamMap params;
 		params["message"] = msg;
 		log(SYSTEM, params);
 	}
-	time_t t = GET_TIME();
+	auto logMsg = std::make_shared<LogMessage>(msg, type, level);
 	{
 		Lock l(cs);
-		// Keep the last 100 messages (completely arbitrary number...)
-		while(lastLogs.size() > 100)
+		while (lastLogs.size() > 100)
 			lastLogs.pop_front();
-		lastLogs.emplace_back(t, msg);
+		lastLogs.emplace_back(logMsg);
 	}
-	fire(LogManagerListener::Message(), t, msg);
+
+	fire(LogManagerListener::Message(), logMsg);
 }
 
-LogManager::List LogManager::getLastLogs() {
+LogMessageList LogManager::getLastLogs() {
 	Lock l(cs);
 	return lastLogs;
 }

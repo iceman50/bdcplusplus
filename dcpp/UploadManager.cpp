@@ -206,7 +206,7 @@ bool UploadManager::prepareFile(UserConnection& aSource, const string& aType, co
 		aSource.fileNotAvail(e.getError());
 		return false;
 	} catch(const Exception& e) {
-		LogManager::getInstance()->message(str(F_("Unable to send file %1%: %2%") % Util::addBrackets(sourceFile) % e.getError()));
+		LogManager::getInstance()->message(str(F_("Unable to send file %1%: %2%") % Util::addBrackets(sourceFile) % e.getError()), LogMessage::TYPE_ERROR, LogMessage::LOG_SHARE);
 		aSource.fileNotAvail();
 		return false;
 	}
@@ -542,7 +542,7 @@ void UploadManager::on(TimerManagerListener::Minute, uint64_t  aTick ) noexcept 
 
 	for(auto& i: disconnects) {
 		LogManager::getInstance()->message(str(F_("Disconnected user leaving the hub: %1%") %
-			Util::toString(ClientManager::getInstance()->getNicks(i->getCID()))));
+			Util::toString(ClientManager::getInstance()->getNicks(i->getCID()))), LogMessage::TYPE_GENERAL, LogMessage::LOG_SHARE);
 		ConnectionManager::getInstance()->disconnect(i, CONNECTION_TYPE_UPLOAD);
 	}
 
@@ -621,7 +621,7 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept {
 
 		if (!isFileServer) {
 			if (
-				((time(NULL) - BDCUtil::getStartTime()) > 7200) && // > 2h uptime
+				((time(NULL) - BDCWinUtil::getStartTime()) > 7200) && // > 2h uptime
 				(Socket::getTotalUp() > 209715200) && // > 200m uploaded
 				(ShareManager::getInstance()->getShareSize() > 2147483648) // > 2g shared
 				) {

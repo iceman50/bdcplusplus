@@ -54,12 +54,12 @@ SystemFrame::SystemFrame(TabViewPtr parent) :
 
 	layout();
 
-	LogManager::List oldMessages = LogManager::getInstance()->getLastLogs();
+	auto oldMessages = LogManager::getInstance()->getLastLogs();
 	// Technically, we might miss a message or two here, but who cares...
 	LogManager::getInstance()->addListener(this);
 
 	for(auto& i: oldMessages) {
-		addLine(i.first, Text::toT(i.second));
+		addLine(i->getTime(), Text::toT(i->getText()));
 	}
 }
 
