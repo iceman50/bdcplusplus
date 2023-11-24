@@ -86,7 +86,12 @@
 #include "TransferView.h"
 #include "UsersFrame.h"
 
+#include <dwmapi.h>
 #include <wtsapi32.h>
+
+#ifndef DWMWA_USE_IMMERSIVE_DARK_MODE
+#define DWMWA_USE_IMMERSIVE_DARK_MODE 20
+#endif
 
 using dwt::Container;
 using dwt::Rebar;
@@ -326,6 +331,9 @@ void MainWindow::initWindow() {
 		cs.exStyle |= WS_EX_RTLREADING;
 
 	create(cs);
+
+	BOOL val = TRUE;
+	::DwmSetWindowAttribute(this->handle(), DWMWA_USE_IMMERSIVE_DARK_MODE, &val, sizeof(val));
 
 	rebar = addChild(Rebar::Seed());
 
