@@ -723,9 +723,9 @@ void NmdcHub::onLine(const string& aLine) noexcept {
 					continue;
 				OnlineUser& ou = getUser(it);
 				ou.getIdentity().setBot(true);
-//				if(ou.getUser() == getMyIdentity().getUser()) { //We should never be included in the $BotList but sanity checks never hurt...
-//					setMyIdentity(ou.getIdentity());
-//				}
+				if(ou.getUser() == getMyIdentity().getUser()) { //We should never be included in the $BotList but sanity checks never hurt...
+					setMyIdentity(ou.getIdentity());
+				}
 				v.push_back(&ou);
 			}
 
@@ -946,9 +946,9 @@ void NmdcHub::search(int aSizeType, int64_t aSize, int aFileType, const string& 
 }
 
 void NmdcHub::password(const string& aPass) {
-	string filteredPass = fromUtf8(aPass);
+	const auto& filteredPass = fromUtf8(aPass);
 	if(!salt.empty()) {		
-		size_t saltBytes = salt.size() * 5 / 8;
+		const size_t saltBytes = salt.size() * 5 / 8;
 		boost::scoped_array<uint8_t> buf(new uint8_t[saltBytes]);
 		Encoder::fromBase32(salt.c_str(), &buf[0], saltBytes);
 		TigerHash th;
@@ -1138,6 +1138,7 @@ void NmdcHub::on(Minute, uint64_t aTick) noexcept {
 	if(aTick > (lastProtectedIPsUpdate + 24*3600*1000)) {
 		protectedIPs = {
 			"dchublist.org",
+			"hublist.pwiam.com",
 			"dcbase.org"
 		};
 		for(auto i = protectedIPs.begin(); i != protectedIPs.end();) {

@@ -57,7 +57,7 @@
 #include "MainWindow.h"
 #include "PrivateFrame.h"
 #include "ACFrame.h"
-#include "BDCUtil.h"
+#include "BDCWinUtil.h"
 
 using dwt::Container;
 using dwt::Grid;
@@ -565,7 +565,7 @@ static const map<tstring, tstring> cmdMap = {
 	{_T("/refresh"),								  T_("Manually refreshes DC++'s share list by going through the shared directories and adding new folders and files. DC++ automatically refreshes once an hour by default, and also refreshes after the list of shared directories is changed.")},
 	{_T("/me"),										  T_("Speak as a third person.")},
 	{_T("/slots #"),								  T_("Sets the current number of upload slots to the number you specify. If this is less than the current number of slots, no uploads are cancelled.")},
-	{_T("/dslots #",),								  T_("Sets the current number of download slots to the number you specify. If this is less than the current number of slots, no downloads are cancelled.")},
+	{_T("/dslots #"),								  T_("Sets the current number of download slots to the number you specify. If this is less than the current number of slots, no downloads are cancelled.")},
 	{_T("/search <string>"),						  T_("Opens a new search window with the specified search string. It does not automatically send the search.")},
 	{_T("/clear [lines to keep]"),					  T_("Clears the current window of all text. Optionally, you can specify how many of the latest (most recent) lines should be kept.")},
 	{_T("/dc++"),									  T_("Sends a random DC++ advertising message to the chat, including a link to the DC++ homepage and the version number.")},
@@ -582,7 +582,12 @@ static const map<tstring, tstring> cmdMap = {
 	{_T("/download #"),								  T_("Set the download speed limit in KiBs. Zero or omitted value disables the limit.")},
 	{_T("/upload #""/upload #"),					  T_("Set the upload speed limit in KiBs. Zero or omitted value disables the limit.")},
 	{_T("/close"),									  T_("Closes the current window.")},
-	{_T("/about:config, /a:c, /ac"),				  T_("Opens the internal settings list debugging tool window.")}
+	{_T("/about:config, /a:c, /ac"),				  T_("Opens the internal settings list debugging tool window.")},
+	{_T("/sysinfo, /si"),							  T_("Displays info about your system including client info, uptime, system info(CPU, RAM, GPU, OS, as well as the lib versions used)")},
+	{_T("/netstat, /ns"),							  T_("Displays info about currently running Uploads and Downloads as well as lifetime data stats")},
+	{_T("/diskinfo, /di"),							  T_("Display a list of available [H|S]DD's installed with Free/Total stats as well")},
+	{_T("/diskfree, /df"),							  T_("Display a basic string of Total/Free drive space of your PC")},
+	{_T("/testsudp"),								  T_("Tests current implementation of SUDP to validate encryption/decryption")}
 };
 
 tstring WinUtil::getDescriptiveCommands() {
@@ -597,7 +602,7 @@ tstring WinUtil::getDescriptiveCommands() {
 
 tstring
 	WinUtil::commands =
-		_T("/refresh, /me <msg>, /slots #, /dslots #, /search <string>, /clear [lines to keep], /dc++, /away <msg>, /back, /d <searchstring>, /g <searchstring>, /imdb <imdbquery>, /rebuild, /log [type], /help [brief], /u <url>, /f <string>, /download [#], /upload [#], /close, /a[bout][:]c[onfig]");
+		_T("/refresh, /me <msg>, /slots #, /dslots #, /search <string>, /clear [lines to keep], /dc++, /away <msg>, /back, /d <searchstring>, /g <searchstring>, /imdb <imdbquery>, /rebuild, /log [type], /help [brief], /u <url>, /f <string>, /download [#], /upload [#], /close, /a[bout][:]c[onfig], /sysinfo | /si, / netstat | /ni, / diskinfo | /di, / diskfree | /df, / testsudp");
 
 bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstring& status, bool& thirdPerson) {
 	string::size_type i = cmd.find(' ');
@@ -713,16 +718,16 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 	//DiCe
 	} else if(Util::stricmp(cmd.c_str(), _T("sysinfo")) == 0 || Util::stricmp(cmd.c_str(), _T("si")) == 0)  {
 		tstring line;
-		BDCUtil::getSysInfo(line);
+		BDCWinUtil::getSysInfo(line);
 		message = line;
 	} else if(Util::stricmp(cmd.c_str(), _T("netstat")) == 0 || Util::stricmp(cmd.c_str(), _T("ns")) ==0)  {
 		tstring line;
-		BDCUtil::getNetStats(line);
+		BDCWinUtil::getNetStats(line);
 		message = line;
 	} else if(Util::stricmp(cmd.c_str(), _T("diskinfo")) == 0 || Util::stricmp(cmd.c_str(), _T("di")) == 0)  {
-		message = BDCUtil::diskInfoList();
+		message = BDCWinUtil::diskInfoList();
 	} else if(Util::stricmp(cmd.c_str(), _T("diskfree")) == 0 || Util::stricmp(cmd.c_str(), _T("df")) == 0)  {
-		message = BDCUtil::diskSpaceInfo(true);
+		message = BDCWinUtil::diskSpaceInfo(true);
 	} else if(Util::stricmp(cmd.c_str(), _T("testsudp")) == 0 || Util::stricmp(cmd.c_str(), _T("tsudp")) == 0) {
 		SearchManager::getInstance()->testSUDP();
 	} else {

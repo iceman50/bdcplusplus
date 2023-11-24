@@ -47,7 +47,7 @@
 #include "TypedTable.h"
 
 //DiCe
-#include "BDCUtil.h"
+#include "BDCWinUtil.h"
 #include "DirectoryListingFrame.h"
 
 using dwt::Grid;
@@ -1351,15 +1351,15 @@ void HubFrame::handleDoubleClickUsers() {
 			DirectoryListingFrame::openOwnList(getParent());
 		} else {
 			switch(SETTING(ACTION_DOUBLECLICK_USER)) {
-			case BDCUtil::ACTION_GETLIST:			users->getSelectedData()->getList(getParent()); break;
-			case BDCUtil::ACTION_BROWSELIST:		users->getSelectedData()->browseList(getParent()); break;
-			case BDCUtil::ACTION_MATCHQUEUE:		users->getSelectedData()->matchQueue(); break;
-			case BDCUtil::ACTION_PRIVATEMESSAGE:	users->getSelectedData()->pm(getParent()); break;
-			case BDCUtil::ACTION_ADDFAVORITE:		users->getSelectedData()->addFav(); break;
-			case BDCUtil::ACTION_GRANTSLOT:			users->getSelectedData()->grant(); break;
-			case BDCUtil::ACTION_REMOVEFROMQUEUE:	users->getSelectedData()->removeFromQueue(); break;
-			case BDCUtil::ACTION_IGNORECHAT:		users->getSelectedData()->ignoreChat(true); break;
-			case BDCUtil::ACTION_UNIGNORECHAT:		users->getSelectedData()->ignoreChat(false); break;
+			case BDCWinUtil::ACTION_GETLIST:			users->getSelectedData()->getList(getParent()); break;
+			case BDCWinUtil::ACTION_BROWSELIST:		users->getSelectedData()->browseList(getParent()); break;
+			case BDCWinUtil::ACTION_MATCHQUEUE:		users->getSelectedData()->matchQueue(); break;
+			case BDCWinUtil::ACTION_PRIVATEMESSAGE:	users->getSelectedData()->pm(getParent()); break;
+			case BDCWinUtil::ACTION_ADDFAVORITE:		users->getSelectedData()->addFav(); break;
+			case BDCWinUtil::ACTION_GRANTSLOT:			users->getSelectedData()->grant(); break;
+			case BDCWinUtil::ACTION_REMOVEFROMQUEUE:	users->getSelectedData()->removeFromQueue(); break;
+			case BDCWinUtil::ACTION_IGNORECHAT:		users->getSelectedData()->ignoreChat(true); break;
+			case BDCWinUtil::ACTION_UNIGNORECHAT:		users->getSelectedData()->ignoreChat(false); break;
 			default: break;
 			}
 		}

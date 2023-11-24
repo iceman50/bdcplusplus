@@ -18,7 +18,7 @@
 #include "stdafx.h"
 #include "BDCPage.h"
 
-#include "BDCUtil.h"
+#include "BDCWinUtil.h"
 #include "WinUtil.h"
 
 #include <dcpp/SearchManager.h>
@@ -76,7 +76,7 @@ actionDBLClickUserCb(0)
 		grid->column(0).mode = GridInfo::FILL;
 		grid->row(0).align = GridInfo::STRETCH;
 		actionDBLClickUserCb = grid->addChild(WinUtil::Seeds::Dialog::comboBox);
-		for(const auto& ai: BDCUtil::actions) {
+		for(const auto& ai: BDCWinUtil::actions) {
 			actionDBLClickUserCb->addValue(ai);
 		}
 	}

@@ -28,7 +28,7 @@
 #include "SearchManager.h"
 #include "StringTokenizer.h"
 
-#include <win32/BDCUtil.h>
+#include <win32/BDCWinUtil.h>
 
 namespace dcpp {
 
@@ -65,6 +65,7 @@ const string SettingsManager::settingTags[] =
 	"SharingSkiplistExtensions", "SharingSkiplistRegEx", "SharingSkiplistPaths", "WhitelistOpenURIs",
 	//DiCe STR SETTINGS
 	"InfoViewerFont","ACFrameOrder", "ACFrameWidths", "LoadedTheme", "ThemeDirectory", "IconDirectory",
+	"BDCFrameOrder", "BDCFrameWidths",
 	//
 	"SENTRY",
 	// Ints
@@ -385,7 +386,7 @@ SettingsManager::SettingsManager() {
 	setDefault(TABS_ON_BOTTOM, true);
 	setDefault(AC_DISCLAIM, true);
 	setDefault(ENABLE_NMDC_TLS, true);
-	setDefault(ACTION_DOUBLECLICK_USER, BDCUtil::ACTION_GETLIST);
+	setDefault(ACTION_DOUBLECLICK_USER, BDCWinUtil::ACTION_GETLIST);
 	setDefault(ENABLE_SUDP, true);
 
 	setSearchTypeDefaults();

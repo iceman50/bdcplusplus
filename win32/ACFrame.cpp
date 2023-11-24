@@ -42,7 +42,7 @@ static const ColumnInfo settingColumns[] = {
 
 const string ACFrame::SettingInfo::typeStrings[] = { "String", "Integer", "Boolean", "Int64", "Float" };
 
-ACFrame::SettingInfo::SettingInfo(const int index_) : index(index_) {
+ACFrame::SettingInfo::SettingInfo(const int index_) : index(index_), isDefault(true) {
 	auto sm = SettingsManager::getInstance();
 
 	if(sm->getType(index, type)) {

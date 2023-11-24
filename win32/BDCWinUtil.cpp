@@ -16,10 +16,10 @@
 */
 
 #include "stdafx.h"
-#include "BDCUtil.h"
+#include "BDCWinUtil.h"
 #include "resource.h"
 
-#include <chrono>
+//#include <chrono>
 #include <random>
 
 #include <dcpp/DownloadManager.h>
@@ -37,9 +37,9 @@
 #include <direct.h> // _getdrives()
 /*#include <dxgi.h> */// for GPU info instead of DISPLAY_DEVICE
 
-time_t BDCUtil::startTime = time(nullptr);
+time_t BDCWinUtil::startTime = time(nullptr);
 
-const tstring BDCUtil::actions[BDCUtil::ACTION_LAST] = {
+const tstring BDCWinUtil::actions[BDCWinUtil::ACTION_LAST] = {
 	T_("Get file list"),
 	T_("Browse file list"),
 	T_("Match queue"),
@@ -51,7 +51,23 @@ const tstring BDCUtil::actions[BDCUtil::ACTION_LAST] = {
 	T_("Unignore chat")
 };
 
-bool BDCUtil::getSysInfo(tstring& line) {
+const tstring BDCWinUtil::logType[LogMessage::Type::TYPE_LAST] = {
+	T_("Debug"),
+	T_("General"),
+	T_("Warning"),
+	T_("Error")
+};
+
+const tstring BDCWinUtil::logLevel[LogMessage::Level::LOG_LAST] = {
+	T_("System"),
+	T_("Share"),
+	T_("Private"),
+	T_("Spam"),
+	T_("Server"),
+	T_("Plugins")
+};
+
+bool BDCWinUtil::getSysInfo(tstring& line) {
 #if defined(_MSC_VER)
 	tstring ver;
 	//TODO Build a table of all versions
@@ -102,7 +118,7 @@ bool BDCUtil::getSysInfo(tstring& line) {
 	line += getCPUInfo();
 	line += Text::toT("\r\n |\tTHD\t") + Text::toT(Util::toString(systemInfo.dwNumberOfProcessors));
 	line += Text::toT("\r\n |\tRAM\t") + Text::toT(Util::formatBytes(memoryStatusEx.ullTotalPhys)) + Text::toT(" (") + Text::toT(Util::formatBytes(memoryStatusEx.ullAvailPhys)) + Text::toT(" available)");
-	line += Text::toT("\r\n |\tSTR\t") + BDCUtil::diskSpaceInfo(true) + _T(" (free/total)");
+	line += Text::toT("\r\n |\tSTR\t") + BDCWinUtil::diskSpaceInfo(true) + _T(" (free/total)");
 	line += Text::toT("\r\n |\tGFX\t") + tstring(displayDevice.DeviceString);
 	line += Text::toT("\r\n |\tRES\t") + Text::toT(Util::toString(GetSystemMetrics(SM_CXSCREEN))) + Text::toT("x") + Text::toT(Util::toString(GetSystemMetrics(SM_CYSCREEN)));
 
@@ -119,7 +135,7 @@ bool BDCUtil::getSysInfo(tstring& line) {
 	return true;
 }
 
-tstring BDCUtil::getCPUInfo() {
+tstring BDCWinUtil::getCPUInfo() {
 	TCHAR buf[255];
 	tstring line;
 	HKEY hKey;
@@ -143,7 +159,7 @@ tstring BDCUtil::getCPUInfo() {
 	return line;
 }
 
-tstring BDCUtil::getOSInfo() {
+tstring BDCWinUtil::getOSInfo() {
 	//This requires that your exe is properly manifested in order to return the correct win version
 	tstring os, bit;
 	OSVERSIONINFOEX osv = { 0 };
@@ -222,7 +238,7 @@ tstring BDCUtil::getOSInfo() {
 	return os;
 }
 
-TStringList BDCUtil::findVolumes() {
+TStringList BDCWinUtil::findVolumes() {
 	BOOL found;
 	TCHAR buf[MAX_PATH];  
 	HANDLE hVol;
@@ -247,7 +263,7 @@ TStringList BDCUtil::findVolumes() {
 	return volumes;
 }
 
-tstring BDCUtil::diskSpaceInfo(bool onlyTotal) {
+tstring BDCWinUtil::diskSpaceInfo(bool onlyTotal) {
 	auto ret = Util::emptyStringT;
 	int64_t free = 0, totalFree = 0, size = 0, totalSize = 0, netFree = 0, netSize = 0;
 	auto volumes = findVolumes();
@@ -293,7 +309,7 @@ tstring BDCUtil::diskSpaceInfo(bool onlyTotal) {
 	return ret;
 }
 
-tstring BDCUtil::diskInfoList() {
+tstring BDCWinUtil::diskInfoList() {
 	auto result = Util::emptyStringT;		
 	TCHAR buf[MAX_PATH];
 	int64_t free = 0, size = 0 , totalFree = 0, totalSize = 0;
@@ -352,7 +368,7 @@ tstring BDCUtil::diskInfoList() {
 	return result;
 }
 
-bool BDCUtil::getNetStats(tstring& line) {
+bool BDCWinUtil::getNetStats(tstring& line) {
 	line += Text::toT("\r\n");
 	line += Text::toT("\r\n_[ ") + Text::toT(MODNAME) + Text::toT(" ") + Text::toT(MODVER) + Text::toT(" Network Statistics ]_");
 
@@ -377,7 +393,7 @@ bool BDCUtil::getNetStats(tstring& line) {
 	line += Text::toT("\r\n");
 	return true;
 }
-tstring BDCUtil::formatTimeDifference(uint64_t diff, size_t levels /*= 3*/) {
+tstring BDCWinUtil::formatTimeDifference(uint64_t diff, size_t levels /*= 3*/) {
 	tstring	buf;
 	int	n;
 
@@ -405,49 +421,6 @@ tstring BDCUtil::formatTimeDifference(uint64_t diff, size_t levels /*= 3*/) {
 	return buf;
 }
 
-uint32_t BDCUtil::rand(uint32_t low, uint32_t high) {
-	std::random_device rd;
-	std::mt19937 mt(rd());
-	std::uniform_int_distribution<uint32_t> dist(low, high);
-	auto ret = dist(mt);
-	return ret;
-}
-
-//void BDCUtil::testRand(bool std) noexcept {
-//
-//	if(std) { // Let's test the speed of seeding every call
-//		auto start = std::chrono::high_resolution_clock::now();
-//
-//		for(int i = 0; i < 1000000; ++i) {// 1 million iterations should be good
-//			rand();
-//		}
-//
-//		auto finish = std::chrono::high_resolution_clock::now();
-//		std::chrono::duration<double> elapsed = finish - start;
-//
-//		LogManager::getInstance()->message("1 Million calls to rand() - seeded every call - Elapsed time: " + Util::toString((elapsed.count() * 1000)) + " ms");
-//	} else {
-//		std::random_device rd;
-//		auto mt = std::mt19937(rd());
-//
-//		auto start = std::chrono::high_resolution_clock::now();
-//		std::uniform_int_distribution<uint32_t> dist(0, UINT_MAX);
-//		for(int i = 0; i < 1000000; ++i) {
-//			auto ret = dist(mt);
-//		}
-//		auto finish = std::chrono::high_resolution_clock::now();
-//		std::chrono::duration<double> elapsed = finish - start;
-//		LogManager::getInstance()->message("1 Million calls to rand() - single seed - Elapsed time: " + Util::toString((elapsed.count() * 1000)) + " ms");
-//	}
+//void BDCWinUtil::drawTabCanvas(dwt::Canvas& canvas, dwt::Control* widget) {
 //
 //}
-
-//void BDCUtil::setColor(dwt::Control* widget, COLORREF& textColor, COLORREF& bgColor) {
-//	widget->setColor(textColor, bgColor);
-//
-//	widget->onCommand([widget, &textColor, &bgColor] {
-//		widget->setColor(textColor, bgColor);
-//		widget->redraw();
-//					  }, ID_UPDATECOLOR);
-//}
-

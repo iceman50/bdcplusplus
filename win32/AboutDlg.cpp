@@ -30,7 +30,7 @@
 #include <dwt/widgets/Label.h>
 #include <dwt/widgets/Link.h>
 
-#include "BDCUtil.h"
+#include "BDCWinUtil.h"
 
 #include "resource.h"
 #include "WinUtil.h"
@@ -49,8 +49,8 @@ version(0),
 c(nullptr)
 {
 	info.clear();
-	BDCUtil::getSysInfo(info);
-	BDCUtil::getNetStats(info);
+	BDCWinUtil::getSysInfo(info);
+	BDCWinUtil::getNetStats(info);
 	onInitDialog([this] { return handleInitDialog(); });
 }
 

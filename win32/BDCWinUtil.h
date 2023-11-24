@@ -19,12 +19,14 @@
 #ifndef DCPLUSPLUS_WIN32_BDC_UTIL_H
 #define DCPLUSPLUS_WIN32_BDC_UTIL_H
 
+#include <dcpp/LogMessage.h>
 #include <dcpp/Util.h>
 
-using namespace dcpp;
-//using namespace dwt;
+//#include "forward.h"
 
-class BDCUtil {
+using namespace dcpp;
+
+class BDCWinUtil {
 
 public:
 	//Stats
@@ -37,8 +39,6 @@ public:
 	static bool getNetStats(tstring& line);
 	static tstring formatTimeDifference(uint64_t diff, size_t levels = 3);
 	static time_t getStartTime() { return startTime; }
-
-	static uint32_t rand(uint32_t low = 0, uint32_t high = UINT_MAX);
 
 	//UI
 	enum {
@@ -55,12 +55,10 @@ public:
 	};
 
 	static const tstring actions[ACTION_LAST];
+	static const tstring logType[LogMessage::Type::TYPE_LAST];
+	static const tstring logLevel[LogMessage::Level::LOG_LAST];
 
-	//static void testRand(bool std) noexcept;
-
-	//Theme
-//	static void setColor(dwt::Control* widget, COLORREF& textColor, COLORREF& bgColor);
-
+	//static void drawTabCanvas(dwt::Canvas& canvas, dwt::Control* widget);
 private:
 	static time_t startTime;
 };
