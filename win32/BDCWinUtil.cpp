@@ -67,6 +67,22 @@ const tstring BDCWinUtil::logLevel[LogMessage::Level::LOG_LAST] = {
 	T_("Plugins")
 };
 
+const string BDCWinUtil::protocols[BDCWinUtil::PROTOCOL_LAST] = {
+	"magnet:?",
+	"://",
+	"mailto:",
+	"@",
+	"www."
+};
+
+const string BDCWinUtil::charsemaillocal = "abcdefghijklmnopqrstuvwxzyABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-.!#$%&'*+/=?^_`{|}~"; // not completely correct
+const string BDCWinUtil::charsemaildomain = "abcdefghijklmnopqrstuvwxzyABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-."; // not completely correct
+const string BDCWinUtil::charslink = "abcdefghijklmnopqrstuvwxzyABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~:/?#[]@!$&'()*+,;=%"; // aside from a few exceptions
+const string BDCWinUtil::lettersnumbers = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+const string BDCWinUtil::digitshex = "1234567890ABCDEFabcdef";
+const string BDCWinUtil::digitsnumbers = "1234567890.,-";
+const string BDCWinUtil::delimiters = ",;.: \r\n\t";
+
 bool BDCWinUtil::getSysInfo(tstring& line) {
 #if defined(_MSC_VER)
 	tstring ver;
@@ -421,6 +437,137 @@ tstring BDCWinUtil::formatTimeDifference(uint64_t diff, size_t levels /*= 3*/) {
 	return buf;
 }
 
-//void BDCWinUtil::drawTabCanvas(dwt::Canvas& canvas, dwt::Control* widget) {
-//
-//}
+// equals
+string::size_type BDCWinUtil::streql(const string::value_type* pbegin, const string::value_type* pend, const string::value_type* dbegin, const string::value_type* dend) {
+	if ((pend - pbegin) != (dend - dbegin))
+		return string::npos; // not the same length = false
+
+	while (pbegin != pend) {
+		if (*pbegin != *dbegin)
+			return string::npos;
+		pbegin++;
+		dbegin++;
+	}
+
+	return 0; // because the comparison checked out at position 0
+}
+
+// compare
+string::size_type BDCWinUtil::strcmp(const string::value_type* pbegin, const string::value_type* pend, const string::value_type* dbegin, const string::value_type* dend) {
+	if ((pbegin == pend) || (dbegin == dend))
+		return string::npos;
+	if ((pend - pbegin) < (dend - dbegin))
+		return string::npos;
+
+	while (dbegin != dend) {
+		if (*pbegin != *dbegin)
+			return string::npos;
+		pbegin++;
+		dbegin++;
+	}
+
+	return 0; // because the comparison checked out at position 0
+}
+
+// find
+string::size_type BDCWinUtil::strfnd(const string::value_type* pbegin, const string::value_type* pend, const string::value_type* dbegin, const string::value_type* dend) {
+	if ((pbegin == pend) || (dbegin == dend))
+		return string::npos;
+	if ((pend - pbegin) < (dend - dbegin))
+		return string::npos;
+
+	auto phi = pbegin;
+	auto pdend = pend - (dend - dbegin) + 1;
+
+	while (phi != pdend) {
+		if (strcmp(phi, pend, dbegin, dend) != string::npos)
+			return (phi - pbegin);
+		phi++;
+	}
+
+	return string::npos;
+}
+
+// find_first_of
+string::size_type BDCWinUtil::strfndfstof(const string::value_type* pbegin, const string::value_type* pend, const string::value_type* dbegin, const string::value_type* dend) {
+	if ((pbegin == pend) || (dbegin == dend))
+		return string::npos;
+
+	auto phi = pbegin;
+
+	while (phi != pend) {
+		auto d = dbegin;
+		while (d != dend) {
+			if (*d == *phi)
+				return (phi - pbegin);
+			d++;
+		}
+		phi++;
+	}
+
+	return string::npos;
+}
+
+// find_first_not_of
+string::size_type BDCWinUtil::strfndfstnof(const string::value_type* pbegin, const string::value_type* pend, const string::value_type* dbegin, const string::value_type* dend) {
+	if ((pbegin == pend) || (dbegin == dend))
+		return string::npos;
+
+	auto phi = pbegin;
+
+	while (phi != pend) {
+		auto d = dbegin;
+		while (d != dend) {
+			if (*d == *phi)
+				break;
+			d++;
+		}
+		if (d == dend)
+			return (phi - pbegin);
+		phi++;
+	}
+
+	return string::npos;
+}
+
+// find_last_of
+string::size_type BDCWinUtil::strfndlstof(const string::value_type* pbegin, const string::value_type* pend, const string::value_type* dbegin, const string::value_type* dend) {
+	if ((pbegin == pend) || (dbegin == dend))
+		return string::npos;
+
+	auto phi = pend;
+
+	while (phi != pbegin) { // backwards, we want to find the _last_ hit
+		phi--;
+		auto d = dbegin;
+		while (d != dend) {
+			if (*d == *phi)
+				return (phi - pbegin);
+			d++;
+		}
+	}
+
+	return string::npos;
+}
+
+// find_last_of_not_of
+string::size_type BDCWinUtil::strfndlstnof(const string::value_type* pbegin, const string::value_type* pend, const string::value_type* dbegin, const string::value_type* dend) {
+	if ((pbegin == pend) || (dbegin == dend))
+		return string::npos;
+
+	auto phi = pend;
+
+	while (phi != pbegin) { // backwards, we want to find the _last_ not hit
+		phi--;
+		auto d = dbegin;
+		while (d != dend) {
+			if (*d == *phi)
+				break;
+			d++;
+		}
+		if (d == dend)
+			return (phi - pbegin);
+	}
+
+	return string::npos;
+}

@@ -147,6 +147,8 @@ lastMessageTime(time(NULL))
 	addWidget(chat);
 	chat->onContextMenu([this](const dwt::ScreenCoordinate &sc) { return handleChatContextMenu(sc); });
 
+	chat->isPMChat = true;
+
 	addWidget(message, ALWAYS_FOCUS);
 	message->onKeyDown([this](int c) { return handleMessageKeyDown(c); });
 	message->onSysKeyDown([this](int c) { return handleMessageKeyDown(c); });

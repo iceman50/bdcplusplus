@@ -36,6 +36,7 @@ BaseType::Seed()
 
 RichTextBox::RichTextBox(dwt::Widget* parent) :
 BaseType(parent),
+isPMChat(false),
 linkTip(0),
 linkTipPos(0),
 linkF(nullptr)

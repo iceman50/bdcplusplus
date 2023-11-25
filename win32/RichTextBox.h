@@ -56,6 +56,8 @@ public:
 	/// provides a chance to handle links differently
 	void onLink(LinkF f);
 
+	bool isPMChat;
+
 private:
 	bool handleKeyDown(int c);
 	LRESULT handleLink(ENLINK& link);

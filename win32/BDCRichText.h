@@ -63,7 +63,7 @@ private:
 	class Context : public Flags, public FastAlloc<Context> {
 	public:
 
-		// getRtf size_t compare old with *this
+// getRtf size_t compare old with *this
 #define CONTEXT_RTFSIZE(has, member, add) \
 	if(isSet(has)) { \
 		if(old.isSet(has)) { \
@@ -129,12 +129,10 @@ private:
 				if(old.isSet(SUPERSCRIPT)) {
 					if(!old.superscript)
 						context += "\\super";
-				}
-				else {
+				} else {
 					context += "\\super";
 				}
-			}
-			else if(isSet(SUBSCRIPT) && subscript) {
+			} else if(isSet(SUBSCRIPT) && subscript) {
 				if(old.isSet(SUBSCRIPT)) {
 					if (!old.subscript)
 						context += "\\sub";
@@ -144,8 +142,7 @@ private:
 			} else {
 				if(old.isSet(SUBSCRIPT) && old.subscript) {
 					context += "\\nosupersub";
-				}
-				else if(old.isSet(SUPERSCRIPT) && old.superscript) {
+				} else if(old.isSet(SUPERSCRIPT) && old.superscript) {
 					context += "\\nosupersub";
 				}
 			}
@@ -158,7 +155,7 @@ private:
 					else if(isSet(UNDERLINE_DASH) && (underline & UNDERLINE_DASH)) { context += "\\uldash"; }
 					else if(isSet(UNDERLINE_DOT) && (underline & UNDERLINE_DOT)) { context += "\\uld"; }
 					else if(isSet(UNDERLINE) && (underline & UNDERLINE)) { context += "\\ul"; }
-				}
+				} 
 			} else {
 				if(old.isSet(UNDERLINE) && (old.underline & UNDERLINE))
 					context += "\\ul0";
@@ -238,12 +235,12 @@ private:
 		}
 
 		void setUnderline(bool b) { 
-		if (b) {
-			underline |= UNDERLINE;
-		} else { 
-			underline &= ~UNDERLINE;
-		}	
-			setFlag(UNDERLINE); 
+			if (b) {
+				underline |= UNDERLINE;
+			} else { 
+				underline &= ~UNDERLINE;
+			}	
+				setFlag(UNDERLINE); 
 		}
 
 		void setUnderlineDot(bool b) { 
