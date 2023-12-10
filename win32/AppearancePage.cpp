@@ -46,8 +46,6 @@ PropPage::ListItem AppearancePage::listItems[] = {
 	{ SettingsManager::FAV_SHOW_JOINS, N_("Only show joins / parts for favorite users") },
 	{ SettingsManager::SORT_FAVUSERS_FIRST, N_("Sort favorite users first") },
 	{ SettingsManager::GET_USER_COUNTRY, N_("Guess user country from IP") },
-	{ SettingsManager::GEO_CITY, N_("City-level geolocation database (allows parameters such as %[city])") },
-	{ SettingsManager::GEO_REGION, N_("Region name geolocation database (allows %[region])") },
 	{ 0, 0 }
 };
 

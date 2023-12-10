@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2023 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2022 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,47 +15,47 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef DCPLUSPLUS_DCPP_GEOIP_H
-#define DCPLUSPLUS_DCPP_GEOIP_H
+#ifndef DCPLUSPLUS_DCPP_GEOIP2_H
+#define DCPLUSPLUS_DCPP_GEOIP2_H
 
 #include "CriticalSection.h"
 
 #include <string>
-#include <unordered_map>
+//#include <unordered_map>
+#include <vector>
 #include <boost/core/noncopyable.hpp>
 
-typedef struct GeoIPTag GeoIP;
+struct MMDB_s;
 
 namespace dcpp {
 
 using std::string;
-using std::unordered_map;
+//using std::unordered_map;
+using std::vector;
 
 class GeoIP : boost::noncopyable {
 public:
 	explicit GeoIP(string&& path);
 	~GeoIP();
 
-	const string& getCountry(const string& ip) const;
+	string getCountry(const string& ip) const;
 	void update();
-	void rebuild();
+	//void rebuild();
 
 private:
 	bool decompress() const;
 	void open();
 	void close();
-	void rebuild_cities();
-	void rebuild_countries();
-	bool v6() const;
-	bool city() const;
 
 	mutable CriticalSection cs;
-	::GeoIP* geo;
+	::MMDB_s* geo;
 
 	const string path;
-	unordered_map<int, string> cache;
+	const string language;
+
+	//unordered_map<int, string> cache;
 };
 
 } // namespace dcpp
 
-#endif // !defined(DCPLUSPLUS_DCPP_GEOIP_H)
+#endif // !defined(DCPLUSPLUS_DCPP_GEOIP2_H)

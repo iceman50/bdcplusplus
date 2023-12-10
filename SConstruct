@@ -20,7 +20,7 @@ from build_util import Dev, gen_po_name
 #   -Wno-unused-but-set-variable: dwarf/dwarf_arange.c:113:13
 gcc_flags = {
     'common': [
-        '-g', '-Wall', '-Wextra',
+        '-gdwarf-4', '-Wall', '-Wextra',
         '-Wno-missing-field-initializers',
         '-Wno-unknown-pragmas',
         '-Wno-unused-parameter', '-Wno-unused-value',
@@ -44,6 +44,7 @@ msvc_flags = {
     # 4131: 'function' : uses old-style declarator - mainly geoip
     # 4189: var init'd, unused
     # 4244: possible loss of data on conversion
+    # 4245: 'conversion' : conversion from 'type1' to 'type2', signed/unsigned mismatch
     # 4290: exception spec ignored
     # 4307: integral constant overflow (size_t -1 in boost lockfree)
     # 4324: structure padded due to __declspec(align())
@@ -60,9 +61,9 @@ msvc_flags = {
     'common': [
         '/W4', '/EHsc', '/Zi', '/Zm200', '/GR', '/FC', '/wd4100',
         '/wd4121', '/wd4127', '/wd4131', '/wd4189', '/wd4244',
-        '/wd4290', '/wd4307', '/wd4324', '/wd4355', '/wd4456',
-        '/wd4457', '/wd4458','/wd4510', '/wd4512', '/wd4610',
-        '/wd4706', '/wd4800', '/wd4996', '/wd4005'
+        '/wd4245', '/wd4290', '/wd4307', '/wd4324', '/wd4355', 
+        '/wd4456', '/wd4457', '/wd4458','/wd4510', '/wd4512', 
+        '/wd4610', '/wd4706', '/wd4800', '/wd4996', '/wd4005'
     ],
     'debug': ['/MDd'],
     'release': ['/MD', '/O2']
@@ -75,8 +76,15 @@ msvc_xxflags = {
 }
 
 gcc_link_flags = {
+	# ASLR with high entropy and all the other required options for it to work
+	# are all on by default on any mingw-w64 toolchains built after mid 2020. 
+	# --dynamicbase left here for compatibility with old mingw-w64 builds
+	# where ASLR doesn't work at all due to bad defaults but at least it sets
+	# the Dynamic Base bit in the EXE header which satisfies modern Windows'
+	# security so the EXE won't be outright blocked. See L#2039677.
+	# @todo remove when we drop support for older mingw-w64 builds / versions
     'common': [
-        '-g', '-Wl,--no-undefined,--nxcompat,--dynamicbase', '-time'
+        '-gdwarf-4', '-Wl,--no-undefined,--nxcompat,--dynamicbase', '-time'
     ],
     'debug': [],
     'release': ['-O3']
@@ -417,7 +425,7 @@ dev.dwarf = dev.build('dwarf/')
 dev.zlib = dev.build('zlib/')
 dev.build('zlib/test/')
 dev.bzip2 = dev.build('bzip2/') if dev.is_win32() else []
-dev.geoip = dev.build('geoip/')
+dev.maxminddb = dev.build('maxminddb/')
 dev.intl = dev.build('intl/') if dev.is_win32() else []
 dev.miniupnpc = dev.build('miniupnpc/')
 dev.natpmp = dev.build('natpmp/')
