@@ -1038,10 +1038,13 @@ void HubFrame::on(GetPassword, Client*) noexcept {
 }
 
 void HubFrame::on(HubUpdated, Client*) noexcept {
-	if(!client->getTabText().empty()) {
-		tstring hubNameT = Text::toT(client->getTabText());
-			callAsync([this, hubNameT] { setText(hubNameT); });
-			return;
+	if (!client->getTabText().empty()) {
+		ParamMap params;
+		Bdcpp::getClientParams(client, params);
+		params["tabtext"] = [this] { return client->getTabText(); };
+		tstring hubNameT = Text::toT(SdEx(BDSETTING(CUSTOM_TABTEXT_HUB_FORMAT))->format(params));
+		callAsync([this, hubNameT] { setText(hubNameT); });
+		return;
 	}
 
 	string hubName = client->getHubName();
@@ -1353,16 +1356,16 @@ void HubFrame::handleDoubleClickUsers() {
 		if(users->getSelectedData()->getUser() == client->getMyIdentity().getUser()) { 
 			DirectoryListingFrame::openOwnList(getParent());
 		} else {
-			switch(SETTING(ACTION_DOUBLECLICK_USER)) {
-			case BDCWinUtil::ACTION_GETLIST:			users->getSelectedData()->getList(getParent()); break;
-			case BDCWinUtil::ACTION_BROWSELIST:		users->getSelectedData()->browseList(getParent()); break;
-			case BDCWinUtil::ACTION_MATCHQUEUE:		users->getSelectedData()->matchQueue(); break;
-			case BDCWinUtil::ACTION_PRIVATEMESSAGE:	users->getSelectedData()->pm(getParent()); break;
-			case BDCWinUtil::ACTION_ADDFAVORITE:		users->getSelectedData()->addFav(); break;
-			case BDCWinUtil::ACTION_GRANTSLOT:			users->getSelectedData()->grant(); break;
-			case BDCWinUtil::ACTION_REMOVEFROMQUEUE:	users->getSelectedData()->removeFromQueue(); break;
-			case BDCWinUtil::ACTION_IGNORECHAT:		users->getSelectedData()->ignoreChat(true); break;
-			case BDCWinUtil::ACTION_UNIGNORECHAT:		users->getSelectedData()->ignoreChat(false); break;
+			switch(BDSETTING(ACTION_DOUBLECLICK_USER)) {
+			case Bdcpp::ACTION_GETLIST:			users->getSelectedData()->getList(getParent()); break;
+			case Bdcpp::ACTION_BROWSELIST:		users->getSelectedData()->browseList(getParent()); break;
+			case Bdcpp::ACTION_MATCHQUEUE:		users->getSelectedData()->matchQueue(); break;
+			case Bdcpp::ACTION_PRIVATEMESSAGE:	users->getSelectedData()->pm(getParent()); break;
+			case Bdcpp::ACTION_ADDFAVORITE:		users->getSelectedData()->addFav(); break;
+			case Bdcpp::ACTION_GRANTSLOT:		users->getSelectedData()->grant(); break;
+			case Bdcpp::ACTION_REMOVEFROMQUEUE:	users->getSelectedData()->removeFromQueue(); break;
+			case Bdcpp::ACTION_IGNORECHAT:		users->getSelectedData()->ignoreChat(true); break;
+			case Bdcpp::ACTION_UNIGNORECHAT:	users->getSelectedData()->ignoreChat(false); break;
 			default: break;
 			}
 		}
@@ -1406,7 +1409,7 @@ void HubFrame::openLog(bool status) {
 
 string HubFrame::stripNick(const string& nick) const {
 	if (nick.substr(0, 1) != "[") return nick;
-	string::size_type x = nick.find(']');
+	string::size_type x = nick.find(']', 1);
 	string ret;
 	// Avoid full deleting of [IMCOOL][CUSIHAVENOTHINGELSETHANBRACKETS]-type nicks
 	if ((x != string::npos) && (nick.substr(x+1).length() > 0)) {

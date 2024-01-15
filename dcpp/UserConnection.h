@@ -107,7 +107,7 @@ public:
 
 	};
 
-	short getNumber() { return (short)((((size_t)this)>>2) & 0x7fff); }
+	short getNumber() { return Util::rand(0, 0x7FFF); }
 
 	// NMDC stuff
 	void myNick(const string& aNick) { send("$MyNick " + Text::fromUtf8(aNick, encoding) + '|'); }

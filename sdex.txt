@@ -1,0 +1,293 @@
+
+===================
+Agent 0017
+0017agent@gmail.com
+===================
+
+
+
+SdEx
+----
+
+SdEx is short for Sd Expressions. It's not truly a scripting format but it's
+used for some interesting things in text formats. SdEx is used for 2 things:
+formatting strings with parameters (1) and pattern matching (2).
+
+My goal with SdEx: creating a simple expressions system which can be read as
+easy as possible, hence the use of textual commands. You could translate
+SdEx to: Simple dc++ Expressions.
+
+A full list of SdEx commands is found at (3).
+
+One big note about SdEx: characters which are used by the SdEx have to be
+escaped in the text parts of the format/pattern. These characters can be
+escaped in two different ways: with a hex code (#FF#, usually used for non-
+visible characters) or with a backslash (\c). The second method is obviously
+easier to read.
+
+	#	#23#	\#
+
+	,	#2C#	\,
+
+	;	#3B#	\;
+
+	[	#5B#	\[
+
+	\	#5C#	\\
+
+	]	#5D#	\]
+
+	{	#7B#	\{
+
+	}	#7D#	\}
+
+In essence any character can be escaped with its corresponding hex code. Note
+about escaping characters: for compatability purposes the base line of a pattern
+in user commands and log formats are not checked for escaped characters.
+
+
+
+(1) SdEx formatting
+-------------------
+
+Simple formatting goes like this (example is a log format):
+
+	"%Y-%m-%d %H:%M: %[target] downloaded from %[userNI] (%[userCID]), %[fileSI] (%[fileSIactual]), %[speed], %[time], %[fileTR]"
+
+This is the default log format for downloads. Now SdEx is available for all
+formatted texts (you could use it anywhere really) but it has some real good
+use in the chat formatting, which I will explain below. First, the example:
+
+	\[%[timestamp]\] <%[userNI]> %[message]
+
+Now this is the default chat line format for any message in the main chat or
+in the private message frame. What if we want to do colors only on lines from
+a certain user? SdEx! Lets try:
+
+	\[%[timestamp]\] <%[userNI{data=Agent_0017}]> %[message]
+
+Nice! Now the format only validates if the user who is sending the text is
+called Agent_0017. For all the other users it skips this format and goes on
+to the next (which you need to specify as well otherwise there won't be any
+messages from anyone but Agent_0017 lol).
+
+You might want to generalize this a bit to format all the users containing
+0017 in their nick:
+
+	\[%[timestamp]\] <%[userNI{find=0017}]> %[message]
+
+Everyone with 0017 in their nick will now be formatted using this format.
+You also need to specify your own format settings the settings dialog of
+course to make a difference.
+
+Now formatting the said line is one thing, but you might want to change the
+nick in the main chat to something you will recognize the user by. By adding
+the {replace} operation:
+
+	\[%[timestamp]\] <%[userNI{find=0017}{replace:The Great One}]> %[message]
+
+Now every line sent by a user containing 0017 in the nick will have its nick
+replaced by The Great One, neat huh? As you can see, you can use multiple SdEx
+conditions and operations in one parameter, as long as you { } for each one.
+
+
+
+(2) SdEx pattern matching
+-------------------------
+
+SdEx patterns work the same as SdEx formatting, only the other way around.
+A line will be checked against a pattern to extract the parameters again.
+Example:
+
+	line:	blahblahYodelahihooyadayada
+
+matched against this pattern:
+
+	blahblah%[yell]yadayada
+
+Will result in this parameter:
+
+	yell:	Yodelahihoo
+
+Fairly easy. Now we also want to split the yell in two parts. We will use
+this nice operation called {split} for it:
+
+	blahblah%[yell{split:%[Intro],%[Ending],0,a}]yadayada
+
+Now this baby will result in the following parameters:
+
+	yell	Yodelahihoo
+	Intro	Yodel
+	Ending	hihoo
+
+That's pretty neat! But now want to skip the yell parameter by leaving out the
+parameter's name. Also, we want to be sure that the Intro is "yodel", not case
+sensitive. Here it comes:
+
+	blahblah[%{split:%[Intro{datanc=yodel}],%[Ending],0,a}]yadayada
+
+And it will produce:
+
+	Intro	Yodel
+	Ending	hihoo
+
+
+
+(3) SdEx tags: conditions and operations
+----------------------------------------
+
+Here's the full list of available tags for using SdEx.
+
+- Conditions validate a parameter: if the condition is true, the data is added.
+  Conditions are followed by the '=' operator.
+
+- Operations perform an action on the parameter's data, like replacing.
+  Operations are followed by the ':' operator.
+
+- Fictional data is represented by "blah".
+
+- good practise on adding SdEx tags: conditions first, then operations.
+
+- Conditions can take multiple values, separated by a semicolon ';'.
+  This means that SdEx tries every value until one validates according to the tag.
+
+- tag options
+  - n- tags	invert the check: should not match the tag
+  - -fc tags	forces check to be case sensitive
+  - -nc tags	check is not case sensitive
+  - -all	all the values separated by a semicolon ';' should match, instead of just one (AND instead of OR)
+
+
+- Conditions -
+
+{data=blah}				{d=		data equals "blah"
+{datanc=blah}				{dnc=
+{ndata=blah}				{nd=
+{ndatanc=blah}				{ndc=
+
+{find=blah}				{f=		data contains "blah"
+{findfc=blah}				{ffc=
+{findnc=blah}				{fnc=
+{findall=blah;yada}			{fa=
+{findallfc=blah;yada}			{fafc=
+{findallnc=blah;yada}			{fanc=
+{nfind=blah}				{nf=
+{nfindfc=blah}				{nffc=
+{nfindnc=blah}				{nfnc=
+{nfindall=blah;yada}			{nfa=
+{nfindallfc=blah;yada}			{nfafc=
+{nfindallnc=blah;yada}			{nfanc=
+
+{contains=blah}				{ct=		data contains any or some of the characters of "blah"
+{containsfc=blah}			{ctfc=
+{containsnc=blah}			{ctnc=
+{containsall=blah;yada}			{cta=
+{containsallfc=blah;yada}		{ctafc=
+{containsallnc=blah;yada}		{ctanc=
+{ncontains=blah}			{nct=
+{ncontainsfc=blah}			{nctfc=
+{ncontainsnc=blah}			{nctnc=
+{ncontainsall=blah;yada}		{ncta=
+{ncontainsallfc=blah;yada}		{nctafc=
+{ncontainsallnc=blah;yada}		{nctanc=
+
+{consists=blah}				{cs=		data consists of the characters of "blah"
+{consistsfc=blah}			{csfc=
+{consistsnc=blah}			{csnc=
+{consistsall=blah;yada}			{csa=
+{consistsallfc=blah;yada}		{csafc=
+{consistsallnc=blah;yada}		{csanc=
+{nconsists=blah}			{ncs=
+{nconsistsfc=blah}			{ncsfc=
+{nconsistsnc=blah}			{ncsnc=
+{nconsistsall=blah;yada}		{ncsa=
+{nconsistsallfc=blah;yada}		{ncsafc=
+{nconsistsallnc=blah;yada}		{ncsanc=
+
+{char=blah}				{c=		data consists of the characters of "blah"
+{charfc=blah}				{cfc=
+{charnc=blah}				{cnc=
+{charall=blah;yada}			{ca=
+{charallfc=blah;yada}			{cafc=
+{charallnc=blah;yada}			{canc=
+{nchar=blah}				{nc=
+{ncharfc=blah}				{ncfc=
+{ncharnc=blah}				{ncnc=
+{ncharall=blah}				{nca=
+{ncharallfc=blah}			{ncafc=
+{ncharallnc=blah}			{ncanc=
+
+{pattern=blah%[YA]}			{p=		data matches pattern "blah%[YA]"
+{patternfc=blah%[YA]}			{pfc=
+{patternnc=blah%[YA]}			{pnc=
+{npattern=blah%[YA]}			{np=
+{npatternfc=blah%[YA]}			{npfc=
+{npatternnc=blah%[YA]}			{npnc=
+
+{len=17,19}				{l=		data length is between or equals "17" and "19"
+{nlen=17,19}				{nl=
+
+{size=17,19}				{sz=		data length is between or equals "17" and "19"
+{nsize=17,19}				{nsz=
+
+{testparam=blah,data}			{tp=		parameter with name "blah" contains "data"
+{testparamfc=blah,data}			{tpfc=
+{testparamnc=blah,data}			{tpnc=
+{testparamall=blah,data;yada,data}	{tpa=
+{testparamallfc=blah,data;yada,data}	{tpafc=
+{testparamallnc=blah,data;yada,data}	{tpanc=
+{ntestparam=blah,data}			{ntp=
+{ntestparamfc=blah,data}		{ntpfc=
+{ntestparamnc=blah,data}		{ntpnc=
+{ntestparamall=blah,data;yada,data}	{ntpa=
+{ntestparamallfc=blah,data;yada,data}	{ntpafc=	
+{ntestparamallnc=blah,data;yada,data}	{ntpanc=	
+
+
+- Operations -
+
+{copy:blah}				{cp:		copy data to parameter named "blah"
+
+{replace:blah}				{r:		replace data with "blah"
+
+{resize:17,19}				{rs:		Resize the data to position "17" with length "19". Value "-1" means the the total data's length
+
+{delete:blah}				{del:		Remove the text "blah" from data
+{deletefc:blah}				{delfc:
+{deletenc:blah}				{delnc:
+
+{strip:blah}				{str:		Remove the characters "blah" from data
+{stripfc:blah}				{strfc:
+{stripnc:blah}				{strnc:
+
+{delimit:blah,1,#20#}			{de:		delimits data around found element "blah" with delimiter "#20#" (a space) using compare type "1"
+{delimitfc:blah,1,#20#}			{defc:
+{delimitnc:blah,1,#20#}			{denc:
+							Compare types:
+							1	EQUALS		data equals "blah"
+							2	CONTAINS	data contains "blah"
+							4	ONLY		data will just be "blah"
+							8	STARTS		data starts with "blah"
+							16	ENDS		data ends with "blah"
+							The combination of EQUALS and NO_CASE would be "33".
+							The combination of CONTAINS and NO_CASE would be "34".
+							Special: delimits can have an extra parameter, making a difference between
+							left-hand delimiters and right-hand delimiters:
+
+								{delimit:blah,1,(,)}
+
+							In this example: the parameter's data will be delimited by a "(" on the left side and a ")" on
+							the right side around the found element "blah". Compare type "1" = EQUALS;
+
+{split:%[A],%[B],0,blah}		{s:		split data at the position of "blah", returns false if "blah" not found
+{splitfc:%[A],%[B],0,blah}		{sfc:
+{splitnc:%[A],%[B],0,blah}		{snc:
+
+
+- Special -
+
+{paramlenfixed:=17}			{plf:=		The length of the parameter is fixed to length "17"
+
+{paramlenmin:=17}			{plm:=		The length of the parameter has a miminum length of "17"
+
+{sdexversion:=1.03}			{sdv:=		Compares the current SdEx version against "1.03"

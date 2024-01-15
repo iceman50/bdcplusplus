@@ -18,6 +18,7 @@
 #include "stdafx.h"
 #include "TabsPage.h"
 
+#include <dcpp/BDCManager.h>
 #include <dcpp/SettingsManager.h>
 
 #include <dwt/widgets/Grid.h>
@@ -170,7 +171,7 @@ void TabsPage::createPreview() {
 		seed.style |= TCS_BUTTONS;
 
 	//DiCe addon
-	if(SETTING(TABS_ON_BOTTOM))
+	if(BDSETTING(TABS_ON_BOTTOM))
 		seed.style |= TCS_BOTTOM;
 
 	seed.closeIcon = WinUtil::tabIcon(IDI_EXIT);

@@ -26,6 +26,7 @@
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 
+#include "BDCManager.h"
 #include "ClientManager.h"
 #include "ConnectivityManager.h"
 #include "format.h"
@@ -142,7 +143,7 @@ int SearchManager::run() {
 			if((len = socket->read(&buf[0], BUFSIZE, remoteAddr)) > 0) {
 				string data(buf.begin(), buf.begin() + len);
 
-				if(SETTING(ENABLE_SUDP) && len >= 32 && ((len & 15) == 0)) {
+				if(BDSETTING(ENABLE_SUDP) && len >= 32 && ((len & 15) == 0)) {
 					decryptPacket(data, len, buf);
 				}
 
@@ -404,7 +405,7 @@ void SearchManager::onRES(const AdcCommand& cmd, const UserPtr& from, const stri
 
 void SearchManager::genSUDPKey(string& aKey) {
 	string keyStr = Util::emptyString;
-	if(SETTING(ENABLE_SUDP)) {
+	if(BDSETTING(ENABLE_SUDP)) {
 		auto key = std::make_unique<uint8_t[]>(16);
 		RAND_bytes(key.get(), 16);
 		{

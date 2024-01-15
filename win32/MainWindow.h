@@ -249,6 +249,11 @@ private:
 
 	static DWORD WINAPI stopper(void* p);
 
+	//DiCe Edit
+	//LRESULT handleTBCustomDraw(NMTBCUSTOMDRAW& data);
+	//LRESULT handleRBCustomDraw(NMCUSTOMDRAW& data);
+	//void handleTabDrawing(TabViewPtr w, dwt::Canvas& canvas);
+
 	// ConnectionManagerListener
 	virtual void on(ConnectionManagerListener::Connected, ConnectionQueueItem* cqi, UserConnection* uc) noexcept;
 	virtual void on(ConnectionManagerListener::Removed, ConnectionQueueItem* cqi) noexcept;

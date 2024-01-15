@@ -19,6 +19,7 @@
 
 #include "BDCFrame.h"
 
+#include <dcpp/BDCManager.h>
 #include <dcpp/DirectoryListing.h>
 #include <dcpp/File.h>
 #include <dcpp/LogManager.h>
@@ -53,7 +54,8 @@ static const ColumnInfo logColumns[] = {
 BDCFrame::BDCFrame(TabViewPtr parent) :
 	BaseType(parent, T_("BDC Log"), IDI_DCPP, false),
 	grid(0),
-	logTable(0)
+	logTable(0),
+	clear(0)
 {
 	grid = addChild(Grid::Seed(1, 1));
 	grid->column(0).mode = GridInfo::FILL;
@@ -68,7 +70,7 @@ BDCFrame::BDCFrame(TabViewPtr parent) :
 			loadFile ? logIcons->add(dwt::Icon(WinUtil::iconFilename(icon), size))
 					 : logIcons->add(dwt::Icon(icon, size)); };
 
-		if(SETTING(USE_THEME)) {
+		if(BDSETTING(ENABLE_ICON_THEMING)) {
 			try {
 				//Types
 				addIcon(IDI_WHATS_THIS, true);
@@ -115,7 +117,7 @@ BDCFrame::BDCFrame(TabViewPtr parent) :
 	logTable = grid->addChild(cs);
 	logTable->setSmallImageList(logIcons);
 	logTable->onContextMenu([this](dwt::ScreenCoordinate pt) { return handleContextMenu(pt); });
-	logTable->onLeftMouseDown([this](const dwt::MouseEvent& me) { return handleClick(me); });
+	logTable->onLeftMouseDblClick([this](const dwt::MouseEvent& me) { return handleDblClick(me); });
 
 	WinUtil::makeColumns(logTable, logColumns, COLUMN_LAST, SETTING(BDCFRAME_ORDER), SETTING(BDCFRAME_WIDTHS));
 	WinUtil::setColor(logTable);
@@ -125,6 +127,12 @@ BDCFrame::BDCFrame(TabViewPtr parent) :
 	status->onDblClicked(STATUS_STATUS, [] {
 		WinUtil::openFile(Text::toT(Util::validateFileName(LogManager::getInstance()->getPath(LogManager::SYSTEM))));
 						 });
+
+	clear = addChild(WinUtil::Seeds::button);
+	clear->setText(T_("Clear log"));
+	clear->onClicked([this] () { clearLog(); });
+
+	status->setWidget(STATUS_CLEAR, clear);
 
 	layout();
 
@@ -160,7 +168,7 @@ bool BDCFrame::handleContextMenu(dwt::ScreenCoordinate pt) {
 	return false;
 }
 
-bool BDCFrame::handleClick(const dwt::MouseEvent& me) {
+bool BDCFrame::handleDblClick(const dwt::MouseEvent& me) {
 	auto item = logTable->hitTest(me.pos);
 	if (item.first == -1 || item.second == -1) {
 		return false;
@@ -227,16 +235,23 @@ void BDCFrame::postClosing() {
 	SettingsManager::getInstance()->set(SettingsManager::BDCFRAME_ORDER, WinUtil::toString(logTable->getColumnOrder()));
 }
 
+void BDCFrame::clearLog() {
+	{
+		LogManager::getInstance()->clearLogList();
+	}
+	logTable->clear();
+}
+
 BDCFrame::LogInfo::LogInfo(const LogMessagePtr& logMessage) :
 message(logMessage->getText()),
 type(static_cast<uint8_t>(logMessage->getMessageType())),
 level(static_cast<uint8_t>(logMessage->getLogLevel()))
 {
-	columns[COLUMN_TIME] = Text::toT(Util::getTimeString(logMessage->getTime()));
-	columns[COLUMN_ID] = Text::toT(Util::toString(logMessage->getId()));
-	columns[COLUMN_TYPE] = BDCWinUtil::logType[type];
-	columns[COLUMN_LEVEL] = BDCWinUtil::logLevel[level];
-	columns[COLUMN_MESSAGE] = Text::toT(message);
+	columns[COLUMN_TIME]	=	Text::toT(Util::getShortTimeString(logMessage->getTime()));
+	columns[COLUMN_ID]		=	Text::toT(Util::toString(logMessage->getId()));
+	columns[COLUMN_TYPE]	=	Text::toT(Bdcpp::logTypes[type]);
+	columns[COLUMN_LEVEL]	=	Text::toT(Bdcpp::logLevels[level]);
+	columns[COLUMN_MESSAGE] =	Text::toT(message);
 }
 
 void BDCFrame::on(Message, const LogMessagePtr& logMsg) noexcept {

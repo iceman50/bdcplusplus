@@ -25,5 +25,5 @@
 
 namespace dcpp {
 //const std::string fullVersionString(APPNAME " v" VERSIONSTRING " (" xstrver(DCPP_REVISION) ")");
-const std::string fullVersionString(MODNAME " v" MODVER);
+const std::string fullVersionString(APPNAME " v" VERSIONSTRING);
 }

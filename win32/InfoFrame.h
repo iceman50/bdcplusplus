@@ -32,7 +32,7 @@ public:
 	static const string id;
 	const string& getId() const;
 
-	static void openWindow(TabViewPtr parent, const string& userName, const InfoFrame::InfoMap& userInfo, bool activate = true);
+	static void openWindow(TabViewPtr parent, const string& userName, const InfoMap& userInfo, bool activate = true);
 
 	enum Status {
 		STATUS_STATUS,
@@ -42,7 +42,7 @@ public:
 private:
 	friend class MDIChildFrame<InfoFrame>;
 
-	InfoFrame(TabViewPtr parent, const string& userName, const InfoFrame::InfoMap& userInfo);
+	InfoFrame(TabViewPtr parent, const string& userName, const InfoMap& userInfo);
 	virtual ~InfoFrame() { }
 
 	void layout();

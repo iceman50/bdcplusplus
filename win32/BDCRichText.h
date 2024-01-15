@@ -15,11 +15,12 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef BDCPLUSPLUS_WIN32_BDCPP_RICH_TEXT_H
-#define BDCPLUSPLUS_WIN32_BDCPP_RICH_TEXT_H
+#ifndef DCPLUSPLUS_WIN32_BDCPP_RICH_TEXT_H
+#define DCPLUSPLUS_WIN32_BDCPP_RICH_TEXT_H
 
 #include <dcpp/FastAlloc.h>
 #include <dcpp/Flags.h>
+#include <dcpp/Bdcpp.h>
 #include <dcpp/SimpleXML.h>
 #include <dcpp/Text.h>
 
@@ -36,14 +37,13 @@
 #endif
 
 class RichTextBox;
-class TextFormat;
 
 class BDCRichText : private SimpleXMLReader::CallBack {
 public:
 	static void addChatHtml(RichTextBox* aRichText, const string& aHtml);
 	static void addChatPlain(RichTextBox* aRichText, const tstring& aLine);
-	static void addSystemLog(RichTextBox* aRichText, const tstring& aLine, const time_t& aTime);
-	static void addExamples(RichTextBox* aRichText, const TextFormat& aFormat, int type);
+	static void addSystemLog(RichTextBox* aRichText, const LogMessage& logMsg);
+	static void addExamples(RichTextBox* aRichText, const TextFormat& aFormat, int type); // Do we really need this?
 
 private:
 	enum State {
@@ -525,6 +525,7 @@ private:
 	void editBegin(size_t addlen);
 	void editEnd();
 	BOOL insertImage(const string& aFile);
+	void insertImage();
 
 	// image functions
 	static void getExampleParams(ParamMap& params);
@@ -533,4 +534,4 @@ private:
 	static HBITMAP createMask(HBITMAP hBitmap);
 };
 
-#endif // BDCPLUSPLUS_WIN32_BDCPP_RICH_TEXT_H
+#endif // DCPLUSPLUS_WIN32_BDCPP_RICH_TEXT_H

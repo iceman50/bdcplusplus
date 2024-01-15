@@ -898,7 +898,7 @@ void ShareManager::runRefresh(function<void (float)> progressF) {
 }
 
 void ShareManager::getBloom(ByteVector& v, size_t k, size_t m, size_t h) const {
-	dcdebug("Creating bloom filter, k=%u, m=%u, h=%u\n", k, m, h);
+	dcdebug("Creating bloom filter, k=%zu, m=%zu, h=%zu\n", k, m, h);
 	Lock l(cs);
 
 	HashBloom bloom;

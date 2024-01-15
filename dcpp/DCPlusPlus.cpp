@@ -19,6 +19,7 @@
 #include "DCPlusPlus.h"
 
 #include "ADLSearch.h"
+#include "BDCManager.h"
 #include "ClientManager.h"
 #include "ConnectionManager.h"
 #include "ConnectivityManager.h"
@@ -62,6 +63,7 @@ void startup() {
 	bind_textdomain_codeset(PACKAGE, "UTF-8");
 
 	ResourceManager::newInstance();
+	BDCManager::newInstance();
 	SettingsManager::newInstance();
 
 	LogManager::newInstance();
@@ -90,6 +92,7 @@ void startup() {
 }
 
 void load(function<void (const string&)> stepF, function<void (float)> progressF) {
+	BDCManager::getInstance()->load();
 	SettingsManager::getInstance()->load();
 
 #ifdef _WIN32
@@ -148,6 +151,7 @@ void shutdown() {
 	QueueManager::getInstance()->saveQueue(true);
 	ClientManager::getInstance()->saveUsers();
 	SettingsManager::getInstance()->save();
+	BDCManager::getInstance()->save();
 
 	PluginApiImpl::shutdown();
 	PluginManager::deleteInstance();
@@ -172,6 +176,7 @@ void shutdown() {
 	HashManager::deleteInstance();
 	LogManager::deleteInstance();
 	SettingsManager::deleteInstance();
+	BDCManager::deleteInstance();
 	TimerManager::deleteInstance();
 	ResourceManager::deleteInstance();
 

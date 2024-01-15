@@ -54,6 +54,16 @@ public:
 	will be modified accordingly. */
 	void match(OnlineUser& user) const;
 
+	bool isMatch(OnlineUser& user, bool ignorePredefined = false) const {
+		for (auto& i : list) {
+			if (ignorePredefined && i.isSet(UserMatch::PREDEFINED))
+				continue;
+			if (i.match(user))
+				return true;
+		}
+		return false;
+	}
+
 	/** Helper function that tells whether predefined definitions for favorites (pair.first) and
 	operators (pair.second) are existing. */
 	pair<bool, bool> checkPredef() const;

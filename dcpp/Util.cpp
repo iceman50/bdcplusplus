@@ -36,6 +36,7 @@
 #include "FastAlloc.h"
 #include "File.h"
 #include "LogManager.h"
+#include "SdEx.h"
 #include "SettingsManager.h"
 #include "SimpleXML.h"
 #include "StringTokenizer.h"
@@ -507,9 +508,9 @@ map<string, string> Util::decodeQuery(const string& query) {
 string Util::getAwayMessage() {
 	const auto& msg = awayMsg.empty() ? SETTING(DEFAULT_AWAY_MESSAGE) : awayMsg;
 	if (SETTING(AWAY_TIMESTAMP)) {
-		return msg.empty() ? msg : formatTime(msg + "[%x %X]", awayTime) + " <DC++ v" VERSIONSTRING ">";
+		return msg.empty() ? msg : formatTime(msg + "[%x %X]", awayTime) + " <" + APPNAME + " v" + VERSIONSTRING + ">";
 	} else {
-		return msg.empty() ? msg : formatTime(msg, awayTime) + " <DC++ v" VERSIONSTRING ">";
+		return msg.empty() ? msg : formatTime(msg, awayTime) + " <" + APPNAME + " v" + VERSIONSTRING + ">";
 	}
 }
 
@@ -980,39 +981,28 @@ struct GetString : boost::static_visitor<string> {
  * date/time and then finally written to the log file. If the parameter is not present at all,
  * it is removed from the string completely...
  */
-string Util::formatParams(const string& msg, const ParamMap& params, FilterF filter) {
-	string result = msg;
+string Util::formatParams(const string& aMsg, const ParamMap& aParams, FilterF filter) {
+	SdEx sdex(aMsg, false, false); // case sensitive and DO NOT search for escapes in the base line
+	ParamMap params = aParams; // copy over to be safe
+	SdExString::List sdstrings;
+	string result;
 
-	string::size_type i, j, k;
-	i = 0;
-	while (( j = result.find("%[", i)) != string::npos) {
-		if( (result.size() < j + 2) || ((k = result.find(']', j + 2)) == string::npos) ) {
-			break;
+	sdex->format(sdstrings, params, true, true, false); // ignore any sdex conditions, don't remove the parameters from the ParamMap
+
+	for (const auto& sdstring : sdstrings) {
+		if (sdstring.isParam()) {
+			string s = sdstring;
+			Util::replace("%", "%%", s);
+			if (filter)
+				s = filter(s);
+			result += s;
 		}
-
-		auto param = params.find(result.substr(j + 2, k - j - 2));
-
-		if(param == params.end()) {
-			result.erase(j, k - j + 1);
-			i = j;
-
-		} else {
-			auto replacement = boost::apply_visitor(GetString(), param->second);
-
-			// replace all % in params with %% for strftime
-			replace("%", "%%", replacement);
-
-			if(filter) {
-				replacement = filter(replacement);
-			}
-
-			result.replace(j, k - j + 1, replacement);
-			i = j + replacement.size();
+		else {
+			result += sdstring;
 		}
 	}
 
 	result = formatTime(result, time(NULL));
-
 	return result;
 }
 
@@ -1023,20 +1013,31 @@ string Util::formatTime(const string &msg, const time_t t) {
 			return Util::emptyString;
 		}
 
-		size_t bufsize = msg.size() + 256;
+		string ret = msg;
+		{
+			string::size_type i = 0;
+			const string::size_type last = ret.size() - 1;
+			while ((i = ret.find("%", i)) != string::npos) {
+				if (i == last)
+					break;
+				if (string("aAbBcdHIjmMpSUwWxXyYzZ%").find(ret[i + 1]) == string::npos)
+					ret.insert(i, "%");
+				i += 3;
+			}
+		}
+		size_t bufsize = ret.size() + 256;
 		string buf(bufsize, 0);
 
 		errno = 0;
+		buf.resize(strftime(&buf[0], bufsize - 1, ret.c_str(), loc));
 
-		buf.resize(strftime(&buf[0], bufsize-1, msg.c_str(), loc));
-
-		while(buf.empty()) {
-			if(errno == EINVAL)
+		while (buf.empty()) {
+			if (errno == EINVAL)
 				return Util::emptyString;
 
-			bufsize+=64;
+			bufsize += 64;
 			buf.resize(bufsize);
-			buf.resize(strftime(&buf[0], bufsize-1, msg.c_str(), loc));
+			buf.resize(strftime(&buf[0], bufsize - 1, ret.c_str(), loc));
 		}
 
 #ifdef _WIN32

@@ -22,6 +22,7 @@
 #include <boost/scoped_array.hpp>
 
 #include "AdcCommand.h"
+#include "BDCManager.h"
 #include "ChatMessage.h"
 #include "ClientManager.h"
 #include "ConnectionManager.h"
@@ -1003,9 +1004,9 @@ void AdcHub::infoImpl() {
 	addParam(lastInfoMap, c, "HR", Util::toString(counts[COUNT_REGISTERED]));
 	addParam(lastInfoMap, c, "HO", Util::toString(counts[COUNT_OP]));
 	//DiCe Addons
-	addParam(lastInfoMap, c, "AP", MODNAME);
+	addParam(lastInfoMap, c, "AP", APPNAME);
 	//addParam(lastInfoMap, c, "AP", "++");
-	addParam(lastInfoMap, c, "VE", MODVER);
+	addParam(lastInfoMap, c, "VE", VERSIONSTRING);
 	//addParam(lastInfoMap, c, "VE", VERSIONSTRING);
 	addParam(lastInfoMap, c, "AW", Util::getAway() ? "1" : Util::emptyString);
 
@@ -1036,7 +1037,7 @@ void AdcHub::infoImpl() {
 		addParam(lastInfoMap, c, "KP", CryptoManager::getInstance()->keyprintToString(kp));
 	}
 
-	if(SETTING(ENABLE_SUDP))
+	if(BDSETTING(ENABLE_SUDP))
 		su += "," + SUD1_FEATURE;
 
 	bool addV4 = !sock->isV6Valid() || (get(HubSettings::Connection) != SettingsManager::INCOMING_DISABLED);

@@ -20,6 +20,7 @@
 
 #include <set>
 
+#include <dcpp/BDCManager.h>
 #include <dcpp/FavoriteManager.h>
 #include <dcpp/ClientManager.h>
 #include <dcpp/Util.h>
@@ -87,7 +88,7 @@ hubs(0)
 			
 			const dwt::Point size(16, 16);
 			hubIcons = dwt::ImageListPtr(new dwt::ImageList(size));
-			if(SETTING(USE_THEME)) {
+			if(BDSETTING(ENABLE_ICON_THEMING)) {
 				try {
 				hubIcons->add(dwt::Icon(WinUtil::iconFilename(IDI_HUB), size));
 				hubIcons->add(dwt::Icon(WinUtil::iconFilename(IDI_HUB_OFF), size));

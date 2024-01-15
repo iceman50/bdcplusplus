@@ -25,7 +25,7 @@
 namespace dcpp {
 
 StringMatch::Method StringMatch::getMethod() const {
-	return boost::get<StringSearch::List>(&search) ? PARTIAL : boost::get<string>(&search) ? EXACT : REGEX;
+	return (boost::get<StringSearch::List>(&search) ? PARTIAL : (boost::get<string>(&search) ? EXACT : (boost::get<boost::regex>(&search) ? REGEX : SDEX)));
 }
 
 void StringMatch::setMethod(Method method) {
@@ -33,6 +33,7 @@ void StringMatch::setMethod(Method method) {
 	case PARTIAL: search = StringSearch::List(); break;
 	case EXACT: search = string(); break;
 	case REGEX: search = boost::regex(); break;
+	case SDEX: search = SdEx(); break;
 	case METHOD_LAST: break;
 	}
 }
@@ -70,6 +71,11 @@ struct Prepare : boost::static_visitor<bool> {
 		}
 	}
 
+	bool operator()(SdEx& sdex) const {
+		sdex->assign(&(*pattern.begin()), &(*pattern.end()));
+		return true;
+	}
+
 private:
 	const string& pattern;
 };
@@ -101,6 +107,10 @@ struct Match : boost::static_visitor<bool> {
 			// most likely a stack overflow, ignore...
 			return false;
 		}
+	}
+
+	bool operator()(const SdEx& sdex) const {
+		return sdex->check(str);
 	}
 
 private:

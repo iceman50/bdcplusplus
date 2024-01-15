@@ -77,7 +77,6 @@ static const FieldName fields[] =
 	{ "CO", T_("Connection"), &Text::toT },
 	{ "CT", T_("Client type"), &Text::toT },
 	{ "TA", T_("Tag"), &Text::toT },
-	//DiCe Addon
 	{ "SP", T_("Supports(NMDC)"), &Text::toT },
 	{ "LK", T_("Lock(NMDC)"), &Text::toT },
 	{ "PK", T_("PK(NMDC)"), &Text::toT },
@@ -108,13 +107,13 @@ static tstring displayInfo(const InfoFrame::InfoMap& userInfo) {
 	return ret;
 }
 
-void InfoFrame::openWindow(TabViewPtr parent, const string& userName, const InfoFrame::InfoMap& userInfo, bool activate) {
+void InfoFrame::openWindow(TabViewPtr parent, const string& userName, const InfoMap& userInfo, bool activate) {
 	auto window = new InfoFrame(parent, userName, userInfo);
 	if(activate) //TODO WindowParams?
 		window->activate();
 }
 
-InfoFrame::InfoFrame(TabViewPtr parent, const string& userName, const InfoFrame::InfoMap& userInfo) :
+InfoFrame::InfoFrame(TabViewPtr parent, const string& userName, const InfoMap& userInfo) :
 BaseType(parent, Text::toT(userName), 0),
 grid(0),
 pad(0),

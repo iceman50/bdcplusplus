@@ -106,7 +106,13 @@ MenuPtr NotepadFrame::makeMenu(dwt::ScreenCoordinate pt) {
 	menu->appendSeparator();
 
 	menu->appendItem(T_("Search"), [this, pt] { WinUtil::searchAny(pad->textUnderCursor(pt)); });
-	menu->appendItem(T_("Search by TTH"), [this, pt] { WinUtil::searchHash(TTHValue(Text::fromT(pad->textUnderCursor(pt)))); });
+	menu->appendItem(T_("Search by TTH"), [this, pt] {
+		const auto& text = pad->textUnderCursor(pt);
+		if((text.find(_T("magnet:?"), 0, 8) == 0) && !WinUtil::parseLink(text)) {
+			WinUtil::searchHash(TTHValue(Text::fromT(text)));
+		} else {
+			WinUtil::searchHash(TTHValue(Text::fromT(text)));
+		} });
 
 	return menu;
 }

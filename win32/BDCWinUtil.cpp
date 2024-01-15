@@ -19,17 +19,20 @@
 #include "BDCWinUtil.h"
 #include "resource.h"
 
+#include "WinUtil.h"
+
 //#include <chrono>
 #include <random>
 
 #include <dcpp/DownloadManager.h>
+#include <dcpp/GeoManager.h>
 #include <dcpp/LogManager.h>
 #include <dcpp/UploadManager.h>
 #include <dcpp/SettingsManager.h>
 #include <dcpp/version.h>
 
 #include <bzlib.h>
-#include <geoip/GeoIP.h>
+#include <maxminddb/maxminddb.h>
 #include <miniupnpc/miniupnpc.h>
 #include <openssl/opensslv.h>
 #include <zlib/zlib.h>
@@ -39,53 +42,37 @@
 
 time_t BDCWinUtil::startTime = time(nullptr);
 
-const tstring BDCWinUtil::actions[BDCWinUtil::ACTION_LAST] = {
-	T_("Get file list"),
-	T_("Browse file list"),
-	T_("Match queue"),
-	T_("Send private message"),
-	T_("Add to favorites"),
-	T_("Grant extra slot"),
-	T_("Remove from queue"),
-	T_("Ignore chat"),
-	T_("Unignore chat")
-};
-
-const tstring BDCWinUtil::logType[LogMessage::Type::TYPE_LAST] = {
-	T_("Debug"),
-	T_("General"),
-	T_("Warning"),
-	T_("Error")
-};
-
-const tstring BDCWinUtil::logLevel[LogMessage::Level::LOG_LAST] = {
-	T_("System"),
-	T_("Share"),
-	T_("Private"),
-	T_("Spam"),
-	T_("Server"),
-	T_("Plugins")
-};
-
-const string BDCWinUtil::protocols[BDCWinUtil::PROTOCOL_LAST] = {
-	"magnet:?",
-	"://",
-	"mailto:",
-	"@",
-	"www."
-};
-
-const string BDCWinUtil::charsemaillocal = "abcdefghijklmnopqrstuvwxzyABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-.!#$%&'*+/=?^_`{|}~"; // not completely correct
-const string BDCWinUtil::charsemaildomain = "abcdefghijklmnopqrstuvwxzyABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-."; // not completely correct
-const string BDCWinUtil::charslink = "abcdefghijklmnopqrstuvwxzyABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~:/?#[]@!$&'()*+,;=%"; // aside from a few exceptions
-const string BDCWinUtil::lettersnumbers = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-const string BDCWinUtil::digitshex = "1234567890ABCDEFabcdef";
-const string BDCWinUtil::digitsnumbers = "1234567890.,-";
-const string BDCWinUtil::delimiters = ",;.: \r\n\t";
-
 bool BDCWinUtil::getSysInfo(tstring& line) {
+
+	line += Text::toT("\r\n_[ ") + Text::toT(APPNAME) + Text::toT(" ") + Text::toT(VERSIONSTRING) + Text::toT(" Client Information ]_");
+	line += Text::toT("\r\n |");
+	line += getUptime(false);
+	line += Text::toT("\r\n |");
+	line += getClientInfo();
+	line += Text::toT("\r\n |");
+	line += getOSInfo();
+	line += getSystemInfo();
+	line += Text::toT("\r\n |");
+	line += getLibs();
+	line += _T("\r\n");
+
+	return true;
+}
+
+tstring BDCWinUtil::getUptime(bool standalone /*= true*/) {
+	tstring line;
+
+	standalone ? line += Text::toT("\r\n | ") + _T(APPNAME) + T_(" Uptime")
+		       : line += Text::toT("\r\n | ") + T_("Uptime");
+	line += Text::toT("\r\n |\tCLI\t") + formatTimeDifference(time(NULL) - startTime);
+	line += Text::toT("\r\n |\tSYS\t") + formatTimeDifference(::GetTickCount64() / 1000);
+
+	return line;
+}
+
+tstring BDCWinUtil::getClientInfo() {
 #if defined(_MSC_VER)
-	tstring ver;
+tstring ver;
 	//TODO Build a table of all versions
 	if(_MSC_VER >= 1910 && _MSC_VER <= 1916) { ver = Text::toT("2017"); }
 	if(_MSC_VER >= 1920 && _MSC_VER <= 1929) { ver = Text::toT("2019"); }
@@ -99,7 +86,24 @@ bool BDCWinUtil::getSysInfo(tstring& line) {
 #elif defined(__GNUC__)
 #define BDCPP_COMPILED_BY "GCC"
 #endif
+	tstring line;
 
+	line += Text::toT("\r\n | ") + T_("Client");
+	line += Text::toT("\r\n |\tAPP\t") + Text::toT(APPNAME);
+	line += Text::toT("\r\n |\tVER\t") + Text::toT(VERSIONSTRING);
+	line += Text::toT("\r\n |\tCMP\t") + _T(BDCPP_COMPILED_BY);
+	line += Text::toT("\r\n |\tDOB\t") + Text::toT(__DATE__ " " __TIME__);
+
+	return line; 
+}
+
+tstring BDCWinUtil::getSystemInfo() {
+	TCHAR buf[255];
+	tstring line;
+	HKEY hKey;
+	DWORD speedMhz;
+	DWORD bufLen = 255;
+	DWORD dwLen	= 4;
 	MEMORYSTATUSEX memoryStatusEx;
 	DISPLAY_DEVICE displayDevice;
 	SYSTEM_INFO	systemInfo;
@@ -111,53 +115,6 @@ bool BDCWinUtil::getSysInfo(tstring& line) {
 
 	displayDevice.cb = sizeof(DISPLAY_DEVICE);
 	EnumDisplayDevices(NULL, 0, &displayDevice, 1); // EDD_GET_DEVICE_INTERFACE_NAME
-
-	//line += _T("\r\n");
-	line += Text::toT("\r\n_[ ") + Text::toT(MODNAME) + Text::toT(" ") + Text::toT(MODVER) + Text::toT(" Client Information ]_");;
-
-	line += Text::toT("\r\n |");
-	line += Text::toT("\r\n | ") + T_("Uptime");
-	line += Text::toT("\r\n |\tCLI\t") + formatTimeDifference(time(NULL) - startTime);
-	line += Text::toT("\r\n |\tSYS\t") + formatTimeDifference(::GetTickCount64() / 1000);
-
-	line += Text::toT("\r\n |");
-	line += Text::toT("\r\n | ") + T_("Client");
-	line += Text::toT("\r\n |\tAPP\t") + Text::toT(MODNAME);
-	line += Text::toT("\r\n |\tVER\t") + Text::toT(MODVER);
-	line += Text::toT("\r\n |\tCMP\t") + _T(BDCPP_COMPILED_BY);
-	line += Text::toT("\r\n |\tDOB\t") + Text::toT(__DATE__ " " __TIME__);
-
-	line += Text::toT("\r\n |");
-	line += Text::toT("\r\n | ") + T_("System");
-	line += Text::toT("\r\n |\tOS\t") + getOSInfo();
-
-	line += getCPUInfo();
-	line += Text::toT("\r\n |\tTHD\t") + Text::toT(Util::toString(systemInfo.dwNumberOfProcessors));
-	line += Text::toT("\r\n |\tRAM\t") + Text::toT(Util::formatBytes(memoryStatusEx.ullTotalPhys)) + Text::toT(" (") + Text::toT(Util::formatBytes(memoryStatusEx.ullAvailPhys)) + Text::toT(" available)");
-	line += Text::toT("\r\n |\tSTR\t") + BDCWinUtil::diskSpaceInfo(true) + _T(" (free/total)");
-	line += Text::toT("\r\n |\tGFX\t") + tstring(displayDevice.DeviceString);
-	line += Text::toT("\r\n |\tRES\t") + Text::toT(Util::toString(GetSystemMetrics(SM_CXSCREEN))) + Text::toT("x") + Text::toT(Util::toString(GetSystemMetrics(SM_CYSCREEN)));
-
-	line += Text::toT("\r\n |");
-	line += Text::toT("\r\n | ") + Text::toT("Libs");
-	line += Text::toT("\r\n |\tBoost version : ") + Text::toT(BOOST_LIB_VERSION);
-	line += Text::toT("\r\n |\tZLib version : ") + Text::toT(ZLIB_VERSION);
-	line += Text::toT("\r\n |\tBZip2 version: ") + Text::toT(BZ2_bzlibVersion());
-	line += Text::toT("\r\n |\tOpenSSL version: ") + Text::toT(OPENSSL_FULL_VERSION_STR) + _T(" - ") + Text::toT(OPENSSL_RELEASE_DATE);
-	line += Text::toT("\r\n |\tMiniUPnPc version : ") + Text::toT(MINIUPNPC_VERSION);
-//	line += _T("\r\n |\tGeoIP version: ") + Text::toT(GeoIP_lib_version());
-
-	line += _T("\r\n");
-	return true;
-}
-
-tstring BDCWinUtil::getCPUInfo() {
-	TCHAR buf[255];
-	tstring line;
-	HKEY hKey;
-	DWORD speedMhz;
-	DWORD bufLen = 255;
-	DWORD dwLen	= 4;
 
 
 	if(RegOpenKeyEx(HKEY_LOCAL_MACHINE, _T("Hardware\\Description\\System\\CentralProcessor\\0\\"), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
@@ -172,12 +129,20 @@ tstring BDCWinUtil::getCPUInfo() {
 			line += Text::toT("\r\n |\tCLK\t") + Text::toT(Util::toString(float(speedMhz) / 1000)) + _T(" GHz");
 		RegCloseKey(hKey);
 	}
+
+	line += Text::toT("\r\n |\tTHD\t") + Text::toT(Util::toString(systemInfo.dwNumberOfProcessors));
+	line += Text::toT("\r\n |\tRAM\t") + Text::toT(Util::formatBytes(memoryStatusEx.ullAvailPhys)) + Text::toT(" / ") + Text::toT(Util::formatBytes(memoryStatusEx.ullTotalPhys)) + Text::toT(" (");
+	line += Text::toT(Util::toString(memoryStatusEx.dwMemoryLoad)) + Text::toT("% used)");
+	line += Text::toT("\r\n |\tSTR\t") + BDCWinUtil::diskSpaceInfo(true) + _T(" (free/total)");
+	line += Text::toT("\r\n |\tGFX\t") + tstring(displayDevice.DeviceString);
+	line += Text::toT("\r\n |\tRES\t") + Text::toT(Util::toString(GetSystemMetrics(SM_CXSCREEN))) + Text::toT("x") + Text::toT(Util::toString(GetSystemMetrics(SM_CYSCREEN)));
+
 	return line;
 }
 
 tstring BDCWinUtil::getOSInfo() {
 	//This requires that your exe is properly manifested in order to return the correct win version
-	tstring os, bit;
+	tstring line, os, bit;
 	OSVERSIONINFOEX osv = { 0 };
 	osv.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
 	GetVersionEx((OSVERSIONINFO*)&osv);
@@ -185,6 +150,9 @@ tstring BDCWinUtil::getOSInfo() {
 	HKEY hKey;
 	TCHAR buf[255];
 	DWORD bufLen = 255;
+
+	line = Text::toT("\r\n | ") + T_("System");
+	line += Text::toT("\r\n |\tOS\t");
 
 #ifdef _WIN64
 	bit = Text::toT(" 64-bit");
@@ -232,10 +200,10 @@ tstring BDCWinUtil::getOSInfo() {
 		} else if(osv.dwMajorVersion == 6 && osv.dwMinorVersion == 1 && osv.wProductType == VER_NT_WORKSTATION) {
 			os = Text::toT("Windows 7");
 			if(osv.wServicePackMajor >= 1) {
-				os += Text::toT(" SP1");
+				os = Text::toT(" SP1");
 			}
 		} else {
-			os = Text::toT("Unsupported Windows version - build: ") + Text::toT(Util::toString(osv.dwBuildNumber));
+			os += Text::toT("Unsupported Windows version - build: ") + Text::toT(Util::toString(osv.dwBuildNumber));
 		}
 
 		os += _T(" ");
@@ -251,7 +219,7 @@ tstring BDCWinUtil::getOSInfo() {
 		os += bit;
 	}
 
-	return os;
+	return line + os;
 }
 
 TStringList BDCWinUtil::findVolumes() {
@@ -310,10 +278,10 @@ tstring BDCWinUtil::diskSpaceInfo(bool onlyTotal) {
 
 	if(totalSize != 0) {
 		if(!onlyTotal) {
-			ret += Text::toT("\r\n\t Local drive space (free/total): ") + Text::toT(Util::formatBytes(totalFree)) + Text::toT("/") + Text::toT(Util::formatBytes(totalSize));
+			ret += Text::toT("\r\n\t Local drive space (free / total): ") + Text::toT(Util::formatBytes(totalFree)) + Text::toT(" / ") + Text::toT(Util::formatBytes(totalSize));
 			if(netSize != 0) {
-				ret +=  Text::toT("\r\n\t Network drive space (free/total): ") + Text::toT(Util::formatBytes(netFree)) + Text::toT("/") + Text::toT(Util::formatBytes(netSize));
-				ret +=  Text::toT("\r\n\t Total drive space (free/total): ") + Text::toT(Util::formatBytes((netFree+totalFree))) + Text::toT("/") + Text::toT(Util::formatBytes(netSize+totalSize));
+				ret +=  Text::toT("\r\n\t Network drive space (free / total): ") + Text::toT(Util::formatBytes(netFree)) + Text::toT(" / ") + Text::toT(Util::formatBytes(netSize));
+				ret +=  Text::toT("\r\n\t Total drive space (free / total): ") + Text::toT(Util::formatBytes((netFree + totalFree))) + Text::toT(" / ") + Text::toT(Util::formatBytes(netSize + totalSize));
 			}
 		} else {
 			ret += Text::toT(Util::formatBytes(totalFree)) + Text::toT("/") + Text::toT(Util::formatBytes(totalSize));
@@ -359,7 +327,7 @@ tstring BDCWinUtil::diskInfoList() {
 			if(GetDiskFreeSpaceEx(drive, NULL, (PULARGE_INTEGER)&size, (PULARGE_INTEGER)&free)){
 				totalFree += free;
 				totalSize += size;
-				results.push_back((Text::toT("Network mount path: ") + (tstring)drive + Text::toT("  \tDrive space (free/total) ") + Text::toT(Util::formatBytes(free)) + Text::toT("/") +  Text::toT(Util::formatBytes(size))));
+				results.push_back((Text::toT("Network mount path: ") + (tstring)drive + Text::toT("  \tDrive space (free/total) ") + Text::toT(Util::formatBytes(free)) + Text::toT(" / ") +  Text::toT(Util::formatBytes(size))));
 			}
 		}
 
@@ -368,14 +336,14 @@ tstring BDCWinUtil::diskInfoList() {
 	}
 
 	result += Text::toT("\r\n");
-	result += Text::toT("\r\n_[ ") + Text::toT(MODNAME) + Text::toT(" ") + Text::toT(MODVER) + Text::toT(" Drive Statistics ]_");
+	result += Text::toT("\r\n_[ ") + Text::toT(APPNAME) + Text::toT(" ") + Text::toT(VERSIONSTRING) + Text::toT(" Drive Statistics ]_");
 
 	sort(results.begin(), results.end()); //sort it
 	for(auto i = results.begin(); i != results.end(); ++i) {
 		disk_count++;
 		result += Text::toT("\r\n |\t ") + *i; 
 	}
-	result += Text::toT("\r\n |\t \r\n | \t Total drive space (free/total): ") + Text::toT(Util::formatBytes((totalFree))) + Text::toT("/") + Text::toT(Util::formatBytes(totalSize));
+	result += Text::toT("\r\n |\t \r\n | \t Total drive space (free/total): ") + Text::toT(Util::formatBytes((totalFree))) + Text::toT(" / ") + Text::toT(Util::formatBytes(totalSize));
 	result += Text::toT("\r\n |\t Total drive count: ") + Text::toT(Util::toString(disk_count));
 	result += Text::toT("\r\n");
 
@@ -384,9 +352,23 @@ tstring BDCWinUtil::diskInfoList() {
 	return result;
 }
 
+tstring BDCWinUtil::getLibs() {
+	tstring line;
+
+	line += Text::toT("\r\n | ") + Text::toT("Libs");
+	line += Text::toT("\r\n |\tBoost version : ") + Text::toT(BOOST_LIB_VERSION);
+	line += Text::toT("\r\n |\tZLib version : ") + Text::toT(ZLIB_VERSION);
+	line += Text::toT("\r\n |\tBZip2 version: ") + Text::toT(BZ2_bzlibVersion());
+	line += Text::toT("\r\n |\tOpenSSL version: ") + Text::toT(OPENSSL_FULL_VERSION_STR) + _T(" - ") + Text::toT(OPENSSL_RELEASE_DATE);
+	line += Text::toT("\r\n |\tMiniUPnPc version : ") + Text::toT(MINIUPNPC_VERSION);
+	line += Text::toT("\r\n |\tSdEx version : ") + Text::toT(Util::toString(SDEX_VERSION));
+	line += Text::toT("\r\n |\tGeoIP2 version: ") + Text::toT(PACKAGE_VERSION);
+
+	return line;
+}
+
 bool BDCWinUtil::getNetStats(tstring& line) {
-	line += Text::toT("\r\n");
-	line += Text::toT("\r\n_[ ") + Text::toT(MODNAME) + Text::toT(" ") + Text::toT(MODVER) + Text::toT(" Network Statistics ]_");
+	line += Text::toT("\r\n_[ ") + Text::toT(APPNAME) + Text::toT(" ") + Text::toT(VERSIONSTRING) + Text::toT(" Network Statistics ]_");
 
 	line += Text::toT("\r\n |");
 	line += Text::toT("\r\n | Uploads");
@@ -437,137 +419,3 @@ tstring BDCWinUtil::formatTimeDifference(uint64_t diff, size_t levels /*= 3*/) {
 	return buf;
 }
 
-// equals
-string::size_type BDCWinUtil::streql(const string::value_type* pbegin, const string::value_type* pend, const string::value_type* dbegin, const string::value_type* dend) {
-	if ((pend - pbegin) != (dend - dbegin))
-		return string::npos; // not the same length = false
-
-	while (pbegin != pend) {
-		if (*pbegin != *dbegin)
-			return string::npos;
-		pbegin++;
-		dbegin++;
-	}
-
-	return 0; // because the comparison checked out at position 0
-}
-
-// compare
-string::size_type BDCWinUtil::strcmp(const string::value_type* pbegin, const string::value_type* pend, const string::value_type* dbegin, const string::value_type* dend) {
-	if ((pbegin == pend) || (dbegin == dend))
-		return string::npos;
-	if ((pend - pbegin) < (dend - dbegin))
-		return string::npos;
-
-	while (dbegin != dend) {
-		if (*pbegin != *dbegin)
-			return string::npos;
-		pbegin++;
-		dbegin++;
-	}
-
-	return 0; // because the comparison checked out at position 0
-}
-
-// find
-string::size_type BDCWinUtil::strfnd(const string::value_type* pbegin, const string::value_type* pend, const string::value_type* dbegin, const string::value_type* dend) {
-	if ((pbegin == pend) || (dbegin == dend))
-		return string::npos;
-	if ((pend - pbegin) < (dend - dbegin))
-		return string::npos;
-
-	auto phi = pbegin;
-	auto pdend = pend - (dend - dbegin) + 1;
-
-	while (phi != pdend) {
-		if (strcmp(phi, pend, dbegin, dend) != string::npos)
-			return (phi - pbegin);
-		phi++;
-	}
-
-	return string::npos;
-}
-
-// find_first_of
-string::size_type BDCWinUtil::strfndfstof(const string::value_type* pbegin, const string::value_type* pend, const string::value_type* dbegin, const string::value_type* dend) {
-	if ((pbegin == pend) || (dbegin == dend))
-		return string::npos;
-
-	auto phi = pbegin;
-
-	while (phi != pend) {
-		auto d = dbegin;
-		while (d != dend) {
-			if (*d == *phi)
-				return (phi - pbegin);
-			d++;
-		}
-		phi++;
-	}
-
-	return string::npos;
-}
-
-// find_first_not_of
-string::size_type BDCWinUtil::strfndfstnof(const string::value_type* pbegin, const string::value_type* pend, const string::value_type* dbegin, const string::value_type* dend) {
-	if ((pbegin == pend) || (dbegin == dend))
-		return string::npos;
-
-	auto phi = pbegin;
-
-	while (phi != pend) {
-		auto d = dbegin;
-		while (d != dend) {
-			if (*d == *phi)
-				break;
-			d++;
-		}
-		if (d == dend)
-			return (phi - pbegin);
-		phi++;
-	}
-
-	return string::npos;
-}
-
-// find_last_of
-string::size_type BDCWinUtil::strfndlstof(const string::value_type* pbegin, const string::value_type* pend, const string::value_type* dbegin, const string::value_type* dend) {
-	if ((pbegin == pend) || (dbegin == dend))
-		return string::npos;
-
-	auto phi = pend;
-
-	while (phi != pbegin) { // backwards, we want to find the _last_ hit
-		phi--;
-		auto d = dbegin;
-		while (d != dend) {
-			if (*d == *phi)
-				return (phi - pbegin);
-			d++;
-		}
-	}
-
-	return string::npos;
-}
-
-// find_last_of_not_of
-string::size_type BDCWinUtil::strfndlstnof(const string::value_type* pbegin, const string::value_type* pend, const string::value_type* dbegin, const string::value_type* dend) {
-	if ((pbegin == pend) || (dbegin == dend))
-		return string::npos;
-
-	auto phi = pend;
-
-	while (phi != pbegin) { // backwards, we want to find the _last_ not hit
-		phi--;
-		auto d = dbegin;
-		while (d != dend) {
-			if (*d == *phi)
-				break;
-			d++;
-		}
-		if (d == dend)
-			return (phi - pbegin);
-	}
-
-	return string::npos;
-}

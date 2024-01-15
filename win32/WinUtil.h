@@ -314,12 +314,9 @@ public:
 
 	static dwt::IconPtr mergeIcons(const std::vector<int>& iconIds);
 
-	static tstring iconFilename(int icon, long size = 16);
+	static tstring iconFilename(int icon);
 
 	static void getHubStatus(const string& aUrl, tstring& statusText, int& statusIcon);
-
-	static string themeFolder;
-
 private:
 	static void initUserMatching();
 

@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2001-2023 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2013 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -12,7 +12,8 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
 #include "stdinc.h"
@@ -28,47 +29,21 @@ namespace dcpp {
 
 using std::vector;
 
-Tagger::Tagger(const string& text) : text(text)
-{
-}
+void Tagger::add(size_t start, size_t end, string id, string attributes) {
+	Tag openingTag = { start, "<" + id + " " + move(attributes) + ">", true },
+		closingTag = { end, "</" + move(id) + ">", false };
 
-Tagger::Tagger(string&& text) : text(move(text))
-{
-}
-
-const string& Tagger::getText() const {
-	return text;
-}
-
-void Tagger::addTag(size_t start, size_t end, string id, string attributes) {
-	Tag openingTag { start, "<" + id + " " + move(attributes) + ">", true };
-	Tag closingTag { end, "</" + move(id) + ">", false };
-
-	tags.push_back(move(openingTag));
+	tags.push_back(std::move(openingTag));
 	auto& opening = tags.back();
 
-	tags.push_back(move(closingTag));
+	tags.push_back(std::move(closingTag));
 	auto& closing = tags.back();
 
 	opening.otherTag = &closing;
 	closing.otherTag = &opening;
 }
 
-void Tagger::replaceText(size_t start, size_t end, const string& replacement) {
-	text.replace(start, end - start, replacement);
-
-	const auto delta = static_cast<int>(replacement.size()) - static_cast<int>(end - start);
-
-	for(auto& tag: tags) {
-		if(tag.pos >= end) {
-			tag.pos += delta;
-		} else if(tag.pos > start) {
-			tag.pos = start;
-		}
-	}
-}
-
-string Tagger::merge(string& tmp) {
+string Tagger::merge(const string& text, string& tmp) {
 	tags.sort([](const Tag& a, const Tag& b) { return a.pos < b.pos; });
 
 	string ret;

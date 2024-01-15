@@ -32,6 +32,7 @@ class BDCFrame : public StaticFrame<BDCFrame>,
 
 public:
 	enum Status {
+		STATUS_CLEAR,
 		STATUS_STATUS,
 		STATUS_LAST
 	};
@@ -100,13 +101,17 @@ private:
 
 	GridPtr grid;
 
+	ButtonPtr clear;
+
 	static dwt::ImageListPtr logIcons;
 
 	bool handleContextMenu(dwt::ScreenCoordinate pt);
-	bool handleClick(const dwt::MouseEvent& me);
+	bool handleDblClick(const dwt::MouseEvent& me);
 
 	void addLog(const LogMessagePtr& logMessage);
 	void openFile(const string& path) const;
+
+	void clearLog();
 
 	// LogManagerListener
 	virtual void on(Message, const LogMessagePtr& logMsg) noexcept;

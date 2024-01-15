@@ -64,8 +64,7 @@ const string SettingsManager::settingTags[] =
 	"SoundMainChat", "SoundPM", "SoundPMWindow", "SoundFinishedDL", "SoundFinishedFL", "LastSharedFolder",
 	"SharingSkiplistExtensions", "SharingSkiplistRegEx", "SharingSkiplistPaths", "WhitelistOpenURIs",
 	//DiCe STR SETTINGS
-	"InfoViewerFont","ACFrameOrder", "ACFrameWidths", "LoadedTheme", "ThemeDirectory", "IconDirectory",
-	"BDCFrameOrder", "BDCFrameWidths",
+	"ACFrameOrder", "ACFrameWidths", "BDCFrameOrder", "BDCFrameWidths", "InfoViewerFont",
 	//
 	"SENTRY",
 	// Ints
@@ -92,8 +91,6 @@ const string SettingsManager::settingTags[] =
 	"MinUploadSpeed", "PMLastLogLines", "SearchHistory", "SetMinislotSize",
 	"SettingsSaveInterval", "Slots", "TabStyle", "TabWidth", "ToolbarSize", "AutoSearchInterval",
 	"MaxExtraSlots", "TestingStatus",
-	//DiCe INT SETTINGS
-	"ActionDBLClickUser",
 	"SENTRY",
 	// Bools
 	"AddFinishedInstantly", "AdlsBreakOnFirst",
@@ -122,7 +119,7 @@ const string SettingsManager::settingTags[] =
 	"UsersFilterFavorite", "UsersFilterOnline", "UsersFilterQueue", "UsersFilterWaiting",
 	"RegisterSystemStartup", "DontLogCCPMChat", 
 	//DiCe Addon SETTINGS::BOOL
-	"TabsOnBottom", "AboutCfgDisclaimer", "UseTheme", "EnableNmdcTls", "EnableSUDP",
+	"AboutCfgDisclaimer", "EnableNmdcTls",
 	"SENTRY",
 	// Int64
 	"TotalUpload", "TotalDownload", "SharingSkiplistMinSize", "SharingSkiplistMaxSize",
@@ -381,11 +378,8 @@ SettingsManager::SettingsManager() {
 	setDefault(WHITELIST_OPEN_URIS, "http:;https:;www;mailto:");
 	
 	//DiCe Addons
-	setDefault(TABS_ON_BOTTOM, true);
 	setDefault(AC_DISCLAIM, true);
 	setDefault(ENABLE_NMDC_TLS, true);
-	setDefault(ACTION_DOUBLECLICK_USER, BDCWinUtil::ACTION_GETLIST);
-	setDefault(ENABLE_SUDP, true);
 
 	setSearchTypeDefaults();
 
@@ -399,10 +393,6 @@ SettingsManager::SettingsManager() {
 	setDefault(UPLOAD_BG_COLOR, RGB(205, 60, 55));
 	setDefault(DOWNLOAD_TEXT_COLOR, RGB(255, 255, 255));
 	setDefault(DOWNLOAD_BG_COLOR, RGB(55, 170, 85));
-	setDefault(LOADED_THEME, "Default");
-	setDefault(USE_THEME, false);
-	setDefault(THEME_DIRECTORY, Util::getPath(Util::PATH_USER_CONFIG) + "Themes");
-	setDefault(ICONS_DIRECTORY, Util::emptyString);
 #endif
 }
 

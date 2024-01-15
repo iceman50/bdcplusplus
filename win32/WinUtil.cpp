@@ -25,6 +25,7 @@
 #include <boost/lexical_cast.hpp>
 
 #include <dcpp/Archive.h>
+#include <dcpp/BDCManager.h>
 #include <dcpp/ClientManager.h>
 #include <dcpp/debug.h>
 #include <dcpp/File.h>
@@ -91,8 +92,6 @@ bool WinUtil::urlDcADCRegistered = false;
 bool WinUtil::urlMagnetRegistered = false;
 bool WinUtil::dcextRegistered = false;
 
-string WinUtil::themeFolder = Util::getPath(Util::PATH_RESOURCES) + "Themes" + PATH_SEPARATOR_STR;
-
 const Button::Seed WinUtil::Seeds::button;
 const ComboBox::Seed WinUtil::Seeds::comboBox;
 const ComboBox::Seed WinUtil::Seeds::comboBoxEdit;
@@ -117,7 +116,7 @@ const Table::Seed WinUtil::Seeds::Dialog::optionsTable;
 const CheckBox::Seed WinUtil::Seeds::Dialog::checkBox;
 const Button::Seed WinUtil::Seeds::Dialog::button;
 
-//New Icons need to be added here, otherwise new icons will not appear unless using embedded icons(resource.h and DCPlusPlus.rc)
+//New Icons need to be added here otherwise new icons will not appear unless using embedded icons(resource.h and DCPlusPlus.rc)
 static const map<int, tstring> icoMap = 
 {
 	{IDI_DCPP,				 _T("DCPlusPlus.ico")},
@@ -209,7 +208,6 @@ static const map<int, tstring> icoMap =
 };
 
 void WinUtil::init() {
-
 	SettingsManager::getInstance()->setDefault(SettingsManager::BACKGROUND_COLOR, dwt::Color::predefined(COLOR_WINDOW));
 	SettingsManager::getInstance()->setDefault(SettingsManager::TEXT_COLOR, dwt::Color::predefined(COLOR_WINDOWTEXT));
 
@@ -587,7 +585,11 @@ static const map<tstring, tstring> cmdMap = {
 	{_T("/netstat, /ns"),							  T_("Displays info about currently running Uploads and Downloads as well as lifetime data stats")},
 	{_T("/diskinfo, /di"),							  T_("Display a list of available [H|S]DD's installed with Free/Total stats as well")},
 	{_T("/diskfree, /df"),							  T_("Display a basic string of Total/Free drive space of your PC")},
-	{_T("/testsudp"),								  T_("Tests current implementation of SUDP to validate encryption/decryption")}
+	{_T("/testsudp, /tsudp"),						  T_("Tests current implementation of SUDP to validate encryption/decryption")},
+	{_T("/uptime, /ut"),							  T_("Display current client and system uptime")},
+	{_T("/osinfo, /os"),							  T_("Display current OS info")},
+	{_T("/cinfo, /ci"),								  T_("Display current Client info")},
+	{_T("/libs"),									  T_("Display current lib versions used by BDC++")}
 };
 
 tstring WinUtil::getDescriptiveCommands() {
@@ -602,7 +604,8 @@ tstring WinUtil::getDescriptiveCommands() {
 
 tstring
 	WinUtil::commands =
-		_T("/refresh, /me <msg>, /slots #, /dslots #, /search <string>, /clear [lines to keep], /dc++, /away <msg>, /back, /d <searchstring>, /g <searchstring>, /imdb <imdbquery>, /rebuild, /log [type], /help [brief], /u <url>, /f <string>, /download [#], /upload [#], /close, /a[bout][:]c[onfig], /sysinfo | /si, / netstat | /ni, / diskinfo | /di, / diskfree | /df, / testsudp");
+		_T("/refresh, /me <msg>, /slots #, /dslots #, /search <string>, /clear [lines to keep], /dc++, /away <msg>, /back, /d <searchstring>, /g <searchstring>, /imdb <imdbquery>, /rebuild, /log [type], /help [brief], /u <url>, /f <string>, /download [#], /upload [#], /close, /a[bout][:]c[onfig]")
+	    _T(" [/sysinfo | /si], [/netstat | /ni], [/diskinfo | /di], [/diskfree | /df], [/testsudp | /tsudp], [/uptime | /ut], [/osinfo | /os], [/cinfo | /ci], /libs");
 
 bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstring& status, bool& thirdPerson) {
 	string::size_type i = cmd.find(' ');
@@ -717,19 +720,23 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 		ACFrame::openWindow(mainWindow->getTabView());
 	//DiCe
 	} else if(Util::stricmp(cmd.c_str(), _T("sysinfo")) == 0 || Util::stricmp(cmd.c_str(), _T("si")) == 0)  {
-		tstring line;
-		BDCWinUtil::getSysInfo(line);
-		message = line;
+		BDCWinUtil::getSysInfo(message);
 	} else if(Util::stricmp(cmd.c_str(), _T("netstat")) == 0 || Util::stricmp(cmd.c_str(), _T("ns")) ==0)  {
-		tstring line;
-		BDCWinUtil::getNetStats(line);
-		message = line;
+		BDCWinUtil::getNetStats(message);
 	} else if(Util::stricmp(cmd.c_str(), _T("diskinfo")) == 0 || Util::stricmp(cmd.c_str(), _T("di")) == 0)  {
 		message = BDCWinUtil::diskInfoList();
 	} else if(Util::stricmp(cmd.c_str(), _T("diskfree")) == 0 || Util::stricmp(cmd.c_str(), _T("df")) == 0)  {
 		message = BDCWinUtil::diskSpaceInfo(true);
 	} else if(Util::stricmp(cmd.c_str(), _T("testsudp")) == 0 || Util::stricmp(cmd.c_str(), _T("tsudp")) == 0) {
 		SearchManager::getInstance()->testSUDP();
+	} else if(Util::stricmp(cmd.c_str(), _T("uptime")) == 0 || Util::stricmp(cmd.c_str(), _T("ut")) == 0) {
+		message = BDCWinUtil::getUptime();
+	} else if(Util::stricmp(cmd.c_str(), _T("osinfo")) == 0 || Util::stricmp(cmd.c_str(), _T("os")) == 0) {
+		message = BDCWinUtil::getOSInfo() + BDCWinUtil::getSystemInfo();
+	} else if(Util::stricmp(cmd.c_str(), _T("cinfo")) == 0 || Util::stricmp(cmd.c_str(), _T("ci")) == 0) {
+		message = BDCWinUtil::getClientInfo();
+	} else if(Util::stricmp(cmd.c_str(), _T("libs")) == 0) {
+		message = BDCWinUtil::getLibs();
 	} else {
 		return false;
 	}
@@ -1028,7 +1035,7 @@ void WinUtil::addSearchIcon(TextBoxPtr box) {
 }
 
 void WinUtil::addFilterMethods(ComboBoxPtr box) {
-	tstring methods[StringMatch::METHOD_LAST] = { T_("Partial match"), T_("Exact match"), T_("Regular Expression") };
+	tstring methods[StringMatch::METHOD_LAST] = { T_("Partial match"), T_("Exact match"), T_("Regular Expression"), T_("SdEx pattern") };
 	std::for_each(methods, methods + StringMatch::METHOD_LAST, [box](const tstring& str) { box->addValue(str); });
 }
 
@@ -1314,7 +1321,7 @@ void WinUtil::setApplicationStartupRegister()
 
 		if(ret != ERROR_SUCCESS)
 		{
-			LogManager::getInstance()->message(str(F_("Error registering DC++ for automatic startup (could not find or create key)")), LogMessage::TYPE_ERROR, LogMessage::LOG_SYSTEM);
+			LogManager::getInstance()->message(str(F_("Error registering BDC++ for automatic startup (could not find or create key)")), LogMessage::TYPE_ERROR, LogMessage::LOG_SYSTEM);
 			return;
 		}
 	}
@@ -1517,7 +1524,7 @@ void WinUtil::addUserItems(Menu* menu, const HintedUserList& users, TabViewPtr p
 		PrivateFrame::openWindow(parent, u); });
 
 	dwt::IconPtr icon;
-	if(SETTING(USE_THEME)) {
+	if(BDSETTING(ENABLE_ICON_THEMING)) {
 		try { icon = new dwt::Icon(WinUtil::iconFilename(IDI_FAVORITE_USER_ON)); } catch(const dwt::DWTException&) { icon = new dwt::Icon(IDI_FAVORITE_USER_ON); }
 	} else {
 		icon = new dwt::Icon(IDI_FAVORITE_USER_ON);
@@ -1606,19 +1613,14 @@ pair<int, bool> WinUtil::tableSortSetting(int columnCount, int setting, int defa
 }
 
 dwt::IconPtr WinUtil::createIcon(unsigned id, long size) {
-	auto log = [](const string& msg) {
-		LogManager::getInstance()->message(msg);
-	};
-
-	if(SETTING(USE_THEME)) {
-		tstring iconPath = Text::toT(SETTING(THEME_DIRECTORY) + PATH_SEPARATOR_STR + SETTING(LOADED_THEME) + PATH_SEPARATOR_STR);
-		tstring iconf;
+	if(BDSETTING(ENABLE_ICON_THEMING)) {
+		tstring iconPath = Text::toT(BDSETTING(ICON_PATH));
+		tstring iconf = Util::emptyStringT;
 
 		auto item = icoMap.find(id);
 		if(item != icoMap.end()) {
 			iconf = item->second;
-		}
-		try { 
+		} try { 
 			return new dwt::Icon(iconPath + iconf, dwt::Point(size, size)); 
 		} catch(const dwt::DWTException&) { 
 			return new dwt::Icon(id, dwt::Point(size, size)); 
@@ -1646,8 +1648,8 @@ dwt::IconPtr WinUtil::mergeIcons(const std::vector<int>& iconIds)
 	return dwt::util::merge(icons);
 }
 
-tstring WinUtil::iconFilename(int icon, long size) {
-	string themePath = SETTING(THEME_DIRECTORY) + PATH_SEPARATOR_STR + SETTING(LOADED_THEME) + PATH_SEPARATOR_STR; // THEME_DIR\LOADED_THEME
+tstring WinUtil::iconFilename(int icon) {
+	string themePath = BDSETTING(ICON_PATH);
 	tstring iconf = Util::emptyStringT;
 
 	auto item = icoMap.find(icon);

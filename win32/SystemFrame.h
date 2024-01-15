@@ -39,7 +39,7 @@ private:
 	friend class StaticFrame<SystemFrame>;
 	friend class MDIChildFrame<SystemFrame>;
 
-	TextBoxPtr log;
+	RichTextBoxPtr log;
 
 	SystemFrame(TabViewPtr parent);
 	virtual ~SystemFrame();
@@ -47,14 +47,14 @@ private:
 	void layout();
 	bool preClosing();
 
-	void addLine(time_t t, const tstring& msg);
+	void addLine(const LogMessage& logMsg);
 	void openFile(const string& path) const;
 
 	bool handleContextMenu(const dwt::ScreenCoordinate& pt);
 	bool handleDoubleClick(const dwt::MouseEvent& mouseEvent);
 
 	// LogManagerListener
-	virtual void on(Message, time_t t, const string& message) noexcept;
+	virtual void on(Message, const LogMessagePtr& logMsg) noexcept;
 };
 
 #endif

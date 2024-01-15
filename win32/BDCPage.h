@@ -29,16 +29,18 @@ public:
 	virtual void write();
 
 private:
-	ItemList items;
-
 	static ListItem listItems[];
 	TablePtr options;
 
-	ButtonPtr testSUDP, testLogger;
-
 	ComboBoxPtr actionDBLClickUserCb;
+	TextBoxPtr iconPath;
+	ButtonPtr browseIcon, testSUDP, testLogger, tabText, sdexVersion;
 
 	void testBDCLogger();
+	void handleSdexVersion();
+	void handleTabText();
+
+	void handleBrowseIcon();
 };
 
 #endif // !defined(DCPLUSPLUS_WIN32_BDC_PAGE_H)

@@ -21,6 +21,7 @@
 
 #include "SettingsDialog.h"
 
+#include <dcpp/BDCManager.h>
 #include <dcpp/SettingsManager.h>
 
 #include <dwt/util/GDI.h>
@@ -45,12 +46,13 @@
 
 //DiCe Addon
 #include "BDCPage.h"
+#include "BdcppTextFormattingPage.h"
+#include "BdcppTextElementsPage.h"
 
 #include "AppearancePage.h"
 #include "StylesPage.h"
 #include "TabsPage.h"
 #include "WindowsPage.h"
-#include "ThemePage.h"
 
 #include "NotificationsPage.h"
 
@@ -71,7 +73,7 @@ using dwt::GridInfo;
 
 using dwt::ToolTip;
 
-const int SettingsDialog::pluginPagePos = 25; // remember to change when adding pages...
+const int SettingsDialog::pluginPagePos = 26; // remember to change when adding pages...
 
 SettingsDialog::SettingsDialog(dwt::Widget* parent) :
 dwt::ModalDialog(parent),
@@ -130,7 +132,7 @@ bool SettingsDialog::initDialog() {
 		const size_t setting = SETTING(SETTINGS_PAGE);
 		auto addPage = [&](const tstring& title, PropPage* page, unsigned icon, HTREEITEM parent) -> HTREEITEM {
 			auto index = pages.size();
-			if(SETTING(USE_THEME)) {
+			if(BDSETTING(ENABLE_ICON_THEMING)) {
 				try { images->add(dwt::Icon(WinUtil::iconFilename(icon), size)); } catch(const dwt::DWTException&) { images->add(dwt::Icon(icon, size)); }
 			} else {
 				images->add(dwt::Icon(icon, size));
@@ -169,7 +171,8 @@ bool SettingsDialog::initDialog() {
 
 		{
 			HTREEITEM item = addPage(T_("BDC++"), new BDCPage(container), IDI_FAVORITE_USER_ON, TVI_ROOT);
-			addPage(T_("Themes"), new ThemePage(container), IDI_STYLES, item);
+			addPage(T_("Text Formatting"), new BdcppTextFormattingPage(container), IDI_STYLES, item);
+			addPage(T_("Text Elements"), new BdcppTextElementsPage(container), IDI_STYLES, item);
 		}
 
 		{
@@ -208,6 +211,8 @@ bool SettingsDialog::initDialog() {
 			[this] { handleClosing(); endDialog(IDCANCEL); });
 	}
 
+	WinUtil::setColor(tree);
+
 	/*
 	* catch WM_SETFOCUS messages (onFocus events) sent to every children of this dialog. the normal
 	* way to do it would be to use an Application::Filter, but unfortunately these messages don't
@@ -228,7 +233,49 @@ bool SettingsDialog::initDialog() {
 	return false;
 }
 
+namespace {
+//	void addColor(ComboBox* widget) {
+//		// do not apply our custom colors to the combo itself, but apply it to its drop-down and edit controls
+//
+//		//auto listBox = widget->getListBox();
+//		//if(listBox)
+//		//	addColor(listBox);
+//
+//		//auto text = widget->getTextBox();
+//		//if(text)
+//		//	addColor(text);
+//	}
+//
+// 
+
+	//void addColor(dwt::Table* widget) {
+	//	WinUtil::setColor(widget);
+	//}
+	//void addColor(dwt::TextBox* widget) {
+	//	WinUtil::setColor(widget);
+	//}
+	//// do not apply our custom colors to Buttons and Button-derived controls
+	//void addColor(dwt::Button* widget) {
+	//	// empty on purpose
+	//}
+	//template<typename A>
+	//void addColor(dwt::aspects::Colorable<A>* widget) {
+	//	WinUtil::setColor(static_cast<dwt::Control*>(widget));
+	//}
+
+	//// Catch-rest for the above
+	//void addColor(void* w) {
+
+	//}
+} // anon namespace
+
 BOOL CALLBACK SettingsDialog::EnumChildProc(HWND hwnd, LPARAM lParam) {
+	//DiCe Enumerate all Tables / Text Boxes / etc to setColor in WinUtil
+	//
+	//auto widget = dwt::hwnd_cast<Control*>(hwnd);
+	//if(widget) {
+	//	addColor(widget);
+	//}
 	return TRUE;
 }
 

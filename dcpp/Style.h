@@ -28,8 +28,10 @@ struct Style {
 	string font;
 	int textColor;
 	int bgColor;
+	int textStyle;
 
-	Style() : textColor(-1), bgColor(-1) { }
+	Style(const string& aFont = "", int aTextColor = -1, int aBgColor = -1, int aTextStyle = 0) :
+		font(aFont), textColor(aTextColor), bgColor(aBgColor), textStyle(aTextStyle) { }
 };
 
 } // namespace dcpp

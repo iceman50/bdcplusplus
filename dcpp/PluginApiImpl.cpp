@@ -538,15 +538,16 @@ size_t PluginApiImpl::fromBase32(uint8_t* dst, const char* src, size_t n) {
 
 // Functions for DCTagger
 const char* PluginApiImpl::getText(TagDataPtr hTags) {
-	return reinterpret_cast<Tagger*>(hTags->object)->getText().c_str();
+//	return reinterpret_cast<Tagger*>(hTags->object)->getText().c_str();
+	return '\0';
 }
 
 void PluginApiImpl::addTag(TagDataPtr hTags, size_t start, size_t end, const char* id, const char* attributes) {
-	reinterpret_cast<Tagger*>(hTags->object)->addTag(start, end, id, attributes);
+//	reinterpret_cast<Tagger*>(hTags->object)->add(start, end, id, attributes);
 }
 
 void PluginApiImpl::replaceText(TagDataPtr hTags, size_t start, size_t end, const char* replacement) {
-	reinterpret_cast<Tagger*>(hTags->object)->replaceText(start, end, replacement);
+//	reinterpret_cast<Tagger*>(hTags->object)->replaceText(start, end, replacement);
 }
 
 // Functions for DCQueue

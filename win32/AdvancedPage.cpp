@@ -50,6 +50,7 @@ AdvancedPage::ListItem AdvancedPage::listItems[] = {
 	{ SettingsManager::CLICKABLE_CHAT_LINKS, N_("Clickable chat links (disable on Wine)") },
 	{ SettingsManager::SEGMENTED_DL, N_("Enable segmented downloads") },
 	{ SettingsManager::REGISTER_SYSTEM_STARTUP, N_("Start DC++ when Windows starts") },
+	{ SettingsManager::ENABLE_NMDC_TLS, N_("Enable NMDC TLS C-C Connections") },
 	{ SettingsManager::TESTING_STATUS, N_("Display testing nags"),
 		[]() { return SETTING(TESTING_STATUS) != SettingsManager::TESTING_DISABLED; }, // custom read
 		[](bool checked) { // custom write

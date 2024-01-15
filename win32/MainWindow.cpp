@@ -19,6 +19,7 @@
 
 #include "MainWindow.h"
 
+#include <dcpp/BDCManager.h>
 #include <dcpp/Client.h>
 #include <dcpp/ClientManager.h>
 #include <dcpp/ConnectionManager.h>
@@ -82,7 +83,6 @@
 #include "StatsFrame.h"
 #include "SystemFrame.h"
 #include "TextFrame.h"
-#include "ThemePage.h"
 #include "TransferView.h"
 #include "UsersFrame.h"
 
@@ -103,38 +103,6 @@ decltype(MainWindow::pluginCommands) MainWindow::pluginCommands;
 
 static dwt::IconPtr mainIcon(new dwt::Icon(IDI_DCPP, dwt::Point(32, 32))); //Workaround for SettingsManager not being initialized yet
 static dwt::IconPtr mainSmallIcon(new dwt::Icon(IDI_DCPP, dwt::Point(16, 16)));
-
-
-//DiCe Addon
-/*
-namespace {
-
-#include <dwmapi.h>
-
-	enum : WORD {
-		DwmwaUseImmersiveDarkMode = 20,
-		DwmwaUseImmersiveDarkModeBefore20h1 = 19
-	};
-
-	bool useDarkMode(HWND hwnd) {
-		BOOL useDarkMode = true;
-		BOOL success = SUCCEEDED(::DwmSetWindowAttribute(hwnd, DwmwaUseImmersiveDarkMode, &useDarkMode, sizeof(useDarkMode)));
-		if (!success) {
-			return false;
-		}
-		return true;
-	}
-
-	bool setDarkMode(HWND hwnd) {
-		COLORREF DARK_COLOR = 0x00505050;
-		BOOL success = SUCCEEDED(::DwmSetWindowAttribute(hwnd, DWMWA_BORDER_COLOR, &DARK_COLOR, sizeof(DARK_COLOR)));
-		if (!success) {
-			return false;
-		}
-		return true;
-	}
-}
-*/
 
 MainWindow::MainWindow() :
 dwt::Window(0, dwt::NormalDispatcher::newClass<MainWindow>(mainIcon, mainSmallIcon)),
@@ -221,6 +189,11 @@ fullSlots(false)
 		::ChangeWindowMessageFilterEx(this->handle(), tbcMsg, 1, 0);
 		onRaw([this, tbcMsg](WPARAM, LPARAM) { handleTaskbarOverlay(); return 0; }, dwt::Message(tbcMsg));
 	}
+
+	//DiCe Edit
+	//tabs->onPrinting([this](dwt::Canvas& canvas) { /* Handle Canvas Here */ handleTabDrawing(tabs); });
+	//tabs->onPainting([this](dwt::Canvas& canvas) { handleTabDrawing(tabs, canvas); });
+	//tabs->onRaw([this](WPARAM, LPARAM) { handleTabDrawing(tabs); return 0; }, dwt::Message(WM_PAINT));
 
 	filterIter = dwt::Application::instance().addFilter([this](MSG &msg) { return filter(msg); });
 
@@ -309,6 +282,7 @@ fullSlots(false)
 	//DiCe Addon
 //	useDarkMode(this->getParentHandle());
 //	setDarkMode(this->getParentHandle());
+	
 	handleTaskbarOverlay();
 }
 
@@ -318,7 +292,7 @@ void MainWindow::initWindow() {
 
 //DiCe
 //	Seed cs(_T(APPNAME) _T(" ") _T(VERSIONSTRING));
-	Seed cs(_T(MODNAME) _T(" ") _T(MODVER));
+	Seed cs(_T(APPNAME) _T(" ") _T(VERSIONSTRING));
 
 	cs.style &= ~WS_VISIBLE;
 	cs.exStyle |= WS_EX_APPWINDOW;
@@ -327,6 +301,8 @@ void MainWindow::initWindow() {
 
 	create(cs);
 
+
+	//DiCe Edit
 	BOOL val = TRUE;
 	::DwmSetWindowAttribute(this->handle(), DWMWA_USE_IMMERSIVE_DARK_MODE, &val, sizeof(val));
 
@@ -639,7 +615,7 @@ void MainWindow::initTabs() {
 		seed.style |= TCS_BUTTONS;
 
 	//DiCe addon
-	if(SETTING(TABS_ON_BOTTOM))
+	if(BDSETTING(TABS_ON_BOTTOM))
 		seed.style |= TCS_BOTTOM;
 
 	seed.closeIcon = WinUtil::tabIcon(IDI_EXIT);
@@ -810,7 +786,7 @@ UserConnection* MainWindow::getPMConn(const UserPtr& user, UserConnectionListene
 void MainWindow::handleTabsTitleChanged(const tstring& title) {
 //DiCe
 //	setText(title.empty() ? _T(APPNAME) _T(" ") _T(VERSIONSTRING) : _T(APPNAME) _T(" ") _T(VERSIONSTRING) _T(" - [") + title + _T("]"));
-	setText(title.empty() ? _T(MODNAME) _T(" ") _T(MODVER) : _T(MODNAME) _T(" ") _T(MODVER) _T(" - [") + title + _T("]"));
+	setText(title.empty() ? _T(APPNAME) _T(" ") _T(VERSIONSTRING) : _T(APPNAME) _T(" ") _T(VERSIONSTRING) _T(" - [") + title + _T("]"));
 }
 
 static void multiConnect(const string& group, TabViewPtr parent) {
@@ -1073,6 +1049,7 @@ void MainWindow::setSaveTimer() {
 void MainWindow::saveSettings() {
 	saveWindowSettings();
 	SettingsManager::getInstance()->save();
+	BDCManager::getInstance()->save();
 }
 
 void MainWindow::saveWindowSettings() {
@@ -1321,6 +1298,7 @@ void MainWindow::handleSettings() {
 
 	if(SettingsDialog(this).run() == IDOK) {
 		SettingsManager::getInstance()->save();
+		BDCManager::getInstance()->save();
 
 		try {
 			ConnectivityManager::getInstance()->setup((SETTING(INCOMING_CONNECTIONS) != prevConn ||
@@ -1496,70 +1474,70 @@ void MainWindow::completeVersionUpdate(bool success, const string& result) {
 
 		string url = Text::fromT(links.homepage);
 
-		if(xml.findChild("Version")) {
-			auto remoteVersion = Util::toDouble(xml.getChildData());
-			auto newStable = remoteVersion > VERSIONFLOAT;
+		//if(xml.findChild("Version")) {
+		//	auto remoteVersion = Util::toDouble(xml.getChildData());
+		//	auto newStable = remoteVersion > VERSIONFLOAT;
 
-			bool newTesting = false;
-			if ((SETTING(TESTING_STATUS) != SettingsManager::TESTING_DISABLED) && !newStable && (GET_TIME() % (60 * 60) < 5 * 60)) {
-				// when available, we offer a testing release to a random subset of users; 
-				// for those who is using the latest stable version and did not opt-out of displaying testing related info
-				// plus has some luck so the current time is in the first 5 minutes of the current hour.
-				xml.resetCurrentChild();
-				if(xml.findChild("TestingVersion")) {
-					auto remoteTestingVersion = Util::toDouble(xml.getChildData());
-					newTesting = remoteTestingVersion > VERSIONFLOAT;
-				}
-			}
+		//	bool newTesting = false;
+		//	if ((SETTING(TESTING_STATUS) != SettingsManager::TESTING_DISABLED) && !newStable && (GET_TIME() % (60 * 60) < 5 * 60)) {
+		//		// when available, we offer a testing release to a random subset of users; 
+		//		// for those who is using the latest stable version and did not opt-out of displaying testing related info
+		//		// plus has some luck so the current time is in the first 5 minutes of the current hour.
+		//		xml.resetCurrentChild();
+		//		if(xml.findChild("TestingVersion")) {
+		//			auto remoteTestingVersion = Util::toDouble(xml.getChildData());
+		//			newTesting = remoteTestingVersion > VERSIONFLOAT;
+		//		}
+		//	}
 
-			if(newStable || newTesting) {
-				xml.resetCurrentChild();
-				if(xml.findChild(newTesting ? "TestingURL" : "URL")) {
-					url = xml.getChildData();
-				}
-				xml.resetCurrentChild();
-				if(xml.findChild(newTesting ? "TestingTitle" : "Title")) {
-					const string& title = xml.getChildData();
-					xml.resetCurrentChild();
-					if(xml.findChild(newTesting ? "TestingMessage" : "Message")) {
-						if(url.empty()) {
-							const string& msg = xml.getChildData();
-							dwt::MessageBox(this).show(Text::toT(msg), Text::toT(title));
-						} else {
-							if(dwt::MessageBox(this).show(
-								str(TF_("%1%\nOpen download page?") % Text::toT(xml.getChildData())), Text::toT(title),
-								dwt::MessageBox::BOX_YESNO, dwt::MessageBox::BOX_ICONQUESTION) == IDYES)
-							{
-								WinUtil::openLink(Text::toT(url));
-							}
-						}
-					}
-				}
+		//	if(newStable || newTesting) {
+		//		xml.resetCurrentChild();
+		//		if(xml.findChild(newTesting ? "TestingURL" : "URL")) {
+		//			url = xml.getChildData();
+		//		}
+		//		xml.resetCurrentChild();
+		//		if(xml.findChild(newTesting ? "TestingTitle" : "Title")) {
+		//			const string& title = xml.getChildData();
+		//			xml.resetCurrentChild();
+		//			if(xml.findChild(newTesting ? "TestingMessage" : "Message")) {
+		//				if(url.empty()) {
+		//					const string& msg = xml.getChildData();
+		//					dwt::MessageBox(this).show(Text::toT(msg), Text::toT(title));
+		//				} else {
+		//					if(dwt::MessageBox(this).show(
+		//						str(TF_("%1%\nOpen download page?") % Text::toT(xml.getChildData())), Text::toT(title),
+		//						dwt::MessageBox::BOX_YESNO, dwt::MessageBox::BOX_ICONQUESTION) == IDYES)
+		//					{
+		//						WinUtil::openLink(Text::toT(url));
+		//					}
+		//				}
+		//			}
+		//		}
 
-			} else if(remoteVersion < VERSIONFLOAT) {
-				// how awesome, the user is using a testing version!
+		//	} else if(remoteVersion < VERSIONFLOAT) {
+		//		// how awesome, the user is using a testing version!
 
-				if(SETTING(TESTING_STATUS) == SettingsManager::TESTING_ENABLED) {
-					notify(T_("Testing version of DC++"),
-						T_("Thank you for using a testing version of DC++!") + _T("\n\n") +
-						T_("Feel free to report any bug via Help > Links > Report a bug.") + _T("\n\n") +
-						T_("This message will show up in the status bar in the future.") + _T("\n") +
-						T_("Testing nags can be fully disabled via Settings > Advanced."),
-					nullptr, nullptr),
-					SettingsManager::getInstance()->set(SettingsManager::TESTING_STATUS,
-						SettingsManager::TESTING_SEEN_ONCE);
+		//		if(SETTING(TESTING_STATUS) == SettingsManager::TESTING_ENABLED) {
+		//			notify(T_("Testing version of DC++"),
+		//				T_("Thank you for using a testing version of DC++!") + _T("\n\n") +
+		//				T_("Feel free to report any bug via Help > Links > Report a bug.") + _T("\n\n") +
+		//				T_("This message will show up in the status bar in the future.") + _T("\n") +
+		//				T_("Testing nags can be fully disabled via Settings > Advanced."),
+		//			nullptr, nullptr),
+		//			SettingsManager::getInstance()->set(SettingsManager::TESTING_STATUS,
+		//				SettingsManager::TESTING_SEEN_ONCE);
 
-				} else if(SETTING(TESTING_STATUS) == SettingsManager::TESTING_SEEN_ONCE) {
-					if(status) {
-						status->setText(STATUS_STATUS,
-							T_("Thank you for using a testing version of DC++!") + _T(" ") +
-							T_("Feel free to report any bug via Help > Links > Report a bug."));
-					}
-				}
-			}
-		}
+		//		} else if(SETTING(TESTING_STATUS) == SettingsManager::TESTING_SEEN_ONCE) {
+		//			if(status) {
+		//				status->setText(STATUS_STATUS,
+		//					T_("Thank you for using a testing version of DC++!") + _T(" ") +
+		//					T_("Feel free to report any bug via Help > Links > Report a bug."));
+		//			}
+		//		}
+		//	}
+		//}
 
-		xml.resetCurrentChild();
+		//xml.resetCurrentChild();
 		if(xml.findChild("Links")) {
 			xml.stepIn();
 			if(xml.findChild("Homepage")) {
@@ -1639,22 +1617,18 @@ void MainWindow::checkGeoUpdate() {
 
 void MainWindow::checkGeoUpdateDB() {
 	// update when the database is non-existent, older than 16 days and it is frequently updated (GeoIP2 updates every 14 days)
-
 	try {
 		File f(GeoManager::getDbPath() + ".gz", File::READ, File::OPEN);
-
-		if (f.getSize() > 0 && (geoStaticServe || static_cast<time_t>(f.getLastModified()) > GET_TIME() - 3600 * 24 * 16))
+		if(f.getSize() > 0 && (geoStaticServe || static_cast<time_t>(f.getLastModified()) > GET_TIME() - 3600 * 24 * 16))
 			return;
 
 	} catch (const FileException&) { }
-
 	updateGeoDB();
 }
 
 void MainWindow::updateGeo() {
-	if (SETTING(GET_USER_COUNTRY)) {
+	if(SETTING(GET_USER_COUNTRY)) {
 		updateGeoDB();
-
 	} else {
 		dwt::MessageBox(this).show(T_("IP -> country mappings are disabled. Turn them back on via Settings > Appearance."),
 			_T(APPNAME) _T(" ") _T(VERSIONSTRING), dwt::MessageBox::BOX_OK, dwt::MessageBox::BOX_ICONEXCLAMATION);
@@ -1664,7 +1638,7 @@ void MainWindow::updateGeo() {
 void MainWindow::updateGeoDB() {
 	auto& conn = conns[CONN_GEOIP];
 
-	if (static_cast<HttpConnection*>(conn))
+	if(static_cast<HttpConnection*>(conn))
 		return;
 
 	auto& file = geoFile;
@@ -1687,9 +1661,7 @@ void MainWindow::completeGeoUpdate(bool success) {
 		} catch(const FileException&) { }
 
 		GeoManager::getInstance()->update();
-
 		LogManager::getInstance()->message("The GeoIP2 database has been successfully updated", LogMessage::TYPE_GENERAL, LogMessage::LOG_SYSTEM);
-
 	} else {
 		File::deleteFile(GeoManager::getDbPath() + ".gz.tmp");
 		LogManager::getInstance()->message("The GeoIP2 database could not be updated", LogMessage::TYPE_WARNING, LogMessage::LOG_SYSTEM);
@@ -1930,6 +1902,158 @@ void MainWindow::handleTrayUpdate() {
 		Util::formatBytes(UploadManager::getInstance()->getRunningAverage()) %
 		UploadManager::getInstance()->getUploadCount())));
 }
+
+// DiCe Edit
+//LRESULT MainWindow::handleTBCustomDraw(NMTBCUSTOMDRAW& data) {
+//	if (data.nmcd.dwDrawStage == CDDS_PREPAINT) {
+//		return CDRF_NOTIFYITEMDRAW;
+//	}
+//
+//	if (data.nmcd.dwDrawStage == CDDS_ITEMPREPAINT) {
+//		return TBCDRF_USECDCOLORS;
+//	}
+//
+//	return CDRF_DODEFAULT;
+//}
+//
+//LRESULT MainWindow::handleRBCustomDraw(NMCUSTOMDRAW& data) {	
+//	int item = data.dwItemSpec;
+//
+//	if (data.dwDrawStage == CDDS_PREPAINT) {
+//		return CDRF_NOTIFYITEMDRAW;
+//	}
+//
+//	if (data.dwDrawStage == CDDS_ITEMPREPAINT) {
+////		SetWindowTheme(toolbar->handle(), _T(""), _T(""));
+//		SetBkColor(data.hdc, RGB(0, 0, 0));
+//		auto blBrush = dwt::Brush(RGB(0, 0, 0));
+//		FillRect(data.hdc, &data.rc, blBrush);
+//		return CDRF_NEWFONT;
+//	}
+//}
+
+//void MainWindow::handleTabDrawing(TabViewPtr w) {
+//	PAINTSTRUCT ps;
+//	HDC hDC = BeginPaint(w->handle(), &ps);
+//	w->sendMessage(WM_PRINTCLIENT, (WPARAM)hDC, PRF_CLIENT);
+//	HRGN hRgn = CreateRectRgn(0, 0, 0, 0);
+//	int items = TabCtrl_GetItemCount(w->handle());
+//	int sel = TabCtrl_GetCurSel(w->handle());
+//	RECT r;
+//	RECT lhCorner = { 0 }, rhCorner = { 0 };
+//
+//	for (int i = 0; i < items; ++i) {
+//		TabCtrl_GetItemRect(w->handle(), i, &r);
+//		if (i == sel) {
+//			r.left -= 1;
+//			r.right += 1;
+//			r.top -= 2;
+//			if (i == 0) {
+//				r.left -= 1;
+//				//if(!themed) { r.right +=1; } 
+//			}
+//			if (i == sel - 1) {
+//				r.right += 1;
+//			}
+//		} else {
+//			r.right -= 1;
+//			//if(theme || isVista) && i == items -1) { r.right -= 1; }
+//		}
+//		
+//		//if (xp_themed)
+//        {
+//            if (i != sel + 1)
+//            {
+//                lhCorner = r;
+//                lhCorner.bottom = lhCorner.top + 1;
+//                lhCorner.right = lhCorner.left + 1;
+//            }
+//            
+//            rhCorner = r;
+//            rhCorner.bottom = rhCorner.top + 1;
+//            rhCorner.left = rhCorner.right - 1;
+//        }		
+//
+//		HRGN hTabRgn = CreateRectRgn(r.left, r.top, r.right, r.bottom);
+//		CombineRgn(hRgn, hRgn, hTabRgn, RGN_OR);
+//		BOOL ok = DeleteObject(hTabRgn);
+//
+//		if (lhCorner.right > lhCorner.left)
+//        {
+//            HRGN hRoundedCorner = CreateRectRgn
+//                (lhCorner.left, lhCorner.top, lhCorner.right, lhCorner.bottom);
+//            CombineRgn (hRgn, hRgn, hRoundedCorner, RGN_DIFF);
+//            ok = DeleteObject (hRoundedCorner);
+//            //assert (ok);
+//        }
+// 
+//        if (rhCorner.right > rhCorner.left)
+//        {
+//            HRGN hRoundedCorner = CreateRectRgn
+//                (rhCorner.left, rhCorner.top, rhCorner.right, rhCorner.bottom);
+//            CombineRgn (hRgn, hRgn, hRoundedCorner, RGN_DIFF);
+//            ok = DeleteObject (hRoundedCorner);
+//            //assert (ok);
+//        }
+//		
+//	}
+//
+//	GetClientRect(w->handle(), &r);
+//	HRGN hFillRgn = CreateRectRgn(r.left, r.top, r.right, r.bottom);
+//	CombineRgn(hFillRgn, hFillRgn, hRgn, RGN_DIFF);
+//	SelectClipRgn(hDC, hFillRgn);
+//	bool mustDel = true;
+//	//HBRUSH hBGBRush = GetCtlBGBrush(w, hDC, &mustDel);
+//	dwt::Brush hBGBrush(RGB(0, 0, 0));
+//	FillRgn(hDC, hFillRgn, hBGBrush);
+//
+//	DeleteObject(hFillRgn);
+//	DeleteObject(hRgn);
+//
+//	EndPaint(w->handle(), &ps);
+//	w->sendMessage(WM_PRINTCLIENT, 0, 0);
+//	/*w->sendMessage(MH_NODEFWNDPROC);*/
+//}
+
+//void MainWindow::handleTabDrawing(TabViewPtr tabs, dwt::Canvas& canvas) {
+//
+//}
+
+//namespace {
+//	void handleTabDrawing(TabViewPtr tabs, dwt::Canvas& canvas) {
+//		tabs->sendMessage(WM_PRINTCLIENT, (WPARAM)canvas.handle(), PRF_CLIENT);
+//		auto rgn = dwt::Region(dwt::Point());
+//		int items = tabs->Collection::size();
+//		int sel = tabs->getSelected();
+//
+//		dwt::Rectangle r;
+//		dwt::Rectangle lhCorner, rhCorner;
+//
+//		for(int i = 0; i < items; ++i) {
+//			TabCtrl_GetItemRect(tabs->handle(), i, &r);
+//				auto left = r.left();
+//				auto right = r.right();
+//				auto top = r.top();
+//				auto bottom = r.bottom();
+//			if(i == sel) {
+//				left -= 1;
+//				right += 1;
+//				top -= 2;
+//				if(i == 0) {
+//					left -= 1;
+//				}
+//				if(i == sel - 1) {
+//					right += 1;
+//				}
+//			} else {
+//				right -= 1;
+//			}
+//		}
+//
+//		lhCorner = r;
+//
+//	}
+//}
 
 void MainWindow::on(ConnectionManagerListener::Connected, ConnectionQueueItem* cqi, UserConnection* uc) noexcept {
 	if(cqi->getType() == CONNECTION_TYPE_PM) {

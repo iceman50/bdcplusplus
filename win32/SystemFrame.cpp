@@ -24,6 +24,7 @@
 #include <dcpp/LogManager.h>
 #include <dcpp/ShareManager.h>
 
+#include "BDCRichText.h"
 #include "DirectoryListingFrame.h"
 #include "HoldRedraw.h"
 #include "ShellMenu.h"
@@ -37,7 +38,7 @@ SystemFrame::SystemFrame(TabViewPtr parent) :
 	log(0)
 {
 	{
-		TextBox::Seed cs = WinUtil::Seeds::textBox;
+		auto cs = WinUtil::Seeds::richTextBox;
 		cs.style |= WS_VSCROLL | ES_AUTOVSCROLL | ES_MULTILINE | ES_NOHIDESEL | ES_READONLY;
 		log = addChild(cs);
 		addWidget(log);
@@ -59,7 +60,7 @@ SystemFrame::SystemFrame(TabViewPtr parent) :
 	LogManager::getInstance()->addListener(this);
 
 	for(auto& i: oldMessages) {
-		addLine(i->getTime(), Text::toT(i->getText()));
+		addLine(*i);
 	}
 }
 
@@ -67,17 +68,17 @@ SystemFrame::~SystemFrame() {
 
 }
 
-void SystemFrame::addLine(time_t t, const tstring& msg) {
+void SystemFrame::addLine(const LogMessage& logMsg) {
 	bool scroll = log->scrollIsAtEnd();
 	HoldRedraw hold { log, !scroll };
 
 	size_t limit = log->getTextLimit();
-	if(log->length() + msg.size() > limit) {
+	if(log->length() + logMsg.getText().size() > limit) {
 		HoldRedraw hold2 { log, scroll };
 		log->setSelection(0, log->lineIndex(log->lineFromChar(limit / 10)));
 		log->replaceSelection(_T(""));
 	}
-	log->addText(Text::toT("\r\n[" + Util::getShortTimeString(t) + "] ") + msg);
+	BDCRichText::addSystemLog(log, logMsg);
 
 	if(scroll)
 		log->scrollToBottom();
@@ -140,6 +141,6 @@ bool SystemFrame::handleDoubleClick(const dwt::MouseEvent& mouseEvent) {
 	return false;
 }
 
-void SystemFrame::on(Message, time_t t, const string& message) noexcept {
-	callAsync([=] { addLine(t, Text::toT(message)); });
+void SystemFrame::on(Message, const LogMessagePtr& logMsg) noexcept {
+	callAsync([=] { addLine(*logMsg); });
 }

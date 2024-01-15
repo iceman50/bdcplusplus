@@ -225,6 +225,7 @@ void FavHubProperties::handleOKClicked() {
 	entry->get(HubSettings::ShowJoins) = to3bool(showJoins->getSelected());
 	entry->get(HubSettings::FavShowJoins) = to3bool(favShowJoins->getSelected());
 	entry->get(HubSettings::LogMainChat) = to3bool(logMainChat->getSelected());
+	entry->get(HubSettings::NmdcTls) = to3bool(nmdcTls->getSelected());
 	entry->setGroup(Text::fromT(groups->getText()));
 	FavoriteManager::getInstance()->save();
 	endDialog(IDOK);

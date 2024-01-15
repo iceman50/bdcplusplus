@@ -20,6 +20,7 @@
 
 #include "forward.h"
 #include "StringSearch.h"
+#include "SdEx.h"
 
 #include <string>
 
@@ -36,6 +37,7 @@ struct StringMatch {
 		PARTIAL, /// case-insensitive pattern matching (multiple patterns separated with spaces)
 		EXACT, /// case-sensitive, character-for-character equality
 		REGEX, /// regular expression
+		SDEX, // SdEx pattern check, case-sensitive with escape characters
 
 		METHOD_LAST
 	};
@@ -51,7 +53,7 @@ struct StringMatch {
 	bool match(const string& str) const;
 
 private:
-	boost::variant<StringSearch::List, string, boost::regex> search;
+	boost::variant<StringSearch::List, string, boost::regex, SdEx> search;
 };
 
 } // namespace dcpp

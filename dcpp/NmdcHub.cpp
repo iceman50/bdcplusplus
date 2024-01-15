@@ -905,12 +905,10 @@ void NmdcHub::myInfo(bool alwaysSend) {
 		statusMode |= Identity::TLS;
 	}
 
-
-
 	string uMin = (SETTING(MIN_UPLOAD_SPEED) == 0) ? Util::emptyString : tmp5 + Util::toString(SETTING(MIN_UPLOAD_SPEED));
 	string myInfoA =
 		"$MyINFO $ALL " + fromUtf8(getMyNick()) + " " + fromUtf8(escape(get(Description))) +
-		tmp1 + MODVER + tmp2 + modeChar + tmp3 + getCounts();
+		tmp1 + VERSIONSTRING + tmp2 + modeChar + tmp3 + getCounts();
 	string myInfoB = tmp4 + Util::toString(SETTING(SLOTS));
 	string myInfoC = uMin +
 		">$ $" + uploadSpeed + statusMode + '$' + fromUtf8(escape(get(Email))) + '$';

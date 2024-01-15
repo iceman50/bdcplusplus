@@ -18,6 +18,7 @@
 #include "stdinc.h"
 #include "UserMatchManager.h"
 
+#include "BDCManager.h"
 #include "Client.h"
 #include "ClientManager.h"
 #include "format.h"
@@ -53,6 +54,8 @@ void UserMatchManager::setList(UserMatches&& newList, bool updateUsers) {
 		time when the matching list has been modified. */
 		ClientManager::getInstance()->updateUsers();
 	}
+
+	BDCManager::getInstance()->updateElements();
 }
 
 void UserMatchManager::match(OnlineUser& user) const {

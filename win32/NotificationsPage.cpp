@@ -19,6 +19,7 @@
 
 #include "NotificationsPage.h"
 
+#include <dcpp/BDCManager.h>
 #include <dcpp/SettingsManager.h>
 
 #include <dwt/DWTException.h>
@@ -67,7 +68,7 @@ balloonBg(0)
 
 		const dwt::Point size(16, 16);
 		dwt::ImageListPtr images(new dwt::ImageList(size));
-		if(SETTING(USE_THEME)) {
+		if(BDSETTING(ENABLE_ICON_THEMING)) {
 			try {
 			images->add(dwt::Icon(WinUtil::iconFilename(IDI_CANCEL), size));
 			images->add(dwt::Icon(WinUtil::iconFilename(IDI_SOUND), size));

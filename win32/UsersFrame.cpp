@@ -18,6 +18,7 @@
 #include "stdafx.h"
 #include "UsersFrame.h"
 
+#include <dcpp/BDCManager.h>
 #include <dcpp/FavoriteManager.h>
 #include <dcpp/ClientManager.h>
 #include <dcpp/QueueManager.h>
@@ -137,7 +138,7 @@ selected(-1)
 		if(!userIcons) {
 			const dwt::Point size(16, 16);
 			userIcons = dwt::ImageListPtr(new dwt::ImageList(size));
-			if(SETTING(USE_THEME)) {
+			if(BDSETTING(ENABLE_ICON_THEMING)) {
 				try {
 					userIcons->add(dwt::Icon(WinUtil::iconFilename(IDI_FAVORITE_USER_OFF), size));
 					userIcons->add(dwt::Icon(WinUtil::iconFilename(IDI_FAVORITE_USER_ON), size));
@@ -350,7 +351,7 @@ void UsersFrame::UserInfo::update(const UserPtr& u, bool visible) {
 			const auto& idx = application.find(' ');
 			app = application.substr(0, idx);
 			if(app == "++") {
-				app = APPNAME;//++ is DC++ let's make it look nicer in the table
+				app = "DC++";//++ is DC++ let's make it look nicer in the table
 		}
 			ver = application.substr(idx + 1);
 		}

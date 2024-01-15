@@ -41,6 +41,7 @@ public:
 	void message(const string& msg, LogMessage::Type type = LogMessage::TYPE_GENERAL, LogMessage::Level level = LogMessage::LOG_SYSTEM);
 
 	LogMessageList getLastLogs();
+	void clearLogList();
 	string getPath(Area area, ParamMap& params) const;
 	string getPath(Area area) const;
 
@@ -61,6 +62,7 @@ private:
 };
 
 #define LOG(area, msg) LogManager::getInstance()->log(area, msg)
+#define LOG_DBG(msg) LogManager::getInstance()->message(msg, LogMessage::TYPE_DEBUG)
 
 } // namespace dcpp
 

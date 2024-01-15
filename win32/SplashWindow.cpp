@@ -54,7 +54,7 @@ SplashWindow::~SplashWindow() {
 }
 
 void SplashWindow::operator()(const string& status) {
-	this->status = str(TF_("Loading DC++, please wait... (%1%)") % Text::toT(status));
+	this->status = str(TF_("Loading " APPNAME ", please wait... (%1%)") % Text::toT(status));
 	progress = 0;
 	callAsync([this] { draw(); });
 }

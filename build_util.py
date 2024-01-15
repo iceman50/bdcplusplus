@@ -295,8 +295,9 @@ class Dev:
 
     def build_program(self, env, target, sources):
         return env.Program(target, [
-            sources, self.client, self.dwarf, self.zlib, self.boost,
-            self.bzip2, self.geoip, self.miniupnpc, self.natpmp, self.dwt,
+            #sources, self.client, self.dwarf, self.zlib, self.boost,
+            sources, self.client, self.zlib, self.boost,
+            self.bzip2, self.maxminddb, self.miniupnpc, self.natpmp, self.dwt,
             self.intl
         ])
 
@@ -344,7 +345,7 @@ class Dev:
     def add_dcpp(self, env):
         if self.is_win32():
             env.Append(CPPPATH=['#/bzip2'])
-        env.Append(CPPPATH=['#/geoip', '#/zlib'])
+        env.Append(CPPPATH=['#/maxminddb', '#/zlib'])
 
         if self.is_win32():
             env.Append(LIBS=['gdi32', 'iphlpapi', 'ole32', 'ws2_32'])

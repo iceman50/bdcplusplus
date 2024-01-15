@@ -19,8 +19,10 @@
 #include "BDCRichText.h"
 #include "BDCWinUtil.h"
 
-#include <dcpp/File.h>
+#include <dcpp/BDCManager.h>
+#include <dcpp/Bdcpp.h>
 #include <dcpp/BDCText.h>
+#include <dcpp/File.h>
 #include <dcpp/Text.h>
 #include <dcpp/Util.h>
 
@@ -44,12 +46,101 @@ void BDCRichText::addChatPlain(RichTextBox* aRichText, const tstring& aLine) {
 	addChatHtml(aRichText, BDCText(Text::fromT(aLine), aRichText->isPMChat).getHtmlText());
 }
 
-//void BDCRichText::addSystemLog(RichTextBox* aRichText, const tstring& aLine, const time_t& aTime) {
-//	addChatHtml(aRichText, SddcppText(Text::fromT(aLine), aTime).getHtmlText());
-//}
+void BDCRichText::addSystemLog(RichTextBox* aRichText, const LogMessage& logMsg) {
+	addChatHtml(aRichText, BDCText(logMsg).getHtmlText());
+}
+
+void BDCRichText::addExamples(RichTextBox* aRichText, const TextFormat& aFormat, int type) {
+#define EXAMPLE(id, pm, person, self) \
+	{ \
+		TextFormat		tf		= aFormat; \
+		StringPairList	spl; \
+		ParamMap		params; \
+		if(strlen(id) != 0) \
+			tf.emplace(tf.begin(), id); \
+		getExampleParams(params); \
+		params["pm"]		= [] { return Util::toString(pm);		}; \
+		params["3rdperson"]	= [] { return Util::toString(person);	}; \
+		params["self"]		= [] { return Util::toString(self);		}; \
+		addChatHtml(aRichText, BDCText(tf, params).getHtmlText()); \
+		for(const auto& fii: aFormat) { \
+			if(fii->supportsExample()) \
+				fii->get_example(spl, params); \
+		} \
+		for(const auto& spi: spl) { \
+			if(spi.first.empty()) \
+				continue; \
+			getExampleParams(params); \
+			params["pm"]		= [] { return Util::toString(pm);		}; \
+			params["3rdperson"]	= [] { return Util::toString(person);	}; \
+			params["self"]		= [] { return Util::toString(self);		}; \
+			params[spi.first]	= spi.second.empty() ? "testdata" : spi.second; \
+			addChatHtml(aRichText, BDCText(tf, params).getHtmlText()); \
+		} \
+	}
+
+	switch (type) {
+	case 0:
+	{
+		EXAMPLE("user/1st/hub\t", 0, 0, 0);
+		EXAMPLE("self/1st/hub\t", 0, 0, 1);
+		EXAMPLE("user/3rd/hub\t", 0, 1, 0);
+		EXAMPLE("self/3rd/hub\t", 0, 1, 1);
+		EXAMPLE("user/1st/pm\t", 1, 0, 0);
+		EXAMPLE("self/1st/pm\t", 1, 0, 1);
+		EXAMPLE("user/3rd/pm\t", 1, 1, 0);
+		EXAMPLE("self/3rd/pm\t", 1, 1, 1);
+		break;
+	}
+	case 1:	EXAMPLE("hub\t", 0, 0, 0); EXAMPLE("pm\t", 1, 0, 0); break;
+	case 2:	EXAMPLE("", 0, 0, 0); break;
+	}
+}
+
+void BDCRichText::getExampleParams(ParamMap& params) {
+	params["hubDE"] = [] { return "testhubDE";		};
+	params["hubDNS"] = [] { return "testhubDNS";		};
+	params["hubGeoIP"] = [] { return "testhubGeoIP";	};
+	params["hubI4"] = [] { return "testhubI4";		};
+	params["hubI6"] = [] { return "testhubI6";		};
+	params["hubNI"] = [] { return "testhubNI";		};
+	params["hubURL"] = [] { return "testhubURL";		};
+
+	params["myAW"] = [] { return "testmyAW";		};
+	params["myDE"] = [] { return "testmyDE";		};
+	params["myEM"] = [] { return "testmyEM";		};
+	params["myGeoIP"] = [] { return "testmyGeoIP";	};
+	params["myI4"] = [] { return "testmyI4";		};
+	params["myI6"] = [] { return "testmyI6";		};
+	params["myNI"] = [] { return "testmyNI";		};
+	params["myOP"] = [] { return "testmyOP";		};
+	params["myRG"] = [] { return "testmyRG";		};
+	params["mySS"] = [] { return "testmySS";		};
+	params["myU4"] = [] { return "testmyU4";		};
+	params["myU6"] = [] { return "testmyU6";		};
+
+	params["userAW"] = [] { return "testuserAW";		};
+	params["userDE"] = [] { return "testuserDE";		};
+	params["userEM"] = [] { return "testuserEM";		};
+	params["userGeoIP"] = [] { return "testuserGeoIP";	};
+	params["userI4"] = [] { return "testuserI4";		};
+	params["userI6"] = [] { return "testuserI6";		};
+	params["userNI"] = [] { return "testuserNI";		};
+	params["userOP"] = [] { return "testuserOP";		};
+	params["userRG"] = [] { return "testuserRG";		};
+	params["userSS"] = [] { return "testuserSS";		};
+	params["userU4"] = [] { return "testuserU4";		};
+	params["userU6"] = [] { return "testuserU6";		};
+
+	params["timestamp"] = [] { return Util::getShortTimeString();	};
+	params["message"]	= [] { return "testmessage";				};
+	params["id"]		= [] { return "testid";						};
+	params["type"]		= [] { return "testtype";					};
+	params["level"]		= [] { return "testlevel";					};
+}
 
 BDCRichText::BDCRichText(RichTextBox* aRichText) :
-	richText(aRichText), hWnd(aRichText->handle()), limit(::SendMessage(aRichText->handle(), EM_GETLIMITTEXT, 0, 0)), adjustdpi(SETTING(ADJUST_CHAT_TO_DPI)),
+	richText(aRichText), hWnd(aRichText->handle()), limit(::SendMessage(aRichText->handle(), EM_GETLIMITTEXT, 0, 0)), adjustdpi(BDSETTING(ADJUST_CHAT_TO_DPI)),
 	crstart(0), crend(0), scroll(true), edit(false),
 	lengthhtml(0) {
 	config.flags = ST_SELECTION;
@@ -173,6 +264,7 @@ void BDCRichText::write(bool doclear /*= true*/) {
 		}
 
 		pi.getRtf(message);
+//		LOG_DBG("part.getRTF() returned: " + Text::fromT(message));
 
 		// richedit has the nasty habit of not allowing two links next to each other without any spaces between them
 		// lets add an invisible space whenever we've added a link
@@ -233,7 +325,7 @@ size_t BDCRichText::addFont(const string& aFont) {
 		// assume the index is one digit, if not this doesn't save a lot anyway
 		auto fi = fonts.begin();
 		for (; fi != fonts.end(); ++fi) {
-			if (BDCWinUtil::streql(&(*(fi->begin() + 4)), &(*fi->end()), &(*(font.begin() + 4)), &(*font.end())) == 0) {
+			if (Bdcpp::streql(&(*(fi->begin() + 4)), &(*fi->end()), &(*(font.begin() + 4)), &(*font.end())) == 0) {
 				index = fi - fonts.begin();
 				break;
 			}
@@ -347,7 +439,7 @@ void BDCRichText::decodeHtmlFont(const string& aFont, Context& context) {
 	if ((size.size() > 2) && (*(size.end() - 2) == 'p') && (*(size.end() - 1) == 'x')) { // 16px
 		context.setFontSize(size_t(
 			abs(Util::toFloat(size.substr(0, size.size() - 2))) * 72.0 / 96.0 // px -> font points
-			* (SETTING(ADJUST_CHAT_TO_DPI) ? dwt::util::dpiFactor() : 1) // respect DPI settings
+			* (BDSETTING(ADJUST_CHAT_TO_DPI) ? dwt::util::dpiFactor() : 1) // respect DPI settings
 			* 2.0)); // RTF font sizes are expressed in half-points
 	}
 
@@ -362,15 +454,8 @@ void BDCRichText::decodeHtmlColor(const string& aColor, bool isBg, Context& cont
 	auto sharp = aColor.find('#');
 	if ((sharp != string::npos) && (aColor.size() > (sharp + 6))) {
 		try {
-#if defined(__MINGW32__) && defined(_GLIBCXX_HAVE_BROKEN_VSWPRINTF)
-			/// @todo use stol on MinGW when it's available
-			unsigned int c = 0;
-			auto colStr = aColor.substr(sharp + 1, 6);
-			sscanf(colStr.c_str(), "%X", &c);
-#else
 			size_t pos = 0;
 			auto c = std::stol(aColor.substr(sharp + 1, 6), &pos, 16);
-#endif
 			string color =
 				"\\red" + Util::toString((c & 0xFF0000) >> 16) +
 				"\\green" + Util::toString((c & 0xFF00) >> 8) +
@@ -500,17 +585,16 @@ void BDCRichText::editBegin(size_t addlen) {
 }
 
 void BDCRichText::editEnd() {
-	if (!edit)
+	if(!edit)
 		return;
 	edit = false;
 
-	if (scroll) {
+	if(scroll) {
 		::SendMessage(hWnd, EM_SETSEL, WPARAM(-1), LPARAM(-1));
 		::SendMessage(hWnd, EM_SCROLLCARET, 0, 0);
 		::SendMessage(hWnd, EM_SETSEL, crstart, crend);
 		::SendMessage(hWnd, WM_VSCROLL, SB_BOTTOM, 0);
-	}
-	else {
+	} else {
 		::SendMessage(hWnd, EM_SETSEL, crstart, crend);
 		::SendMessage(hWnd, EM_SETSCROLLPOS, 0, reinterpret_cast<LPARAM>(&scrollPos));
 		::SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
@@ -587,8 +671,33 @@ BOOL BDCRichText::insertImage(const string& aFile) {
 	return bHandled;
 }
 
+//TODO BDCRichText::insertImage(const string& aFile, const long size) {
+//TODO RICHEDIT_IMAGE_PARAMETERS stores x and y as HIMETRIC so convert size to HIMETRIC
+void BDCRichText::insertImage() {
+	//dwt::Point pt { 16, 16 };
+	//dwt::Point pt2;
+	//LPSIZEL himetric = AtlPixelToHiMetric(pt, pt2);
+	
+	RICHEDIT_IMAGE_PARAMETERS rip;
+	IStream *pStream = nullptr;
+	DWORD grfMode = STGM_READ | STGM_SHARE_DENY_NONE;
+	HRESULT hr = SHCreateStreamOnFileEx(_T("X:\\Projects\\icons\\test.png"), grfMode, FILE_ATTRIBUTE_NORMAL, TRUE, NULL, &pStream);
+	if(hr == S_OK) {
+		ZeroMemory(&rip, sizeof(RICHEDIT_IMAGE_PARAMETERS));
+		rip.xWidth = 350;
+		rip.yHeight = 350;
+		rip.Type = TA_BASELINE;
+		rip.pwszAlternateText = _T("test");
+		rip.pIStream = pStream;
+		hr = ::SendMessage(hWnd, EM_INSERTIMAGE, (WPARAM)&rip, 0);
+		if(hr == S_OK) {
+			::SendMessage(hWnd, EM_SETSEL, 0, 0);
+		}
+	}
+}
+
 HBITMAP BDCRichText::getBitmapFromIcon(const tstring& aFile, COLORREF crBgColor) {
-	int size = SETTING(ICON_SIZE);
+	int size = BDSETTING(ICON_SIZE);
 
 	HICON hIcon = HICON(::LoadImage(NULL, aFile.c_str(), IMAGE_ICON, size, size, LR_LOADFROMFILE));
 	if (!hIcon)

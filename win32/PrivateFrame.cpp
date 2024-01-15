@@ -23,6 +23,7 @@
 #include "resource.h"
 
 #include <dcpp/AdcHub.h>
+#include <dcpp/BDCManager.h>
 #include <dcpp/ChatMessage.h>
 #include <dcpp/ClientManager.h>
 #include <dcpp/Client.h>
@@ -78,7 +79,9 @@ bool PrivateFrame::gotMessage(TabViewPtr parent, const ChatMessage& message, con
 			}
 		}
 
-		p->addStatus(Text::toT(str(F_("Message through hub - %1%") % Text::fromT(WinUtil::getHubName(hintedUser)))));
+		if(BDSETTING(SHOW_HUB_IN_PM_CHATSTATUS)) {//default to false since we have the hub dns as part of default chat formatting
+			p->addStatus(Text::toT(str(F_("Message through hub - %1%") % Text::fromT(WinUtil::getHubName(hintedUser)))));
+		}
 
 		WinUtil::notify(WinUtil::NOTIFICATION_PM_WINDOW, Text::toT(message.message), [user] { activateWindow(user); });
 
@@ -194,7 +197,10 @@ PrivateFrame::~PrivateFrame() {
 void PrivateFrame::addedChat(const tstring& message) {
 	setDirty(SettingsManager::BOLD_PM);
 
-	if (ccReady() && SETTING(DONT_LOG_CCPM)) return;
+	if(BDSETTING(FLASH_TASKBAR_ON_PM) && !WinUtil::mainWindow->onForeground())
+		FlashWindow(WinUtil::mainWindow->handle(), TRUE);
+
+	if(ccReady() && SETTING(DONT_LOG_CCPM)) return;
 
 	if(SETTING(LOG_PRIVATE_CHAT)) {
 		ParamMap params;

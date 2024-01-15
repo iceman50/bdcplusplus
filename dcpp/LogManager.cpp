@@ -36,7 +36,7 @@ void LogManager::message(const string& msg, LogMessage::Type type, LogMessage::L
 	auto logMsg = std::make_shared<LogMessage>(msg, type, level);
 	{
 		Lock l(cs);
-		while (lastLogs.size() > 100)
+		while (lastLogs.size() > 200)
 			lastLogs.pop_front();
 		lastLogs.emplace_back(logMsg);
 	}
@@ -47,6 +47,11 @@ void LogManager::message(const string& msg, LogMessage::Type type, LogMessage::L
 LogMessageList LogManager::getLastLogs() {
 	Lock l(cs);
 	return lastLogs;
+}
+
+void LogManager::clearLogList() {
+	Lock l(cs);
+	lastLogs.clear();
 }
 
 string LogManager::getPath(Area area, ParamMap& params) const {

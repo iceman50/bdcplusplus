@@ -18,6 +18,7 @@
 #ifndef DCPLUSPLUS_WIN32_ASPECT_CHAT_H
 #define DCPLUSPLUS_WIN32_ASPECT_CHAT_H
 
+#include <dcpp/BDCManager.h>
 #include <dcpp/ChatMessage.h>
 #include <dcpp/File.h>
 #include <dcpp/SimpleXML.h>
@@ -30,6 +31,7 @@
 #include "HtmlToRtf.h"
 #include "RichTextBox.h"
 #include "WinUtil.h"
+#include "BDCRichText.h"
 
 template<typename T>
 class AspectChat {
@@ -76,18 +78,22 @@ protected:
 	void addChat(const tstring& message) {
 		string tmp;
 
-		Tagger tags(Text::fromT(message));
-		ChatMessage::format(tags, tmp);
+		//Tagger tags(Text::fromT(message));
+		//ChatMessage::format(tags, tmp);
 
-		PluginManager::getInstance()->onChatTags(tags);
+		//PluginManager::getInstance()->onChatTags(tags);
 
 		string htmlMessage = "<span id=\"message\" style=\"white-space: pre-wrap;\">"
 			"<span id=\"timestamp\">" + SimpleXML::escape("[" + Util::getShortTimeString() + "]", tmp, false) + "</span> "
-			"<span id=\"text\">" + tags.merge(tmp) + "</span></span>";
+			//"<span id=\"text\">" + tags.merge(tmp) + "</span></span>";
+			"<span id=\"text\">" + SimpleXML::escape(Text::fromT(message), tmp, false) + "</span></span>";
 
-		PluginManager::getInstance()->onChatDisplay(htmlMessage);
+		if(PluginManager::getInstance()->onChatDisplay(htmlMessage)) {
+			addChatHTML(htmlMessage);
+		} else {
+			addChatPlain(message);
+		}
 
-		addChatHTML(htmlMessage);
 		t().addedChat(message);
 	}
 
@@ -99,20 +105,12 @@ protected:
 
 	/// add a plain text string directly, with no formatting.
 	void addChatPlain(const tstring& message) {
-		addChatRTF(dwt::RichTextBox::rtfEscape(message));
-	}
-
-	/// add an RTF-formatted message.
-	void addChatRTF(tstring message) {
-		/// @todo factor out to dwt
-		if(chat->length() > 0)
-			message = _T("\\line\n") + message;
-		chat->addTextSteady(_T("{\\urtf1\n") + message + _T("}\n"));
+		BDCRichText::addChatPlain(chat, message);
 	}
 
 	/// add an HTML-formatted message.
 	void addChatHTML(const string& message) {
-		addChatRTF(HtmlToRtf::convert(message, chat));
+		BDCRichText::addChatHtml(chat, message);
 	}
 
 	void readLog(const string& logPath, const unsigned setting) {

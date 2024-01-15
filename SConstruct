@@ -228,9 +228,9 @@ if dev.is_win32():
     # Windows header defines
     # <https://msdn.microsoft.com/en-us/library/aa383745(VS.85).aspx>
     env.Append(CPPDEFINES=[
-        '_WIN32_WINNT=0x601',  # Windows 7
-        'WINVER=0x601',  # Windows 7
-        '_WIN32_IE=0x600',  # Common Controls 6
+        '_WIN32_WINNT=0xA00',  # Windows 10+
+        'WINVER=0xA00',  # Windows 10+
+        '_WIN32_IE=0xA00',  # Common Controls (Win 10 / IE11)
 
         # other defs that influence Windows headers
         'NOMINMAX', 'STRICT', 'WIN32_LEAN_AND_MEAN'])
@@ -421,7 +421,8 @@ env = conf.Finish()
 # TODO run config tests to determine which libs to build
 
 dev.boost = dev.build('boost/libs/') if dev.is_win32() else []
-dev.dwarf = dev.build('dwarf/')
+#if 'gcc' in env['TOOLS'] : #libdwarf shouldn't be built under MSVC
+#    dev.dwarf = dev.build('dwarf/')
 dev.zlib = dev.build('zlib/')
 dev.build('zlib/test/')
 dev.bzip2 = dev.build('bzip2/') if dev.is_win32() else []

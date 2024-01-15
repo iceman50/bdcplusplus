@@ -17,15 +17,12 @@
 
 #include <string>
 
-#define APPNAME "DC++"
+#define APPNAME "BDC++"
 
 // don't forget to update the .rc file as well!
-#define VERSIONSTRING "0.881"
-#define VERSIONFLOAT 0.881
-
-//DiCe Edits
-#define MODNAME "BDC++"
-#define MODVER "0.881.1"
+#define VERSIONSTRING "0.8822"
+#define VERSIONFLOAT 0.8822
+#define SDEX_VERSION 1.06
 
 namespace dcpp {
 extern const std::string fullVersionString;

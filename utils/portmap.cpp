@@ -7,6 +7,7 @@
 
 #include <dcpp/Mapper_MiniUPnPc.h>
 #include <dcpp/Mapper_NATPMP.h>
+#include <dcpp/Mapper_WinUpnp.h>
 #include <dcpp/ScopedFunctor.h>
 #include <dcpp/Util.h>
 
@@ -88,6 +89,7 @@ int main(int argc, char* argv[]) {
 
 	case '0': pMapper.reset(new Mapper_NATPMP(getLocalIp(), false)); break;
 	case '1': pMapper.reset(new Mapper_MiniUPnPc(getLocalIp(), false)); break;
+	case '2': pMapper.reset(new Mapper_WinUPnP(getLocalIp(), false)); break;
 
 	default: cout << "Error: invalid method." << endl; help(); return 1;
 	}
