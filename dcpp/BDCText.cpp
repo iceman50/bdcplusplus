@@ -262,7 +262,7 @@ BDCText::BDCText(const string& aText, bool isPm) {
 BDCText::BDCText(const LogMessage& logMsg) {
 	loadSettings();
 	ParamMap params;
-	params["id"] = [&logMsg] { return Util::toString(logMsg.getId()); };
+	params["id"] = [&logMsg] { return std::to_string(logMsg.getId()); };
 	params["message"] = [&logMsg] { return logMsg.getText(); };	
 	params["timestamp"] = [&logMsg] { return Util::getShortTimeString(logMsg.getTime()); };
 	params["type"] = [&logMsg] { return Bdcpp::logTypes[logMsg.getMessageType()]; };

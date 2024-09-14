@@ -33,7 +33,7 @@ namespace dcpp {
 class SearchManager;
 class SocketException;
 
-class SearchManager : public Speaker<SearchManagerListener>, public Singleton<SearchManager>, public Thread, private CommandHandler<SearchManager>
+class SearchManager : public Speaker<SearchManagerListener>, public Singleton<SearchManager>, public Thread, private CommandHandler<SearchManager>, private TimerManagerListener
 {
 public:
 	enum SizeModes {
@@ -89,10 +89,7 @@ public:
 	}
 
 	void genSUDPKey(string& aKey);
-	static void testSUDP();
-	bool decryptPacket(string& x, size_t aLen, const ByteVector& aBuf);
-	static string encryptSUDP(const uint8_t* aKey, const string& aCmd);
-	static bool decryptSUDP(const uint8_t* aKey, const ByteVector& aData, size_t aDataLen, string& result_);
+	bool decryptPacket(string& x, size_t aLen, const uint8_t* aBuf);
 
 private:
 	friend class CommandHandler<SearchManager>;
@@ -115,10 +112,12 @@ private:
 
 	virtual ~SearchManager();
 
-	vector<pair<uint8_t*, uint64_t>> searchKeys;
+	vector<pair<std::unique_ptr<uint8_t[]>, uint64_t>> searchKeys;
+	
 	CriticalSection cs;
 
-	void on(TimerManagerListener::Minute, uint64_t aTick) noexcept;
+	// TimerManagerListener
+	virtual void on(Minute, uint64_t aTick) noexcept; 
 };
 
 } // namespace dcpp

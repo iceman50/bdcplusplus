@@ -202,6 +202,15 @@ StringList ShareManager::getRealPaths(const string& virtualPath) {
 	return ret;
 }
 
+optional<TTHValue> ShareManager::getTTHFromReal(const string& realPath) noexcept {
+	Lock l(cs);
+	auto f = getFile(realPath);
+	if (f) {
+		return f->tth;
+	}
+	return none;
+}
+
 optional<TTHValue> ShareManager::getTTH(const string& virtualFile) const {
 	Lock l(cs);
 	if(virtualFile == Transfer::USER_LIST_NAME_BZ) {
@@ -539,7 +548,36 @@ int64_t ShareManager::getShareSize(const string& realPath) const noexcept {
 	if(i != shares.end()) {
 		auto j = directories.find(i->second);
 		if(j != directories.end()) {
-			return j->second->getSize();
+			// Check whether this is a merged share
+			int vNames = 0;
+			for(auto& s: shares) {
+				if(Util::stricmp(s.second, i->second) == 0) { 
+					vNames++;
+					if (vNames > 1) break;
+				}
+			}
+
+			if(vNames == 1) {
+				// Only one root dir has been found, go simple...
+				return j->second->getSize();
+			} else {
+				// This path is part of multiple merged root dirs, count only what's belong to this virtual share
+				int64_t tmp = 0;
+				// Subdirectories
+				for(auto& d: j->second->directories) {
+					if(FileFindIter(realPath + d.second->getRealName()) != FileFindIter()) {
+						tmp += d.second->getSize();
+					} 
+				}
+
+				// Files in the root dir
+				for(auto& f: j->second->files) {
+					if(FileFindIter(realPath + PATH_SEPARATOR_STR + f.getName()) != FileFindIter()) {
+						tmp += f.getSize();
+					} 
+				}
+				return tmp; 
+			}
 		}
 	}
 	return -1;
@@ -898,7 +936,7 @@ void ShareManager::runRefresh(function<void (float)> progressF) {
 }
 
 void ShareManager::getBloom(ByteVector& v, size_t k, size_t m, size_t h) const {
-	dcdebug("Creating bloom filter, k=%zu, m=%zu, h=%zu\n", k, m, h);
+	dcdebug("Creating bloom filter, k=%u, m=%u, h=%u\n", k, m, h);
 	Lock l(cs);
 
 	HashBloom bloom;

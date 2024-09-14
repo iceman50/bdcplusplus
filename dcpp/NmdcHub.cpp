@@ -145,7 +145,6 @@ void NmdcHub::clearUsers() {
 
 void NmdcHub::updateFromTag(Identity& id, const string& tag) {
 	StringTokenizer<string> tok(tag, ',');
-
 	for(auto& i: tok.getTokens()) {
 		if(i.size() < 2)
 			continue;

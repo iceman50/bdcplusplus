@@ -175,7 +175,7 @@ void HttpConnection::on(BufferedSocketListener::Connected) noexcept {
 	if(connType == TYPE_POST)
 	{
 		socket->write("Content-Type: application/x-www-form-urlencoded\r\n");
-		socket->write("Content-Length: " + Util::toString(requestBody.size()) + "\r\n");
+		socket->write("Content-Length: " + std::to_string(requestBody.size()) + "\r\n");
 	}
 	socket->write("Connection: close\r\n\r\n");	// we'll only be doing one request
 

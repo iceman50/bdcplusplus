@@ -353,7 +353,7 @@ void HubFrame::layout() {
 
 void HubFrame::updateStatus() {
 	auto users = getStatusUsers();
-	status->setText(STATUS_USERS, users.second + Text::toT(Util::toString(users.first)));
+	status->setText(STATUS_USERS, users.second + Text::toT(std::to_string(users.first)));
 	status->setToolTip(STATUS_USERS, users.second + str(TFN_("%1% user", "%1% users", users.first) % users.first));
 
 	auto shared = getStatusShared();
@@ -427,7 +427,7 @@ void HubFrame::enterImpl(const tstring& s) {
 			map<tstring, string> info;
 			info[T_("Hub address")] = url;
 			info[T_("Hub IP & port")] = client->getIpPort();
-			info[T_("Online users")] = Util::toString(getUserCount());
+			info[T_("Online users")] = std::to_string(getUserCount());
 			info[T_("Shared")] = Util::formatBytes(client->getAvailable());
 			info[T_("Nick")] = client->get(HubSettings::Nick);
 			info[T_("Description")] = client->get(HubSettings::Description);
@@ -805,7 +805,8 @@ bool HubFrame::UserInfo::update(const Identity& identity, int sortCol) {
 	columns[COLUMN_DESCRIPTION] = Text::toT(identity.getDescription());
 	columns[COLUMN_TAG] = Text::toT(identity.getTag());
 	columns[COLUMN_CONNECTION] = Text::toT(identity.getConnection());
-	columns[COLUMN_IP] = Text::toT(identity.getIp());
+	// Show the addy where we actually connect to
+	columns[COLUMN_IP] = Text::toT(CONNSTATE(INCOMING_CONNECTIONS6) ? identity.getIp() : identity.getIp4());
 	columns[COLUMN_COUNTRY] = Text::toT(identity.getCountry());
 	columns[COLUMN_EMAIL] = Text::toT(identity.getEmail());
 	columns[COLUMN_CID] = Text::toT(identity.getUser()->getCID().toBase32());
@@ -1081,7 +1082,7 @@ void HubFrame::on(NickTaken, Client*) noexcept {
 }
 
 void HubFrame::on(SearchFlood, Client*, const string& line) noexcept {
-	auto& msg = str(F_("Search spam detected from %1%") % line);
+	const auto& msg = str(F_("Search spam detected from %1%") % line);
 	callAsync([=] { onStatusMessage(msg, ClientListener::FLAG_IS_SPAM); 
 					LogManager::getInstance()->message(msg, LogMessage::TYPE_WARNING, LogMessage::LOG_SPAM);
 		});
@@ -1118,10 +1119,10 @@ pair<size_t, tstring> HubFrame::getStatusUsers() const {
 
 	tstring textForUsers;
 	if(selCount > 1)
-		textForUsers += Text::toT(Util::toString(selCount) + "/");
+		textForUsers += Text::toT(std::to_string(selCount) + "/");
 	auto filteredCount = users->size();
 	if(showUsers->getChecked() && filteredCount < userCount)
-		textForUsers += Text::toT(Util::toString(filteredCount) + "/");
+		textForUsers += Text::toT(std::to_string(filteredCount) + "/");
 
 	return make_pair(userCount, textForUsers);
 }
@@ -1233,8 +1234,8 @@ void HubFrame::updateUserList(UserInfo* ui) {
 	statusDirty = true;
 }
 
-bool HubFrame::userClick(const dwt::ScreenCoordinate& pt) {
-	tstring txt = chat->textUnderCursor(pt);
+bool HubFrame::userClick(tstring& txt, const dwt::ScreenCoordinate& pt) {
+	txt = chat->textUnderCursor(pt);
 	if(txt.empty())
 		return false;
 
@@ -1267,11 +1268,19 @@ bool HubFrame::handleChatContextMenu(dwt::ScreenCoordinate pt) {
 		pt = chat->getContextMenuPos();
 	}
 
-	if(userClick(pt) && handleUsersContextMenu(pt))
+	tstring searchText;
+	if(userClick(searchText, pt) && handleUsersContextMenu(pt))
 		return true;
 
-	auto menu = chat->getMenu();
+	auto sel = chat->getSelection();
+	if (!sel.empty()) {
+		searchText = sel;
+	}
 
+	auto menu = chat->getMenu(searchText);
+	
+	WinUtil::addSearchMenu(menu.get(), searchText);
+	
 	menu->setTitle(escapeMenu(getText()), getParent()->getIcon(this));
 
 	prepareMenu(menu.get(), UserCommand::CONTEXT_HUB, url);

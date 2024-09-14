@@ -319,7 +319,7 @@ size_t BDCRichText::addFont(const string& aFont) {
 		return fonts.empty() ? 0 : (fonts.size() - 1);
 
 	auto index = fonts.size();
-	string font = "{\\f" + Util::toString(index) + aFont;
+	string font = "{\\f" + std::to_string(index) + aFont;
 
 	{	// lets try to find the same font in the table, ignoring the already given index
 		// assume the index is one digit, if not this doesn't save a lot anyway
@@ -594,6 +594,10 @@ void BDCRichText::editEnd() {
 		::SendMessage(hWnd, EM_SCROLLCARET, 0, 0);
 		::SendMessage(hWnd, EM_SETSEL, crstart, crend);
 		::SendMessage(hWnd, WM_VSCROLL, SB_BOTTOM, 0);
+		/*DiCe Test -- Scroll to bottom on login since currently it is broken ... 
+			TODO: if(bool firsttime) { richText->scrollToBottom(); } 
+		*/
+		//richText->scrollToBottom();
 	} else {
 		::SendMessage(hWnd, EM_SETSEL, crstart, crend);
 		::SendMessage(hWnd, EM_SETSCROLLPOS, 0, reinterpret_cast<LPARAM>(&scrollPos));
@@ -677,13 +681,21 @@ void BDCRichText::insertImage() {
 	//dwt::Point pt { 16, 16 };
 	//dwt::Point pt2;
 	//LPSIZEL himetric = AtlPixelToHiMetric(pt, pt2);
+
+	auto pixelToHimet = [](const SIZEL* lpPix, SIZEL* lpHiMetric) -> void {
+		HDC dc = ::GetDC(NULL);
+		lpHiMetric->cx = 100 * lpPix->cx / ::GetDeviceCaps( dc, LOGPIXELSX );
+		lpHiMetric->cy = 100 * lpPix->cy / ::GetDeviceCaps( dc, LOGPIXELSY );
+		::ReleaseDC(NULL, dc);
+	};
 	
 	RICHEDIT_IMAGE_PARAMETERS rip;
 	IStream *pStream = nullptr;
 	DWORD grfMode = STGM_READ | STGM_SHARE_DENY_NONE;
-	HRESULT hr = SHCreateStreamOnFileEx(_T("X:\\Projects\\icons\\test.png"), grfMode, FILE_ATTRIBUTE_NORMAL, TRUE, NULL, &pStream);
+	HRESULT hr = SHCreateStreamOnFileEx(_T("X:\\Projects\\icons\\test.png"), grfMode, FILE_ATTRIBUTE_NORMAL, FALSE, nullptr, &pStream);
+	if(!SUCCEEDED(hr)) { LOG_DBG("SHCreateStreamOnFileEx failed"); }
 	if(hr == S_OK) {
-		ZeroMemory(&rip, sizeof(RICHEDIT_IMAGE_PARAMETERS));
+		ZeroMemory(&rip, sizeof(rip));
 		rip.xWidth = 350;
 		rip.yHeight = 350;
 		rip.Type = TA_BASELINE;

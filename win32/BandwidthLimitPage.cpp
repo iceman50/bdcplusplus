@@ -96,10 +96,10 @@ throttleTime(0)
 	for (int i = 0; i < 2; ++i) {
 		timeBound[i]->addValue(T_("Midnight"));
 		for (int j = 1; j < 12; ++j)
-			timeBound[i]->addValue(Text::toT(Util::toString(j) +" AM").c_str()); ///@todo use the user locale
+			timeBound[i]->addValue(Text::toT(std::to_string(j) +" AM").c_str()); ///@todo use the user locale
 	 	timeBound[i]->addValue(T_("Noon"));
 		for (int j = 1; j < 12; ++j)
-			timeBound[i]->addValue(Text::toT(Util::toString(j) +" PM").c_str()); ///@todo use the user locale
+			timeBound[i]->addValue(Text::toT(std::to_string(j) +" PM").c_str()); ///@todo use the user locale
 		timeBound[i]->setSelected(i?SETTING(BANDWIDTH_LIMIT_END):SETTING(BANDWIDTH_LIMIT_START));
 	}
 

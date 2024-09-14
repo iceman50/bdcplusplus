@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2023 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2024 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@ namespace dcpp {
 using std::make_pair;
 
 const string AdcHub::CLIENT_PROTOCOL("ADC/1.0");
-const string AdcHub::SECURE_CLIENT_PROTOCOL_TEST("ADCS/0.10");
+const string AdcHub::SECURE_CLIENT_PROTOCOL("ADCS/0.10");
 const string AdcHub::ADCS_FEATURE("ADC0");
 const string AdcHub::TCP4_FEATURE("TCP4");
 const string AdcHub::TCP6_FEATURE("TCP6");
@@ -55,7 +55,7 @@ const string AdcHub::UDP6_FEATURE("UDP6");
 const string AdcHub::NAT0_FEATURE("NAT0");
 const string AdcHub::SEGA_FEATURE("SEGA");
 const string AdcHub::CCPM_FEATURE("CCPM");
-const string AdcHub::SUD1_FEATURE("SUD1");
+const string AdcHub::SUDP_FEATURE("SUDP");
 const string AdcHub::BASE_SUPPORT("ADBASE");
 const string AdcHub::BAS0_SUPPORT("ADBAS0");
 const string AdcHub::TIGR_SUPPORT("ADTIGR");
@@ -343,7 +343,7 @@ void AdcHub::handle(AdcCommand::CTM, AdcCommand& c) noexcept {
 	bool secure = false;
 	if(protocol == CLIENT_PROTOCOL && !SETTING(REQUIRE_TLS)) {
 		// Nothing special
-	} else if(protocol == SECURE_CLIENT_PROTOCOL_TEST && CryptoManager::getInstance()->TLSOk()) {
+	} else if(protocol == SECURE_CLIENT_PROTOCOL && CryptoManager::getInstance()->TLSOk()) {
 		secure = true;
 	} else {
 		unknownProtocol(c.getFrom(), protocol, token);
@@ -373,7 +373,7 @@ void AdcHub::handle(AdcCommand::RCM, AdcCommand& c) noexcept {
 	bool secure;
 	if(protocol == CLIENT_PROTOCOL && !SETTING(REQUIRE_TLS)) {
 		secure = false;
-	} else if(protocol == SECURE_CLIENT_PROTOCOL_TEST && CryptoManager::getInstance()->TLSOk()) {
+	} else if(protocol == SECURE_CLIENT_PROTOCOL && CryptoManager::getInstance()->TLSOk()) {
 		secure = true;
 	} else {
 		unknownProtocol(c.getFrom(), protocol, token);
@@ -392,7 +392,7 @@ void AdcHub::handle(AdcCommand::RCM, AdcCommand& c) noexcept {
 	// If they respond with their own, symmetric, RNT command, both
 	// clients call ConnectionManager::adcConnect.
 	send(AdcCommand(AdcCommand::CMD_NAT, u->getIdentity().getSID(), AdcCommand::TYPE_DIRECT).
-		addParam(protocol).addParam(Util::toString(sock->getLocalPort())).addParam(token));
+		addParam(protocol).addParam(std::to_string(sock->getLocalPort())).addParam(token));
 }
 
 void AdcHub::handle(AdcCommand::CMD, AdcCommand& c) noexcept {
@@ -437,7 +437,7 @@ void AdcHub::sendUDP(const AdcCommand& cmd) noexcept {
 		if(!ou.getIdentity().isUdpActive()) {
 			return;
 		}
-		ip = ou.getIdentity().getIp();
+		ip = CONNSTATE(INCOMING_CONNECTIONS6) ? ou.getIdentity().getIp() : ou.getIdentity().getIp4();
 		port = ou.getIdentity().getUdpPort();
 		command = cmd.toString(ou.getUser()->getCID());
 	}
@@ -488,7 +488,7 @@ void AdcHub::handle(AdcCommand::STA, AdcCommand& c) noexcept {
 			if(c.getParam("PR", 1, tmp)) {
 				if(tmp == CLIENT_PROTOCOL) {
 					u->getUser()->setFlag(User::NO_ADC_1_0_PROTOCOL);
-				} else if(tmp == SECURE_CLIENT_PROTOCOL_TEST) {
+				} else if(tmp == SECURE_CLIENT_PROTOCOL) {
 					u->getUser()->setFlag(User::NO_ADCS_0_10_PROTOCOL);
 					u->getUser()->unsetFlag(User::TLS);
 				}
@@ -599,7 +599,7 @@ void AdcHub::handle(AdcCommand::NAT, AdcCommand& c) noexcept {
 	bool secure = false;
 	if(protocol == CLIENT_PROTOCOL) {
 		// Nothing special
-	} else if(protocol == SECURE_CLIENT_PROTOCOL_TEST && CryptoManager::getInstance()->TLSOk()) {
+	} else if(protocol == SECURE_CLIENT_PROTOCOL && CryptoManager::getInstance()->TLSOk()) {
 		secure = true;
 	} else {
 		unknownProtocol(c.getFrom(), protocol, token);
@@ -607,7 +607,7 @@ void AdcHub::handle(AdcCommand::NAT, AdcCommand& c) noexcept {
 	}
 
 	// Trigger connection attempt sequence locally ...
-	auto localPort = Util::toString(sock->getLocalPort());
+	auto localPort = std::to_string(sock->getLocalPort());
 	dcdebug("triggering connecting attempt in NAT: remote port = %s, local port = %d\n", port.c_str(), sock->getLocalPort());
 	ConnectionManager::getInstance()->adcConnect(*u, port, localPort, BufferedSocket::NAT_CLIENT, token, secure);
 
@@ -634,7 +634,7 @@ void AdcHub::handle(AdcCommand::RNT, AdcCommand& c) noexcept {
 	bool secure = false;
 	if(protocol == CLIENT_PROTOCOL) {
 		// Nothing special
-	} else if(protocol == SECURE_CLIENT_PROTOCOL_TEST && CryptoManager::getInstance()->TLSOk()) {
+	} else if(protocol == SECURE_CLIENT_PROTOCOL && CryptoManager::getInstance()->TLSOk()) {
 		secure = true;
 	} else {
 		unknownProtocol(c.getFrom(), protocol, token);
@@ -643,7 +643,7 @@ void AdcHub::handle(AdcCommand::RNT, AdcCommand& c) noexcept {
 
 	// Trigger connection attempt sequence locally
 	dcdebug("triggering connecting attempt in RNT: remote port = %s, local port = %d\n", port.c_str(), sock->getLocalPort());
-	ConnectionManager::getInstance()->adcConnect(*u, port, Util::toString(sock->getLocalPort()), BufferedSocket::NAT_SERVER, token, secure);
+	ConnectionManager::getInstance()->adcConnect(*u, port, std::to_string(sock->getLocalPort()), BufferedSocket::NAT_SERVER, token, secure);
 }
 
 void AdcHub::handle(AdcCommand::ZON, AdcCommand& c) noexcept {
@@ -680,7 +680,7 @@ void AdcHub::connect(const OnlineUser& user, const string& token, ConnectionType
 			/// @todo log
 			return;
 		}
-		proto = &SECURE_CLIENT_PROTOCOL_TEST;
+		proto = &SECURE_CLIENT_PROTOCOL;
 	} else {
 		if(user.getUser()->isSet(User::NO_ADC_1_0_PROTOCOL) || SETTING(REQUIRE_TLS)) {
 			/// @todo log, consider removing from queue
@@ -789,7 +789,7 @@ void AdcHub::search(int aSizeMode, int64_t aSize, int aFileType, const string& a
 	/* token format: [per-hub unique id] "/" [per-search actual token]
 	this allows easily knowing which hub a search was sent on when parsing a search result,
 	whithout having to bother maintaining a list of sent tokens. */
-	c.addParam("TO", Util::toString(getUniqueId()) + "/" + aToken);
+	c.addParam("TO", std::to_string(getUniqueId()) + "/" + aToken);
 
 	if(aFileType == SearchManager::TYPE_TTH) {
 		c.addParam("TR", aString);
@@ -883,9 +883,8 @@ void AdcHub::search(int aSizeMode, int64_t aSize, int aFileType, const string& a
 			c.addParam("EX", i);
 	}
 
-	//DiCe Edit SUDP - Need to verify if an ADCS hub and add Key
-	//
-	if(isSecure() && !aKey.empty() && Util::strnicmp("adcs://", getHubUrl().c_str(), 7) == 0) {		
+	// Verify that it is an active ADCS hub
+	if(SETTING(ENABLE_SUDP) && !aKey.empty() && ClientManager::getInstance()->isActive() && isSecure()) {
 		c.addParam("KY", aKey);
 	}
 
@@ -998,11 +997,11 @@ void AdcHub::infoImpl() {
 	addParam(lastInfoMap, c, "SL", Util::toString(SETTING(SLOTS)));
 	addParam(lastInfoMap, c, "FS", Util::toString(UploadManager::getInstance()->getFreeSlots()));
 	addParam(lastInfoMap, c, "SS", ShareManager::getInstance()->getShareSizeString());
-	addParam(lastInfoMap, c, "SF", Util::toString(ShareManager::getInstance()->getSharedFiles()));
+	addParam(lastInfoMap, c, "SF", std::to_string(ShareManager::getInstance()->getSharedFiles()));
 	addParam(lastInfoMap, c, "EM", get(Email));
-	addParam(lastInfoMap, c, "HN", Util::toString(counts[COUNT_NORMAL]));
-	addParam(lastInfoMap, c, "HR", Util::toString(counts[COUNT_REGISTERED]));
-	addParam(lastInfoMap, c, "HO", Util::toString(counts[COUNT_OP]));
+	addParam(lastInfoMap, c, "HN", std::to_string(counts[COUNT_NORMAL]));
+	addParam(lastInfoMap, c, "HR", std::to_string(counts[COUNT_REGISTERED]));
+	addParam(lastInfoMap, c, "HO", std::to_string(counts[COUNT_OP]));
 	//DiCe Addons
 	addParam(lastInfoMap, c, "AP", APPNAME);
 	//addParam(lastInfoMap, c, "AP", "++");
@@ -1021,7 +1020,7 @@ void AdcHub::infoImpl() {
 	if (limit > 0) {
 		addParam(lastInfoMap, c, "US", Util::toString(limit * 1024));
 	} else {
-		addParam(lastInfoMap, c, "US", Util::toString((long)(Util::toDouble(SETTING(UPLOAD_SPEED))*1024*1024/8)));
+		addParam(lastInfoMap, c, "US", std::to_string((long)(Util::toDouble(SETTING(UPLOAD_SPEED))*1024*1024/8)));
 	}
 
 	addParam(lastInfoMap, c, "LC", Util::getIETFLang());
@@ -1037,8 +1036,9 @@ void AdcHub::infoImpl() {
 		addParam(lastInfoMap, c, "KP", CryptoManager::getInstance()->keyprintToString(kp));
 	}
 
-	if(BDSETTING(ENABLE_SUDP))
-		su += "," + SUD1_FEATURE;
+	if(SETTING(ENABLE_SUDP) && isSecure()) {
+		su += "," + SUDP_FEATURE;
+	}
 
 	bool addV4 = !sock->isV6Valid() || (get(HubSettings::Connection) != SettingsManager::INCOMING_DISABLED);
 	bool addV6 = sock->isV6Valid() || (get(HubSettings::Connection6) != SettingsManager::INCOMING_DISABLED);

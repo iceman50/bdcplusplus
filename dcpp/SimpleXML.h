@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2023 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2024 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,10 +44,10 @@ public:
 
 	void addTag(const string& aName, const string& aData = Util::emptyString);
 	void addTag(const string& aName, int aData) {
-		addTag(aName, Util::toString(aData));
+		addTag(aName, std::to_string(aData));
 	}
 	void addTag(const string& aName, int64_t aData) {
-		addTag(aName, Util::toString(aData));
+		addTag(aName, std::to_string(aData));
 	}
 
 	template<typename T>
@@ -135,7 +135,7 @@ public:
 		return (!tmp.empty()) && tmp[0] == '1';
 	}
 
-	void fromXML(const string& aXML);
+	void fromXML(const string& aXML, int aFlags = 0);
 	string toXML();
 	void toXML(OutputStream* f) { if(!root.children.empty()) root.children[0]->toXML(0, f); }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2023 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2024 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@ public:
 	static StringList parseSearchExts(int flag);
 
 	static const string CLIENT_PROTOCOL;
-	static const string SECURE_CLIENT_PROTOCOL_TEST;
+	static const string SECURE_CLIENT_PROTOCOL;
 	static const string ADCS_FEATURE;
 	static const string TCP4_FEATURE;
 	static const string TCP6_FEATURE;
@@ -65,13 +65,13 @@ public:
 	static const string NAT0_FEATURE;
 	static const string SEGA_FEATURE;
 	static const string CCPM_FEATURE;
-	static const string SUD1_FEATURE;
 	static const string BASE_SUPPORT;
 	static const string BAS0_SUPPORT;
 	static const string TIGR_SUPPORT;
 	static const string UCM0_SUPPORT;
 	static const string BLO0_SUPPORT;
 	static const string ZLIF_SUPPORT;
+	static const string SUDP_FEATURE;
 
 private:
 	friend class ClientManager;

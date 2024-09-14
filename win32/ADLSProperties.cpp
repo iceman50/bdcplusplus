@@ -78,11 +78,11 @@ bool ADLSProperties::handleInitDialog() {
 
 		group = cur->addChild(GroupBox::Seed(T_("Min FileSize")));
 		minSize = group->addChild(WinUtil::Seeds::Dialog::intTextBox);
-		minSize->setText((search.minFileSize > 0) ? Text::toT(Util::toString(search.minFileSize)) : Util::emptyStringT);
+		minSize->setText((search.minFileSize > 0) ? Text::toT(std::to_string(search.minFileSize)) : Util::emptyStringT);
 
 		group = cur->addChild(GroupBox::Seed(T_("Max FileSize")));
 		maxSize = group->addChild(WinUtil::Seeds::Dialog::intTextBox);
-		maxSize->setText((search.maxFileSize > 0) ? Text::toT(Util::toString(search.maxFileSize)) : Util::emptyStringT);
+		maxSize->setText((search.maxFileSize > 0) ? Text::toT(std::to_string(search.maxFileSize)) : Util::emptyStringT);
 	}
 
 	group = grid->addChild(GroupBox::Seed(T_("Size Type")));

@@ -1,9 +1,9 @@
 This directory contains a subset of OpenSSL <www.openssl.org>, namely header
-files and static libraries compiled with MinGW.
+files and static libraries compiled with MinGW and MSVC
 
-Info on the MinGW compiler is in the "Compile.txt" file at the root of this
+Info on the MinGW and MSVC compilers is in the "Compile.txt" file at the root of this
 repository.
-The openssl/build/build.bat script has been used to compile static libraries.
+The openssl/build/build.bat script has been used to compile MinGW static libraries.
 
 Patches in the openssl/build/patches directory have been applied.
 

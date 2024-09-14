@@ -477,7 +477,12 @@ bool PrivateFrame::handleChatContextMenu(dwt::ScreenCoordinate pt) {
 		pt = chat->getContextMenuPos();
 	}
 
-	auto menu = chat->getMenu();
+	tstring searchText;
+	WinUtil::getChatSelText(chat, searchText, pt);
+
+	auto menu = chat->getMenu(searchText);
+	
+	WinUtil::addSearchMenu(menu.get(), searchText);
 
 	menu->setTitle(escapeMenu(getText()), getParent()->getIcon(this));
 

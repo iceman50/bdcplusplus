@@ -117,9 +117,10 @@ const string SettingsManager::settingTags[] =
 	"StatusInChat", "TimeDependentThrottle", "TimeStamps",
 	"ToggleActiveTab", "UrlHandler", "UseCTRLForLineHistory", "UseSystemIcons",
 	"UsersFilterFavorite", "UsersFilterOnline", "UsersFilterQueue", "UsersFilterWaiting",
-	"RegisterSystemStartup", "DontLogCCPMChat", 
+	"RegisterSystemStartup", "DontLogCCPMChat", "AboutCfgDisclaimer", "EnableTaskbarPreview",
+	"EnableSUDP", 
 	//DiCe Addon SETTINGS::BOOL
-	"AboutCfgDisclaimer", "EnableNmdcTls",
+	"EnableNmdcTls",
 	"SENTRY",
 	// Int64
 	"TotalUpload", "TotalDownload", "SharingSkiplistMinSize", "SharingSkiplistMaxSize",
@@ -376,9 +377,10 @@ SettingsManager::SettingsManager() {
 	setDefault(MAX_EXTRA_SLOTS, 3);
 	setDefault(TESTING_STATUS, TESTING_ENABLED);
 	setDefault(WHITELIST_OPEN_URIS, "http:;https:;www;mailto:");
-	
-	//DiCe Addons
+	setDefault(ENABLE_SUDP, true);
 	setDefault(AC_DISCLAIM, true);
+	//DiCe Addons
+
 	setDefault(ENABLE_NMDC_TLS, true);
 
 	setSearchTypeDefaults();
@@ -393,6 +395,8 @@ SettingsManager::SettingsManager() {
 	setDefault(UPLOAD_BG_COLOR, RGB(205, 60, 55));
 	setDefault(DOWNLOAD_TEXT_COLOR, RGB(255, 255, 255));
 	setDefault(DOWNLOAD_BG_COLOR, RGB(55, 170, 85));
+
+	setDefault(ENABLE_TASKBAR_PREVIEW, true);
 #endif
 }
 

@@ -26,6 +26,7 @@
 #include <dcpp/UploadManager.h>
 #include <dcpp/User.h>
 #include <dcpp/UserMatchManager.h>
+#include <dcpp/ConnectivityManager.h>
 
 #include <dwt/util/StringUtils.h>
 
@@ -161,11 +162,15 @@ tstring UserInfoBase::getInfo(int flags) const {
 	if(id.isAway())
 		addLine(T_("In away mode"));
 
-	addValue(T_("Shared"), Util::formatBytes(id.getBytesShared()));
+	const auto& bytesShared = id.getBytesShared();
+
+	addValue(T_("Shared"), Util::formatBytes(bytesShared));
+	if (bytesShared != 0 && !id.getUser()->isNMDC())
+		addValue(T_("Shared files"), id.get("SF"));
 	addValue(T_("Description"), id.getDescription());
 	addValue(T_("Tag"), id.getTag());
 	addValue(T_("Connection"), id.getConnection());
-	addValue(T_("IP"), id.getIp());
+	addValue(T_("IP"), CONNSTATE(INCOMING_CONNECTIONS6) ? id.getIp() : id.getIp4());
 	addValue(T_("Country"), id.getCountry());
 	addValue(T_("E-mail"), id.getEmail());
 	string slots = id.get("SL");

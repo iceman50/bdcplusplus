@@ -46,6 +46,7 @@ PropPage::ListItem AppearancePage::listItems[] = {
 	{ SettingsManager::FAV_SHOW_JOINS, N_("Only show joins / parts for favorite users") },
 	{ SettingsManager::SORT_FAVUSERS_FIRST, N_("Sort favorite users first") },
 	{ SettingsManager::GET_USER_COUNTRY, N_("Guess user country from IP") },
+	{ SettingsManager::ENABLE_TASKBAR_PREVIEW, N_("Enable window previews in the taskbar (requires restart)") },
 	{ 0, 0 }
 };
 

@@ -21,7 +21,6 @@
 
 #include "WinUtil.h"
 
-//#include <chrono>
 #include <random>
 
 #include <dcpp/DownloadManager.h>
@@ -62,9 +61,9 @@ bool BDCWinUtil::getSysInfo(tstring& line) {
 tstring BDCWinUtil::getUptime(bool standalone /*= true*/) {
 	tstring line;
 
-	standalone ? line += Text::toT("\r\n | ") + _T(APPNAME) + T_(" Uptime")
+	standalone ? line += Text::toT("\r\n | ") + _T(APPNAME) + _T(" ") + _T(VERSIONSTRING) + T_(" Uptime")
 		       : line += Text::toT("\r\n | ") + T_("Uptime");
-	line += Text::toT("\r\n |\tCLI\t") + formatTimeDifference(time(NULL) - startTime);
+	line += Text::toT("\r\n |\tCLI\t") + formatTimeDifference(time(nullptr) - startTime);
 	line += Text::toT("\r\n |\tSYS\t") + formatTimeDifference(::GetTickCount64() / 1000);
 
 	return line;
@@ -114,25 +113,25 @@ tstring BDCWinUtil::getSystemInfo() {
 	GlobalMemoryStatusEx(&memoryStatusEx);
 
 	displayDevice.cb = sizeof(DISPLAY_DEVICE);
-	EnumDisplayDevices(NULL, 0, &displayDevice, 1); // EDD_GET_DEVICE_INTERFACE_NAME
+	EnumDisplayDevices(nullptr, 0, &displayDevice, 1); // EDD_GET_DEVICE_INTERFACE_NAME
 
 
 	if(RegOpenKeyEx(HKEY_LOCAL_MACHINE, _T("Hardware\\Description\\System\\CentralProcessor\\0\\"), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
 		bufLen = sizeof(buf);
-		if(RegQueryValueEx(hKey, _T("ProcessorNameString"), NULL, NULL, LPBYTE(&buf), &bufLen) == ERROR_SUCCESS)
+		if(RegQueryValueEx(hKey, _T("ProcessorNameString"), nullptr, nullptr, LPBYTE(&buf), &bufLen) == ERROR_SUCCESS)
 			line += Text::toT("\r\n |\tCPU\t") + tstring(buf);
 		RegCloseKey(hKey);
 	}
 
 	if(RegOpenKeyEx(HKEY_LOCAL_MACHINE, _T("Hardware\\Description\\System\\CentralProcessor\\0\\"), 0, KEY_QUERY_VALUE, &hKey) == ERROR_SUCCESS) {
-		if(RegQueryValueEx(hKey, _T("~MHz"), NULL, NULL, LPBYTE(&speedMhz), &dwLen) == ERROR_SUCCESS)
+		if(RegQueryValueEx(hKey, _T("~MHz"), nullptr, nullptr, LPBYTE(&speedMhz), &dwLen) == ERROR_SUCCESS)
 			line += Text::toT("\r\n |\tCLK\t") + Text::toT(Util::toString(float(speedMhz) / 1000)) + _T(" GHz");
 		RegCloseKey(hKey);
 	}
 
-	line += Text::toT("\r\n |\tTHD\t") + Text::toT(Util::toString(systemInfo.dwNumberOfProcessors));
+	line += Text::toT("\r\n |\tTHD\t") + Text::toT(std::to_string(systemInfo.dwNumberOfProcessors));
 	line += Text::toT("\r\n |\tRAM\t") + Text::toT(Util::formatBytes(memoryStatusEx.ullAvailPhys)) + Text::toT(" / ") + Text::toT(Util::formatBytes(memoryStatusEx.ullTotalPhys)) + Text::toT(" (");
-	line += Text::toT(Util::toString(memoryStatusEx.dwMemoryLoad)) + Text::toT("% used)");
+	line += Text::toT(std::to_string(memoryStatusEx.dwMemoryLoad)) + Text::toT("% used)");
 	line += Text::toT("\r\n |\tSTR\t") + BDCWinUtil::diskSpaceInfo(true) + _T(" (free/total)");
 	line += Text::toT("\r\n |\tGFX\t") + tstring(displayDevice.DeviceString);
 	line += Text::toT("\r\n |\tRES\t") + Text::toT(Util::toString(GetSystemMetrics(SM_CXSCREEN))) + Text::toT("x") + Text::toT(Util::toString(GetSystemMetrics(SM_CYSCREEN)));
@@ -143,6 +142,7 @@ tstring BDCWinUtil::getSystemInfo() {
 tstring BDCWinUtil::getOSInfo() {
 	//This requires that your exe is properly manifested in order to return the correct win version
 	tstring line, os, bit;
+	bit.reserve(8);
 	OSVERSIONINFOEX osv = { 0 };
 	osv.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
 	GetVersionEx((OSVERSIONINFO*)&osv);
@@ -192,7 +192,7 @@ tstring BDCWinUtil::getOSInfo() {
 			else if((osv.dwBuildNumber >= 19044) && (osv.dwBuildNumber < 22000))
 				os = Text::toT("Windows 10 Version 21H2");
 			else if(osv.dwBuildNumber >= 22000)
-				os = Text::toT("Windows 11 Build: ") + Text::toT(Util::toString(osv.dwBuildNumber));
+				os = Text::toT("Windows 11 Build: ") + Text::toT(std::to_string(osv.dwBuildNumber));
 		} else if(osv.dwMajorVersion == 6 && osv.dwMinorVersion == 3 && osv.wProductType == VER_NT_WORKSTATION) {
 			os = Text::toT("Windows 8.1");
 		} else if(osv.dwMajorVersion == 6 && osv.dwMinorVersion == 2 && osv.wProductType == VER_NT_WORKSTATION) {
@@ -203,7 +203,7 @@ tstring BDCWinUtil::getOSInfo() {
 				os = Text::toT(" SP1");
 			}
 		} else {
-			os += Text::toT("Unsupported Windows version - build: ") + Text::toT(Util::toString(osv.dwBuildNumber));
+			os += Text::toT("Unsupported Windows version - build: ") + Text::toT(std::to_string(osv.dwBuildNumber));
 		}
 
 		os += _T(" ");
@@ -211,7 +211,7 @@ tstring BDCWinUtil::getOSInfo() {
 		//TODO - Use GetProductInfo(...) to pull the Edition 
 		if(RegOpenKeyEx(HKEY_LOCAL_MACHINE, _T("Software\\Microsoft\\Windows NT\\CurrentVersion\\"), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
 			bufLen = sizeof(buf);
-			if(RegQueryValueEx(hKey, _T("EditionID"), NULL, NULL, LPBYTE(&buf), &bufLen) == ERROR_SUCCESS)
+			if(RegQueryValueEx(hKey, _T("EditionID"), nullptr, nullptr, LPBYTE(&buf), &bufLen) == ERROR_SUCCESS)
 				os += buf;
 			RegCloseKey(hKey);
 		}
@@ -255,7 +255,7 @@ tstring BDCWinUtil::diskSpaceInfo(bool onlyTotal) {
 	for(auto i = volumes.begin(); i != volumes.end(); i++) {
 		if(GetDriveType((*i).c_str()) == DRIVE_CDROM || GetDriveType((*i).c_str()) == DRIVE_REMOVABLE)
 			continue;
-		if(GetDiskFreeSpaceEx((*i).c_str(), NULL, (PULARGE_INTEGER)&size, (PULARGE_INTEGER)&free)){
+		if(GetDiskFreeSpaceEx((*i).c_str(), nullptr, (PULARGE_INTEGER)&size, (PULARGE_INTEGER)&free)){
 			totalFree += free;
 			totalSize += size;
 		}
@@ -307,8 +307,8 @@ tstring BDCWinUtil::diskInfoList() {
 		if(GetDriveType((*i).c_str()) == DRIVE_CDROM || GetDriveType((*i).c_str()) == DRIVE_REMOVABLE)
 			continue;
 
-		if((GetVolumePathNamesForVolumeName((*i).c_str(), buf, 256, NULL) != 0) &&
-		   (GetDiskFreeSpaceEx((*i).c_str(), NULL, (PULARGE_INTEGER)&size, (PULARGE_INTEGER)&free) !=0)){
+		if((GetVolumePathNamesForVolumeName((*i).c_str(), buf, 256, nullptr) != 0) &&
+		   (GetDiskFreeSpaceEx((*i).c_str(), nullptr, (PULARGE_INTEGER)&size, (PULARGE_INTEGER)&free) !=0)){
 			tstring mountpath = buf; 
 			if(!mountpath.empty()) {
 				totalFree += free;
@@ -356,12 +356,12 @@ tstring BDCWinUtil::getLibs() {
 	tstring line;
 
 	line += Text::toT("\r\n | ") + Text::toT("Libs");
-	line += Text::toT("\r\n |\tBoost version : ") + Text::toT(BOOST_LIB_VERSION);
-	line += Text::toT("\r\n |\tZLib version : ") + Text::toT(ZLIB_VERSION);
+	line += Text::toT("\r\n |\tBoost version: ") + Text::toT(BOOST_LIB_VERSION);
+	line += Text::toT("\r\n |\tZLib version: ") + Text::toT(ZLIB_VERSION);
 	line += Text::toT("\r\n |\tBZip2 version: ") + Text::toT(BZ2_bzlibVersion());
 	line += Text::toT("\r\n |\tOpenSSL version: ") + Text::toT(OPENSSL_FULL_VERSION_STR) + _T(" - ") + Text::toT(OPENSSL_RELEASE_DATE);
-	line += Text::toT("\r\n |\tMiniUPnPc version : ") + Text::toT(MINIUPNPC_VERSION);
-	line += Text::toT("\r\n |\tSdEx version : ") + Text::toT(Util::toString(SDEX_VERSION));
+	line += Text::toT("\r\n |\tMiniUPnPc version: ") + Text::toT(MINIUPNPC_VERSION);
+	line += Text::toT("\r\n |\tSdEx version: ") + Text::toT(Util::toString(SDEX_VERSION));
 	line += Text::toT("\r\n |\tGeoIP2 version: ") + Text::toT(PACKAGE_VERSION);
 
 	return line;
@@ -374,7 +374,7 @@ bool BDCWinUtil::getNetStats(tstring& line) {
 	line += Text::toT("\r\n | Uploads");
 	line += Text::toT("\r\n |\tSUL\t") + Text::toT(Util::formatBytes(Socket::getTotalUp()));
 	line += Text::toT("\r\n |\tTUL\t") + Text::toT(Util::formatBytes(SETTING(TOTAL_UPLOAD)));
-	line += Text::toT("\r\n |\tRUL\t") + Text::toT(Util::toString(UploadManager::getInstance()->getUploadCount())) + Text::toT(" Running Upload(s)");
+	line += Text::toT("\r\n |\tRUL\t") + Text::toT(std::to_string(UploadManager::getInstance()->getUploadCount())) + Text::toT(" Running Upload(s)");
 	line += Text::toT("\r\n |\tULS\t") + Text::toT(Util::formatBytes(UploadManager::getInstance()->getRunningAverage())) + Text::toT("/s");
 
 
@@ -382,7 +382,7 @@ bool BDCWinUtil::getNetStats(tstring& line) {
 	line += Text::toT("\r\n | Downloads");
 	line += Text::toT("\r\n |\tSDL\t") + Text::toT(Util::formatBytes(Socket::getTotalDown()));
 	line += Text::toT("\r\n |\tTDL\t") + Text::toT(Util::formatBytes(SETTING(TOTAL_DOWNLOAD)));
-	line += Text::toT("\r\n |\tRDL\t") + Text::toT(Util::toString(DownloadManager::getInstance()->getDownloadCount())) + Text::toT(" Running Download(s)");
+	line += Text::toT("\r\n |\tRDL\t") + Text::toT(std::to_string(DownloadManager::getInstance()->getDownloadCount())) + Text::toT(" Running Download(s)");
 	line += Text::toT("\r\n |\tDLS\t") + Text::toT(Util::formatBytes(DownloadManager::getInstance()->getRunningAverage())) + Text::toT("/s");
 
 	line += Text::toT("\r\n |");

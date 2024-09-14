@@ -74,6 +74,7 @@ bool ZFilter::operator()(const void* in, size_t& insize, void* out, size_t& outs
 		dcdebug("ZFilter: Dynamically disabled compression\n");
 
 		// Check if we ate all space already...
+		// Starting with zlib 1.2.12, generation of Z_BUF_ERROR in deflateParams has changed.
 		if(zs.avail_out == 0) {
 			outsize = outsize - zs.avail_out;
 			insize = insize - zs.avail_in;

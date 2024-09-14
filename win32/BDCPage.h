@@ -34,7 +34,7 @@ private:
 
 	ComboBoxPtr actionDBLClickUserCb;
 	TextBoxPtr iconPath;
-	ButtonPtr browseIcon, testSUDP, testLogger, tabText, sdexVersion;
+	ButtonPtr browseIcon, testLogger, tabText, sdexVersion;
 
 	void testBDCLogger();
 	void handleSdexVersion();

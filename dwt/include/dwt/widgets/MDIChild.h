@@ -36,8 +36,6 @@
 #ifndef DWT_MDIChild_h
 #define DWT_MDIChild_h
 
-#ifndef WINCE
-
 #include "../tstring.h"
 #include "../resources/Icon.h"
 #include "MDIParent.h"
@@ -119,7 +117,5 @@ inline MDIChild::MDIChild( Widget * parent )
 {}
 
 }
-
-#endif //! WINCE
 
 #endif

@@ -43,7 +43,6 @@ using dwt::FolderDialog;
 PropPage::ListItem BDCPage::listItems[] = {
 	{ BDCManager::ENABLE_ICON_THEMING,		 N_("Enable icon theming") },
 	{ BDCManager::TABS_ON_BOTTOM,			 N_("Set tabs on bottom of chat window (restart required)") },
-	{ BDCManager::ENABLE_SUDP,				 N_("Enable SUDP (ADCS Only)") },
 	{ BDCManager::FLASH_TASKBAR_ON_PM,		 N_("Flash taskbar on PM") },
 	{ BDCManager::SHOW_HUB_IN_PM_CHATSTATUS, N_("Show origin hub in PM as a status message") },
 };
@@ -53,7 +52,6 @@ options(0),
 iconPath(0),
 browseIcon(0),
 actionDBLClickUserCb(0),
-testSUDP(0),
 testLogger(0),
 tabText(0),
 sdexVersion(0)
@@ -72,7 +70,7 @@ sdexVersion(0)
 
 	options = cur->addChild(WinUtil::Seeds::Dialog::optionsTable);
 	options->addColumn();
-	WinUtil::setColor(options);
+	//WinUtil::setColor(options);
 
 	{
 		auto grid = cur->addChild(GroupBox::Seed(T_("Icon theme folder")))->addChild(Grid::Seed(1, 2));
@@ -97,16 +95,11 @@ sdexVersion(0)
 	}
 
 	{
-		auto grid = cur->addChild(GroupBox::Seed(T_("Misc.")))->addChild(Grid::Seed(1, 4));
+		auto grid = cur->addChild(GroupBox::Seed(T_("Misc.")))->addChild(Grid::Seed(1, 3));
 		grid->column(0).mode = GridInfo::FILL;
 		grid->column(1).mode = GridInfo::FILL;
 		grid->column(2).mode = GridInfo::FILL;
-		grid->column(3).mode = GridInfo::FILL;
 		grid->setSpacing(cur->getSpacing());
-
-		testSUDP = grid->addChild(WinUtil::Seeds::Dialog::button);
-		testSUDP->setText(T_("Test SUDP"));
-		testSUDP->onClicked([] { SearchManager::getInstance()->testSUDP(); });
 
 		testLogger = grid->addChild(WinUtil::Seeds::Dialog::button);
 		testLogger->setText(T_("Test BDCLogger"));

@@ -101,7 +101,7 @@ using dwt::ToolBar;
 
 decltype(MainWindow::pluginCommands) MainWindow::pluginCommands;
 
-static dwt::IconPtr mainIcon(new dwt::Icon(IDI_DCPP, dwt::Point(32, 32))); //Workaround for SettingsManager not being initialized yet
+static dwt::IconPtr mainIcon(new dwt::Icon(IDI_DCPP, dwt::Point(32, 32)));
 static dwt::IconPtr mainSmallIcon(new dwt::Icon(IDI_DCPP, dwt::Point(16, 16)));
 
 MainWindow::MainWindow() :
@@ -124,7 +124,7 @@ fullSlots(false)
 	// Don't forget to update version.xml when changing these links!
 	links.homepage = _T("https://dcplusplus.sourceforge.io/");
 	links.downloads = links.homepage + _T("download/");
-	links.geoip_city = _T("https://client.feardc.net/geoip/GeoLite2-City.mmdb.gz");
+	links.geoip_city = _T("https://dcplusplus.sourceforge.io/geoip/GeoLite2-City.mmdb.gz");
 	links.faq = links.homepage + _T("faq/");
 	links.help = links.homepage + _T("help/");
 	links.discuss = links.homepage + _T("discussion/");
@@ -183,17 +183,15 @@ fullSlots(false)
 	onRaw([this](WPARAM, LPARAM) { return handleEndSession(); }, dwt::Message(WM_ENDSESSION));
 	onRaw([this](WPARAM, LPARAM l) { return handleCopyData(l); }, dwt::Message(WM_COPYDATA));
 	onRaw([this](WPARAM, LPARAM) { return handleWhereAreYou(); }, dwt::Message(SingleInstance::WMU_WHERE_ARE_YOU));
-	//In the event that explorer.exe crashes lets make sure the overlay icon is reset
-	UINT tbcMsg = ::RegisterWindowMessage(L"TaskbarButtonCreated");
-	if(tbcMsg != WM_NULL) {
-		::ChangeWindowMessageFilterEx(this->handle(), tbcMsg, 1, 0);
-		onRaw([this, tbcMsg](WPARAM, LPARAM) { handleTaskbarOverlay(); return 0; }, dwt::Message(tbcMsg));
-	}
 
-	//DiCe Edit
-	//tabs->onPrinting([this](dwt::Canvas& canvas) { /* Handle Canvas Here */ handleTabDrawing(tabs); });
-	//tabs->onPainting([this](dwt::Canvas& canvas) { handleTabDrawing(tabs, canvas); });
-	//tabs->onRaw([this](WPARAM, LPARAM) { handleTabDrawing(tabs); return 0; }, dwt::Message(WM_PAINT));
+	if(SETTING(ENABLE_TASKBAR_PREVIEW)) {
+		//In the event that explorer.exe crashes lets make sure the overlay icon is reset
+		UINT tbcMsg = ::RegisterWindowMessage(L"TaskbarButtonCreated");
+		if(tbcMsg != WM_NULL) {
+			::ChangeWindowMessageFilterEx(this->handle(), tbcMsg, 1, 0);
+			onRaw([this, tbcMsg](WPARAM, LPARAM) { handleTaskbarOverlay(); return 0; }, dwt::Message(tbcMsg));
+		}
+	}
 
 	filterIter = dwt::Application::instance().addFilter([this](MSG &msg) { return filter(msg); });
 
@@ -279,10 +277,6 @@ fullSlots(false)
 	if(SETTING(SETTINGS_SAVE_INTERVAL) > 0)
 		setSaveTimer();
 
-	//DiCe Addon
-//	useDarkMode(this->getParentHandle());
-//	setDarkMode(this->getParentHandle());
-	
 	handleTaskbarOverlay();
 }
 
@@ -622,7 +616,8 @@ void MainWindow::initTabs() {
 	seed.toggleActive = SETTING(TOGGLE_ACTIVE_WINDOW);
 	seed.ctrlTab = true;
 	tabs = paned->addChild(seed);
-	tabs->initTaskbar(this);
+	if(SETTING(ENABLE_TASKBAR_PREVIEW))
+		tabs->initTaskbar(this);
 	tabs->onTitleChanged([this](const tstring &title) { handleTabsTitleChanged(title); });
 }
 
@@ -870,7 +865,7 @@ void MainWindow::handleRecent(const dwt::ScreenCoordinate& pt) {
 void MainWindow::handleConfigureRecent(const string& id, const tstring& title) {
 	ParamDlg dlg(this, title);
 	dlg.addIntTextBox(T_("Maximum number of recent items to save"),
-		Text::toT(Util::toString(WindowManager::getInstance()->getMaxRecentItems(id))), 0);
+		Text::toT(std::to_string(WindowManager::getInstance()->getMaxRecentItems(id))), 0);
 	if(dlg.run() == IDOK) {
 		const unsigned max = Util::toUInt(Text::fromT(dlg.getValue()));
 		dwt::MessageBox(this).show(str(TF_("%1% recent items will be saved from now on.") % max), title,
@@ -954,6 +949,7 @@ void MainWindow::forwardHub(void (HubFrame::*f)()) {
 }
 
 void MainWindow::handleTaskbarOverlay() {
+	if(!SETTING(ENABLE_TASKBAR_PREVIEW)) { return; }
 	tabs->setOverlayIcon(tabs->getActive(), WinUtil::createIcon(away ? IDI_RED_BALL : IDI_GREEN_BALL, 16), away ? _T("Away") : _T("Available"));
 }
 
@@ -1171,7 +1167,7 @@ void MainWindow::updateStatus() {
 
 	if(SETTING(AWAY_IDLE)) {
 		LASTINPUTINFO info = { sizeof(LASTINPUTINFO) };
-		if((::GetLastInputInfo(&info) && static_cast<int64_t>(::GetTickCount() - info.dwTime) > SETTING(AWAY_IDLE) * 60 * 1000) ^ awayIdle) {
+		if((::GetLastInputInfo(&info) && static_cast<int64_t>(::GetTickCount64() - info.dwTime) > SETTING(AWAY_IDLE) * 60 * 1000) ^ awayIdle) {
 			awayIdle = !awayIdle;
 			awayIdle ? Util::incAway() : Util::decAway();
 		}
@@ -1180,7 +1176,7 @@ void MainWindow::updateStatus() {
 	if(!status)
 		return;
 
-	tstring f = Text::toT(Util::toString(ShareManager::getInstance()->getSharedFiles()));
+	tstring f = Text::toT(std::to_string(ShareManager::getInstance()->getSharedFiles()));
 	tstring s = Text::toT(Util::formatBytes(ShareManager::getInstance()->getShareSize()));
 	status->setText(STATUS_SHARED, str(TF_("%1% shared in %2% files") % s % f));
 	status->setToolTip(STATUS_SHARED, str(TF_("%1% shared in %2% files") % s % f));
@@ -1713,6 +1709,19 @@ void MainWindow::handleOpenDownloadsDir() {
 
 LRESULT MainWindow::handleEndSession() {
 	saveSettings();
+
+	ConnectionManager::getInstance()->disconnectAll();
+
+	// Poll to see if all queue items are stopped so their progress can be saved.
+	// We've got at least 30 seconds here before termination but
+	// also let's allow some time to get larger queues saved properly...
+	// See https://learn.microsoft.com/en-us/previous-versions/windows/desktop/ms700677(v=vs.85)
+	// Looks like these all still apply to Windows 10 / 11.
+
+	for(int i = 0; (i < 20) && QueueManager::getInstance()->hasRunning(); i++) {
+		::Sleep(200);
+	}
+
 	QueueManager::getInstance()->saveQueue();
 
 	return 0;
@@ -1742,7 +1751,7 @@ bool MainWindow::handleToolbarContextMenu(const dwt::ScreenCoordinate& pt) {
 		int setting = SETTING(TOOLBAR_SIZE);
 		for(size_t i = 0, iend = sizeof(sizes) / sizeof(int); i < iend; ++i) {
 			int n = sizes[i];
-			unsigned pos = size->appendItem(Text::toT(Util::toString(n)), [=] { handleToolbarSize(n); });
+			unsigned pos = size->appendItem(Text::toT(std::to_string(n)), [=] { handleToolbarSize(n); });
 			if(n == setting)
 				size->checkItem(pos);
 		}
@@ -1841,7 +1850,7 @@ void MainWindow::handleSlotsMenu() {
 
 	auto setting = SETTING(SLOTS);
 	for(decltype(setting) i = 1; i < setting + 10; ++i) {
-		auto pos = menu->appendItem(Text::toT(Util::toString(i)), changeSlots(i), nullptr, true, i == setting);
+		auto pos = menu->appendItem(Text::toT(std::to_string(i)), changeSlots(i), nullptr, true, i == setting);
 		if(i == setting)
 			menu->checkItem(pos);
 	}
@@ -1902,158 +1911,6 @@ void MainWindow::handleTrayUpdate() {
 		Util::formatBytes(UploadManager::getInstance()->getRunningAverage()) %
 		UploadManager::getInstance()->getUploadCount())));
 }
-
-// DiCe Edit
-//LRESULT MainWindow::handleTBCustomDraw(NMTBCUSTOMDRAW& data) {
-//	if (data.nmcd.dwDrawStage == CDDS_PREPAINT) {
-//		return CDRF_NOTIFYITEMDRAW;
-//	}
-//
-//	if (data.nmcd.dwDrawStage == CDDS_ITEMPREPAINT) {
-//		return TBCDRF_USECDCOLORS;
-//	}
-//
-//	return CDRF_DODEFAULT;
-//}
-//
-//LRESULT MainWindow::handleRBCustomDraw(NMCUSTOMDRAW& data) {	
-//	int item = data.dwItemSpec;
-//
-//	if (data.dwDrawStage == CDDS_PREPAINT) {
-//		return CDRF_NOTIFYITEMDRAW;
-//	}
-//
-//	if (data.dwDrawStage == CDDS_ITEMPREPAINT) {
-////		SetWindowTheme(toolbar->handle(), _T(""), _T(""));
-//		SetBkColor(data.hdc, RGB(0, 0, 0));
-//		auto blBrush = dwt::Brush(RGB(0, 0, 0));
-//		FillRect(data.hdc, &data.rc, blBrush);
-//		return CDRF_NEWFONT;
-//	}
-//}
-
-//void MainWindow::handleTabDrawing(TabViewPtr w) {
-//	PAINTSTRUCT ps;
-//	HDC hDC = BeginPaint(w->handle(), &ps);
-//	w->sendMessage(WM_PRINTCLIENT, (WPARAM)hDC, PRF_CLIENT);
-//	HRGN hRgn = CreateRectRgn(0, 0, 0, 0);
-//	int items = TabCtrl_GetItemCount(w->handle());
-//	int sel = TabCtrl_GetCurSel(w->handle());
-//	RECT r;
-//	RECT lhCorner = { 0 }, rhCorner = { 0 };
-//
-//	for (int i = 0; i < items; ++i) {
-//		TabCtrl_GetItemRect(w->handle(), i, &r);
-//		if (i == sel) {
-//			r.left -= 1;
-//			r.right += 1;
-//			r.top -= 2;
-//			if (i == 0) {
-//				r.left -= 1;
-//				//if(!themed) { r.right +=1; } 
-//			}
-//			if (i == sel - 1) {
-//				r.right += 1;
-//			}
-//		} else {
-//			r.right -= 1;
-//			//if(theme || isVista) && i == items -1) { r.right -= 1; }
-//		}
-//		
-//		//if (xp_themed)
-//        {
-//            if (i != sel + 1)
-//            {
-//                lhCorner = r;
-//                lhCorner.bottom = lhCorner.top + 1;
-//                lhCorner.right = lhCorner.left + 1;
-//            }
-//            
-//            rhCorner = r;
-//            rhCorner.bottom = rhCorner.top + 1;
-//            rhCorner.left = rhCorner.right - 1;
-//        }		
-//
-//		HRGN hTabRgn = CreateRectRgn(r.left, r.top, r.right, r.bottom);
-//		CombineRgn(hRgn, hRgn, hTabRgn, RGN_OR);
-//		BOOL ok = DeleteObject(hTabRgn);
-//
-//		if (lhCorner.right > lhCorner.left)
-//        {
-//            HRGN hRoundedCorner = CreateRectRgn
-//                (lhCorner.left, lhCorner.top, lhCorner.right, lhCorner.bottom);
-//            CombineRgn (hRgn, hRgn, hRoundedCorner, RGN_DIFF);
-//            ok = DeleteObject (hRoundedCorner);
-//            //assert (ok);
-//        }
-// 
-//        if (rhCorner.right > rhCorner.left)
-//        {
-//            HRGN hRoundedCorner = CreateRectRgn
-//                (rhCorner.left, rhCorner.top, rhCorner.right, rhCorner.bottom);
-//            CombineRgn (hRgn, hRgn, hRoundedCorner, RGN_DIFF);
-//            ok = DeleteObject (hRoundedCorner);
-//            //assert (ok);
-//        }
-//		
-//	}
-//
-//	GetClientRect(w->handle(), &r);
-//	HRGN hFillRgn = CreateRectRgn(r.left, r.top, r.right, r.bottom);
-//	CombineRgn(hFillRgn, hFillRgn, hRgn, RGN_DIFF);
-//	SelectClipRgn(hDC, hFillRgn);
-//	bool mustDel = true;
-//	//HBRUSH hBGBRush = GetCtlBGBrush(w, hDC, &mustDel);
-//	dwt::Brush hBGBrush(RGB(0, 0, 0));
-//	FillRgn(hDC, hFillRgn, hBGBrush);
-//
-//	DeleteObject(hFillRgn);
-//	DeleteObject(hRgn);
-//
-//	EndPaint(w->handle(), &ps);
-//	w->sendMessage(WM_PRINTCLIENT, 0, 0);
-//	/*w->sendMessage(MH_NODEFWNDPROC);*/
-//}
-
-//void MainWindow::handleTabDrawing(TabViewPtr tabs, dwt::Canvas& canvas) {
-//
-//}
-
-//namespace {
-//	void handleTabDrawing(TabViewPtr tabs, dwt::Canvas& canvas) {
-//		tabs->sendMessage(WM_PRINTCLIENT, (WPARAM)canvas.handle(), PRF_CLIENT);
-//		auto rgn = dwt::Region(dwt::Point());
-//		int items = tabs->Collection::size();
-//		int sel = tabs->getSelected();
-//
-//		dwt::Rectangle r;
-//		dwt::Rectangle lhCorner, rhCorner;
-//
-//		for(int i = 0; i < items; ++i) {
-//			TabCtrl_GetItemRect(tabs->handle(), i, &r);
-//				auto left = r.left();
-//				auto right = r.right();
-//				auto top = r.top();
-//				auto bottom = r.bottom();
-//			if(i == sel) {
-//				left -= 1;
-//				right += 1;
-//				top -= 2;
-//				if(i == 0) {
-//					left -= 1;
-//				}
-//				if(i == sel - 1) {
-//					right += 1;
-//				}
-//			} else {
-//				right -= 1;
-//			}
-//		}
-//
-//		lhCorner = r;
-//
-//	}
-//}
 
 void MainWindow::on(ConnectionManagerListener::Connected, ConnectionQueueItem* cqi, UserConnection* uc) noexcept {
 	if(cqi->getType() == CONNECTION_TYPE_PM) {

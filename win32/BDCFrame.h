@@ -90,7 +90,7 @@ private:
 
 		tstring columns[COLUMN_LAST];
 
-		string message;
+		tstring message;
 		uint8_t type;
 		uint8_t level;
 	};

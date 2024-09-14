@@ -20,7 +20,6 @@
 
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include <boost/lexical_cast.hpp>
 
 #include "Client.h"
 #include "GeoManager.h"
@@ -306,11 +305,6 @@ void Bdcpp::charToHex(const char& c, string& hex) {
 	// always keep the 2-digit hex value
 	if(len == 1)	{ hex += '0'; hex += buf[0];	}
 	else			{ hex.append(buf, 2);			}
-}
-
-const string& Bdcpp::genUuid() {
-	auto uuid = boost::uuids::random_generator()();
-	return boost::lexical_cast<string>(uuid);
 }
 
 // equals

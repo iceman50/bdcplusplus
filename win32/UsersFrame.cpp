@@ -478,7 +478,7 @@ void UsersFrame::updateUserInfo() {
 	auto queued = QueueManager::getInstance()->getQueued(user);
 	if(queued.first) {
 		infoText += Text::toT("--- ") + T_("Pending downloads") + Text::toT(" ---\r\n");
-		infoText += str(TF_("Queued files: %1%") % Text::toT(Util::toString(queued.first))) + Text::toT("\r\n");
+		infoText += str(TF_("Queued files: %1%") % Text::toT(std::to_string(queued.first))) + Text::toT("\r\n");
 		infoText += str(TF_("Queued bytes: %1%") % Text::toT(Util::formatBytes(queued.second))) + Text::toT("\r\n");
 	}
 

@@ -189,7 +189,7 @@ ACFrame::ACFrame(TabViewPtr parent) :
 	settings->setFocus();
 
 	orgSize = static_cast<int>(settings->size());
-	status->setText(STATUS_STATUS, Text::toT(Util::toString(orgSize)) + T_(" settings loaded"));
+	status->setText(STATUS_STATUS, Text::toT(std::to_string(orgSize)) + T_(" settings loaded"));
 }
 
 ACFrame::~ACFrame() {
@@ -214,7 +214,7 @@ void ACFrame::postClosing() {
 
 void ACFrame::updateStatus(tstring text) {
 	if(orgSize > visibleSettings) {
-		status->setText(STATUS_SETTINGS, Text::toT(Util::toString(visibleSettings)) + T_(" Matched setting(s) found"));
+		status->setText(STATUS_SETTINGS, Text::toT(std::to_string(visibleSettings)) + T_(" Matched setting(s) found"));
 	} else {
 		status->setText(STATUS_SETTINGS, T_("No filtering terms specified"));
 	}
@@ -233,7 +233,7 @@ void ACFrame::modify() {
 	//determine whether to call the ParamDlg or not in the event of a bool value
 	if(setting->type == SettingsManager::TYPE_BOOL) {
 		auto iValue = Util::toInt(Text::fromT(value));
-		setting->update(Text::toT(Util::toString(abs(iValue - 1))));
+		setting->update(Text::toT(std::to_string(abs(iValue - 1))));
 		settings->update(setting);
 		return;
 	}

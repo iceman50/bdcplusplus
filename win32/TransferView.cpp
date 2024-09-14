@@ -342,7 +342,7 @@ void TransferView::TransferInfo::update() {
 
 	} else {
 		if(running > 0) {
-			tstring userStr = Text::toT(Util::toString(running) + "/" + Util::toString(users));
+			tstring userStr = Text::toT(std::to_string(running) + "/" + std::to_string(users));
 			columns[COLUMN_STATUS] = type == CONNECTION_TYPE_DOWNLOAD ?
 				str(TF_("Downloading from %1% users") % userStr) :
 				str(TF_("Uploading to %1% users") % userStr);

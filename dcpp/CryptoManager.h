@@ -46,9 +46,7 @@ public:
 
 	enum TLSTmpKeys {
 		KEY_FIRST = 0,
-		KEY_DH_2048 = KEY_FIRST,
-		KEY_DH_4096,
-		KEY_RSA_2048,
+		KEY_RSA_2048 = KEY_FIRST,
 		KEY_LAST
 	};
 
@@ -63,6 +61,9 @@ public:
 	bool isExtended(const string& aLock) { return strncmp(aLock.c_str(), "EXTENDEDPROTOCOL", 16) == 0; }
 
 	void decodeBZ2(const uint8_t* is, size_t sz, string& os);
+
+	string encryptSUDP(const uint8_t* aKey, const string& aCmd);
+	bool decryptSUDP(const uint8_t* aKey, const uint8_t* aData, size_t aDataLen, string& result_);
 
 	SSL_CTX* getSSLContext(SSLContext wanted);
 

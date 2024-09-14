@@ -72,13 +72,9 @@ public:
 		Shadow3D = COLOR_3DSHADOW,
 		InfoText = COLOR_INFOTEXT,
 		InfoBk = COLOR_INFOBK,
-#ifdef WINCE
-		Static = COLOR_STATIC,
-		StaticText = COLOR_STATICTEXT,
-#else  //! WINCE
 		Static = COLOR_BACKGROUND, // try ?
 		StaticText = COLOR_BTNTEXT,
-#endif
+
 		GradientActiveCaption = COLOR_GRADIENTACTIVECAPTION,
 		GradientInActiveCaption = COLOR_GRADIENTINACTIVECAPTION
 	};

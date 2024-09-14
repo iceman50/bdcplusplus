@@ -19,6 +19,8 @@
 #ifndef DCPLUSPLUS_WIN32_BDC_WIN_UTIL_H
 #define DCPLUSPLUS_WIN32_BDC_WIN_UTIL_H
 
+//#include <dwt/resources/Brush.h>
+
 #include <dcpp/Bdcpp.h>
 #include <dcpp/LogMessage.h>
 #include <dcpp/Util.h>
@@ -41,6 +43,8 @@ public:
 	static bool getNetStats(tstring& line);
 	static tstring formatTimeDifference(uint64_t diff, size_t levels = 3);
 	static time_t getStartTime() { return startTime; }
+
+	//UI
 
 private:
 	static time_t startTime;

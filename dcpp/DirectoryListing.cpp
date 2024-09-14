@@ -337,7 +337,7 @@ void DirectoryListing::File::save(OutputStream& stream, string& indent, string& 
 	stream.write(LIT("<File Name=\""));
 	stream.write(SimpleXML::escape(getName(), tmp, true));
 	stream.write(LIT("\" Size=\""));
-	stream.write(Util::toString(getSize()));
+	stream.write(std::to_string(getSize()));
 	stream.write(LIT("\" TTH=\""));
 	tmp.clear();
 	stream.write(getTTH().toBase32(tmp));

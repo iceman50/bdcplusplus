@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2023 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2024 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,14 +19,11 @@
 #include "SearchManager.h"
 
 #include <boost/range/adaptors.hpp>
-#include <boost/range/algorithm/copy.hpp>
 #include <boost/range/algorithm/find_if.hpp>
 #include <boost/scoped_array.hpp>
 
-#include <openssl/evp.h>
 #include <openssl/rand.h>
 
-#include "BDCManager.h"
 #include "ClientManager.h"
 #include "ConnectivityManager.h"
 #include "format.h"
@@ -34,6 +31,7 @@
 #include "PluginManager.h"
 #include "SearchResult.h"
 #include "ShareManager.h"
+#include "CryptoManager.h"
 
 namespace dcpp {
 
@@ -56,7 +54,7 @@ SearchManager::SearchManager() :
 	stop(false),
 	lastSearch(GET_TICK())
 {
-
+	TimerManager::getInstance()->addListener(this);
 }
 
 SearchManager::~SearchManager() {
@@ -68,6 +66,7 @@ SearchManager::~SearchManager() {
 #endif
 	}
 
+	TimerManager::getInstance()->removeListener(this); 
 	searchKeys.clear();
 }
 
@@ -106,7 +105,7 @@ void SearchManager::listen() {
 		socket.reset(new Socket(Socket::TYPE_UDP));
 		socket->setLocalIp4(CONNSETTING(BIND_ADDRESS));
 		socket->setLocalIp6(CONNSETTING(BIND_ADDRESS6));
-		port = socket->listen(Util::toString(CONNSETTING(UDP_PORT)));
+		port = socket->listen(std::to_string(CONNSETTING(UDP_PORT)));
 		start();
 	} catch(...) {
 		socket.reset();
@@ -130,6 +129,7 @@ void SearchManager::disconnect() noexcept {
 
 #define BUFSIZE 8192
 int SearchManager::run() {
+	boost::scoped_array<uint8_t> buf(new uint8_t[BUFSIZE]);
 	int len;
 	string remoteAddr;
 
@@ -139,12 +139,11 @@ int SearchManager::run() {
 				continue;
 			}
 
-			auto buf = vector<uint8_t>(BUFSIZE);
 			if((len = socket->read(&buf[0], BUFSIZE, remoteAddr)) > 0) {
-				string data(buf.begin(), buf.begin() + len);
+				string data(reinterpret_cast<char*>(&buf[0]), len);
 
-				if(BDSETTING(ENABLE_SUDP) && len >= 32 && ((len & 15) == 0)) {
-					decryptPacket(data, len, buf);
+				if(SETTING(ENABLE_SUDP) && len >= 32 && ((len & 15) == 0)) {
+					decryptPacket(data, len, buf.get());
 				}
 
 				if(PluginManager::getInstance()->onUDP(false, remoteAddr, port, data))
@@ -162,7 +161,7 @@ int SearchManager::run() {
 		while(!stop) {
 			try {
 				socket->disconnect();
-				port = socket->listen(Util::toString(CONNSETTING(UDP_PORT)));
+				port = socket->listen(std::to_string(CONNSETTING(UDP_PORT)));
 				if(failed) {
 					LogManager::getInstance()->message(_("Search enabled again"), LogMessage::TYPE_GENERAL, LogMessage::LOG_SYSTEM);
 					failed = false;
@@ -186,15 +185,15 @@ int SearchManager::run() {
 	return 0;
 }
 
-void SearchManager::onData(const string& data, const string& remoteIp) {
-	if(data.empty()) { return; } // shouldn't happen but rather be safe...
+void SearchManager::onData(const string& x, const string& remoteIp) {
+	if(x.empty()) { return; } // shouldn't happen but rather be safe...
 
-	if (data.compare(0, 1, "$") == 0) {
+	if (x.compare(0, 1, "$") == 0) {
 		// NMDC commands
-		if (data.compare(1, 3, "SR ") == 0) {
-			onSR(data, remoteIp);
+		if (x.compare(1, 3, "SR ") == 0) {
+			onSR(x, remoteIp);
 		} else {
-			dcdebug("Unknown NMDC command received via UDP: %s\n", data.c_str());
+			dcdebug("Unknown NMDC command received via UDP: %s\n", x.c_str());
 		}
 
 		return;
@@ -203,18 +202,18 @@ void SearchManager::onData(const string& data, const string& remoteIp) {
 	// ADC commands
 
 	// ADC commands must end with \n
-	if (data[data.length() - 1] != 0x0a) {
-		dcdebug("Invalid UDP data received: %s (no newline)\n", data.c_str());
+	if (x[x.length() - 1] != 0x0a) {
+		dcdebug("Invalid UDP data received: %s (no newline)\n", x.c_str());
 		return;
 	}
 
-	if (!Text::validateUtf8(data)) {
-		dcdebug("UTF-8 validation failed for received UDP data: %s\n", data.c_str());
+	if (!Text::validateUtf8(x)) {
+		dcdebug("UTF-8 validation failed for received UDP data: %s\n", x.c_str());
 		return;
 	}
 
 	// Dispatch without newline
-	dispatch(data.substr(0, data.length() - 1), false, remoteIp);
+	dispatch(x.substr(0, x.length() - 1), false, remoteIp);
 }
 
 void SearchManager::handle(AdcCommand::RES, AdcCommand& c, const string& remoteIp) noexcept {
@@ -405,116 +404,23 @@ void SearchManager::onRES(const AdcCommand& cmd, const UserPtr& from, const stri
 
 void SearchManager::genSUDPKey(string& aKey) {
 	string keyStr = Util::emptyString;
-	if(BDSETTING(ENABLE_SUDP)) {
+	if(SETTING(ENABLE_SUDP)) {
 		auto key = std::make_unique<uint8_t[]>(16);
 		RAND_bytes(key.get(), 16);
+		keyStr = Encoder::toBase32(key.get(), 16);
 		{
 			Lock l(cs);
-			searchKeys.emplace_back(move(key.get()), GET_TICK());
+			searchKeys.emplace_back(move(key), GET_TICK());
 		}
-		keyStr = Encoder::toBase32(key.get(), 16);
 	}
 	aKey = keyStr;
 }
 
-void SearchManager::testSUDP() {
-	uint8_t keyChar[16];
-	string data = "URES SI30744059452 SL8 FN/Downloads/ DM1644168099 FI440 FO124 TORLHTR7KH7GV7W";
-	Encoder::fromBase32("DR6AOECCMYK5DQ2VDATONKFSWU", keyChar, 16);
-	const auto encrypted = encryptSUDP(keyChar, data);
+bool SearchManager::decryptPacket(string& x, size_t aLen, const uint8_t* aBuf) {
+	Lock l(cs);
 
-	string result;
-	const auto success = decryptSUDP(keyChar, ByteVector(begin(encrypted), end(encrypted)), encrypted.length(), result);
-	dcassert(success);
-	dcassert(compare(data, result) == 0);
-
-	auto log = [] (const string& message) {
-		LogManager::getInstance()->message(message);
-	};
-
-	log("Encrypted data : " + encrypted);
-	log("SUDPTest data is : " + data);
-	log("Encrypted result is : " + result);
-
-}
-
-string SearchManager::encryptSUDP(const uint8_t* aKey, const string& aCmd) {
-	string inData = aCmd;
-	uint8_t ivd[16] = { };
-
-	// prepend 16 random bytes to message
-	RAND_bytes(ivd, 16);
-	inData.insert(0, (char*)ivd, 16);
-
-	// use PKCS#5 padding to align the message length to the cipher block size (16)
-	uint8_t pad = 16 - (aCmd.length() & 15);
-	inData.append(pad, (char)pad);
-
-	// encrypt it
-	boost::scoped_array<uint8_t> out(new uint8_t[inData.length()]);
-	memset(ivd, 0, 16);
-	auto commandLength = inData.length();
-
-#define CHECK(n) if(!(n)) { dcassert(0); }
-
-	int len, tmpLen;
-	auto ctx = EVP_CIPHER_CTX_new();
-	CHECK(EVP_CipherInit_ex(ctx, EVP_aes_128_cbc(), NULL, aKey, ivd, 1));
-	CHECK(EVP_CIPHER_CTX_set_padding(ctx, 0));
-	CHECK(EVP_EncryptUpdate(ctx, out.get(), &len, (unsigned char*)inData.c_str(), inData.length()));
-	CHECK(EVP_EncryptFinal_ex(ctx, out.get() + len, &tmpLen));
-	EVP_CIPHER_CTX_free(ctx);
-
-	dcassert((commandLength & 15) == 0);
-
-	inData.clear();
-	inData.insert(0, (char*)out.get(), commandLength);
-	return inData;
-}
-
-bool SearchManager::decryptSUDP(const uint8_t* aKey, const ByteVector& aData, size_t aDataLen, string& result_) {
-	boost::scoped_array<uint8_t> out(new uint8_t[aData.size()]);
-
-	uint8_t ivd[16] = { };
-
-	auto ctx = EVP_CIPHER_CTX_new();
-
-#define CHECK(n) if(!(n)) { dcassert(0); }
-	int len;
-	CHECK(EVP_CipherInit_ex(ctx, EVP_aes_128_cbc(), NULL, aKey, ivd, 0));
-	CHECK(EVP_CIPHER_CTX_set_padding(ctx, 0));
-	CHECK(EVP_DecryptUpdate(ctx, out.get(), &len, aData.data(), aDataLen));
-	CHECK(EVP_DecryptFinal_ex(ctx, out.get() + len, &len));
-	EVP_CIPHER_CTX_free(ctx);
-
-	// Validate padding and replace with 0-bytes.
-	int padlen = out[aDataLen - 1];
-	if (padlen < 1 || padlen > 16) {
-		return false;
-	}
-
-	bool valid = true;
-	for (auto r = 0; r < padlen; r++) {
-		if (out[aDataLen - padlen + r] != padlen) {
-			valid = false;
-			break;
-		} else {
-			out[aDataLen - padlen + r] = 0;
-		}
-	}
-
-	if (valid) {
-		result_ = (char*)&out[0] + 16;
-		return true;
-	}
-
-	return false;
-}
-
-bool SearchManager::decryptPacket(string& x, size_t aLen, const ByteVector& aBuf) {
-	Lock l (cs);
 	for (const auto& i: searchKeys | boost::adaptors::reversed) {
-		if(decryptSUDP(i.first, aBuf, aLen, x)) {
+		if(CryptoManager::getInstance()->decryptSUDP(i.first.get(), aBuf, aLen, x)) {
 			return true;
 		}
 	}
@@ -523,7 +429,6 @@ bool SearchManager::decryptPacket(string& x, size_t aLen, const ByteVector& aBuf
 }
 
 void SearchManager::respond(const AdcCommand& cmd, const OnlineUser& user) {
-	string key;
 	// Filter own searches
 	if(user.getUser() == ClientManager::getInstance()->getMe())
 		return;
@@ -532,10 +437,10 @@ void SearchManager::respond(const AdcCommand& cmd, const OnlineUser& user) {
 	if(results.empty())
 		return;
 
-	string token;
+	string token, key;
 	cmd.getParam("TO", 0, token);
-
 	cmd.getParam("KY", 0, key);
+
 	for(auto& i: results) {
 		AdcCommand res = i->toRES(AdcCommand::TYPE_UDP);
 		if(!token.empty())
@@ -547,14 +452,13 @@ void SearchManager::respond(const AdcCommand& cmd, const OnlineUser& user) {
 void SearchManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept {
 	Lock l(cs);
 	for (auto i = searchKeys.begin(); i != searchKeys.end();) {
-		if (i->second + 1000 * 60 * 15 < aTick) {
+		if (i->second + 1000 * 60 * 5 < aTick) {
 			searchKeys.erase(i);
 			i = searchKeys.begin();
 		} else {
 			++i;
 		}
 	}
-
 }
 
 } // namespace dcpp

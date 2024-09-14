@@ -4,8 +4,6 @@
 1 24 "res/DCPlusPlus.manifest.x86"
 #elif defined x64
 1 24 "res/DCPlusPlus.manifest.x64"
-#elif defined ia64
-1 24 "res/DCPlusPlus.manifest.ia64"
 #else
 #error "manifest: unknown arch"
 #endif
@@ -110,7 +108,7 @@ IDI_DCPP_WARNING         ICON                    "res/Warning.ico"
 
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION 0,8,8,1
- PRODUCTVERSION 0,8,8,1
+ PRODUCTVERSION 0, 8, 8, 1
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -127,12 +125,12 @@ BEGIN
         BEGIN
             VALUE "Comments", "https://github.com/iceman50/bdcplusplus"
             VALUE "FileDescription", "BDC++"
-            VALUE "FileVersion", "0, 8, 8, 2"
+            VALUE "FileVersion", "0, 8, 8, 1"
             VALUE "InternalName", "BDC++"
-            VALUE "LegalCopyright", "Copyright 2023 iceman50"
+            VALUE "LegalCopyright", "Copyright 2024 iceman50"
             VALUE "OriginalFilename", "BDCPlusPlus.exe"
             VALUE "ProductName", "BDC++"
-            VALUE "ProductVersion", "0, 8, 8, 2"
+            VALUE "ProductVersion", "0, 8, 8, 1"
         END
     END
     BLOCK "VarFileInfo"

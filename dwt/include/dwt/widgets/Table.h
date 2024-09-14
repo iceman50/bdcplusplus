@@ -279,16 +279,14 @@ public:
 	  */
 	void setGridLines( bool value = true );
 
-#ifndef WINCE
-	/// Adds (or removes) the hoover style.
-	/** A grid with hoover style will "flash" the text color in the line the cursor
+	/// Adds (or removes) the hover style.
+	/** A grid with hover style will "flash" the text color in the line the cursor
 	  * is above. <br>
 	  * Value is parameter value defines if we're supposed to add hoover support or
 	  * remove it. <br>
 	  * If omitted, parameter defaults to true.
 	  */
 	void setHover( bool value = true );
-#endif
 
 	/// Adds (or removes) the header drag drop style.
 	/** A grid with header drag drop style will have the possibility for a user to

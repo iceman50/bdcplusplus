@@ -20,8 +20,8 @@
 #define APPNAME "BDC++"
 
 // don't forget to update the .rc file as well!
-#define VERSIONSTRING "0.8822"
-#define VERSIONFLOAT 0.8822
+#define VERSIONSTRING "0.8813"
+#define VERSIONFLOAT 0.8813
 #define SDEX_VERSION 1.06
 
 namespace dcpp {

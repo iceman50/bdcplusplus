@@ -86,11 +86,11 @@ CryptoManager::CryptoManager()
 	idxVerifyData = SSL_get_ex_new_index(0, idxVerifyDataName, NULL, NULL, NULL);
 
 	if(clientContext && serverContext) {
-		// Check that openssl rng has been seeded with enough data
+		// Check that OpenSSL RNG has been seeded with enough data
 		sslRandCheck();
 
 		SSL_CTX_set_options(clientContext, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_COMPRESSION);
-		SSL_CTX_set_options(serverContext, SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_COMPRESSION);
+		SSL_CTX_set_options(serverContext, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_COMPRESSION);
 
 		setContextOptions(clientContext, false);
 		setContextOptions(serverContext, true);
@@ -118,7 +118,6 @@ void CryptoManager::setContextOptions(SSL_CTX* aCtx, bool aServer) {
 		"ECDHE-RSA-AES128-SHA256:"
 		"ECDHE-ECDSA-AES128-SHA:"
 		"ECDHE-RSA-AES128-SHA:"
-		"DHE-RSA-AES128-SHA:"
 		"AES128-SHA:"
 		"ECDHE-ECDSA-AES256-GCM-SHA384:"
 		"ECDHE-RSA-AES256-GCM-SHA384:"
@@ -212,7 +211,7 @@ void CryptoManager::generateCertificate() {
 	// Generate unique serial
 	CHECK((BN_rand(bn, 64, 0, 0)))
 	CHECK((BN_to_ASN1_INTEGER(bn, serial)))
-		
+
 	// Prepare self-signed cert
 	CHECK((X509_set_version(x509ss, 0x02))) // This is actually V3
 	CHECK((X509_set_serialNumber(x509ss, serial)))
@@ -259,11 +258,8 @@ void CryptoManager::sslRandCheck() {
 
 int CryptoManager::getKeyLength(TLSTmpKeys key) {
 	switch (key) {
-	case KEY_DH_2048:
 	case KEY_RSA_2048:
 		return 2048;
-	case KEY_DH_4096:
-		return 4096;
 	default:
 		dcassert(0); return 0;
 	}
@@ -591,6 +587,85 @@ void CryptoManager::decodeBZ2(const uint8_t* is, size_t sz, string& os) {
 		throw CryptoException(_("Error during decompression"));
 	}
 }
+
+string CryptoManager::encryptSUDP(const uint8_t* aKey, const string& aCmd) {
+	string inData = aCmd;
+	uint8_t ivd[16] = { };
+
+	// prepend 16 random bytes to message
+	RAND_bytes(ivd, 16);
+	inData.insert(0, (char*)ivd, 16);
+
+	// use PKCS#5 padding to align the message length to the cipher block size (16)
+	uint8_t pad = 16 - (aCmd.length() & 15);
+	inData.append(pad, (char)pad);
+
+	// encrypt it
+	boost::scoped_array<uint8_t> out(new uint8_t[inData.length()]);
+	memset(ivd, 0, 16);
+	auto commandLength = inData.length();
+
+#define CHECK(n) if(!(n)) { dcassert(0); }
+
+	int len, tmpLen;
+	auto ctx = EVP_CIPHER_CTX_new();
+	CHECK(EVP_CipherInit_ex(ctx, EVP_aes_128_cbc(), NULL, aKey, ivd, 1));
+	CHECK(EVP_CIPHER_CTX_set_padding(ctx, 0));
+	CHECK(EVP_EncryptUpdate(ctx, out.get(), &len, (unsigned char*)inData.c_str(), inData.length()));
+	CHECK(EVP_EncryptFinal_ex(ctx, out.get() + len, &tmpLen));
+	EVP_CIPHER_CTX_free(ctx);
+
+	dcassert((commandLength & 15) == 0);
+
+#undef CHECK
+
+	inData.clear();
+	inData.insert(0, (char*)out.get(), commandLength);
+	return inData;
+}
+
+bool CryptoManager::decryptSUDP(const uint8_t* aKey, const uint8_t* aData, size_t aDataLen, string& result_) {
+	boost::scoped_array<uint8_t> out(new uint8_t[aDataLen]);
+
+	uint8_t ivd[16] = { };
+
+	auto ctx = EVP_CIPHER_CTX_new();
+
+#define CHECK(n) if(!(n)) { dcassert(0); }
+
+	int len;
+	CHECK(EVP_CipherInit_ex(ctx, EVP_aes_128_cbc(), NULL, aKey, ivd, 0));
+	CHECK(EVP_CIPHER_CTX_set_padding(ctx, 0));
+	CHECK(EVP_DecryptUpdate(ctx, out.get(), &len, aData, aDataLen));
+	CHECK(EVP_DecryptFinal_ex(ctx, out.get() + len, &len));
+	EVP_CIPHER_CTX_free(ctx);
+
+#undef CHECK
+
+	// Validate padding and replace with 0-bytes.
+	int padlen = out[aDataLen - 1];
+	if (padlen < 1 || padlen > 16) {
+		return false;
+	}
+
+	bool valid = true;
+	for (auto r = 0; r < padlen; r++) {
+		if (out[aDataLen - padlen + r] != padlen) {
+			valid = false;
+			break;
+		} else {
+			out[aDataLen - padlen + r] = 0;
+		}
+	}
+
+	if (valid) {
+		result_ = (char*)&out[0] + 16;
+		return true;
+	}
+
+	return false;
+}
+
 
 string CryptoManager::keySubst(const uint8_t* aKey, size_t len, size_t n) {
 	boost::scoped_array<uint8_t> temp(new uint8_t[len + n * 10]);

@@ -82,13 +82,13 @@ fl_recents_init(WindowManager::getInstance()->getMaxRecentItems(DirectoryListing
 		GridPtr cur = addSubGrid(grid->addChild(gs), 3);
 
 		hub_recents = addBox(cur, T_("Recent hubs"));
-		hub_recents->setText(Text::toT(Util::toString(hub_recents_init)));
+		hub_recents->setText(Text::toT(std::to_string(hub_recents_init)));
 
 		pm_recents = addBox(cur, T_("Recent PMs"));
-		pm_recents->setText(Text::toT(Util::toString(pm_recents_init)));
+		pm_recents->setText(Text::toT(std::to_string(pm_recents_init)));
 
 		fl_recents = addBox(cur, T_("Recent file lists"));
-		fl_recents->setText(Text::toT(Util::toString(fl_recents_init)));
+		fl_recents->setText(Text::toT(std::to_string(fl_recents_init)));
 	}
 
 	gs.caption = T_("Search history");

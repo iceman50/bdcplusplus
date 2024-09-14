@@ -91,7 +91,7 @@ static string parseData(MMDB_lookup_result_s res, ...) {
 	else if (entry_data.type == MMDB_DATA_TYPE_DOUBLE)
 		return Util::toString(entry_data.double_value);
 	else if (entry_data.type == MMDB_DATA_TYPE_UINT16)
-		return Util::toString(entry_data.uint16);
+		return std::to_string(entry_data.uint16);
 }
 
 } // unnamed namespace

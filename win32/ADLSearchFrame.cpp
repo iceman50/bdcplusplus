@@ -321,8 +321,8 @@ void ADLSearchFrame::addEntry(ADLSearch& search, int index, bool scroll) {
 		search.isRegEx() ? T_("Yes") : T_("No"),
 		Text::toT(search.SourceTypeToString(search.sourceType)),
 		Text::toT(search.destDir),
-		(search.minFileSize >= 0) ? Text::toT(Util::toString(search.minFileSize)) + _T(" ") + Text::toT(search.SizeTypeToString(search.typeFileSize)) : Util::emptyStringT,
-		(search.maxFileSize >= 0) ? Text::toT(Util::toString(search.maxFileSize)) + _T(" ") + Text::toT(search.SizeTypeToString(search.typeFileSize)) : Util::emptyStringT
+		(search.minFileSize >= 0) ? Text::toT(std::to_string(search.minFileSize)) + _T(" ") + Text::toT(search.SizeTypeToString(search.typeFileSize)) : Util::emptyStringT,
+		(search.maxFileSize >= 0) ? Text::toT(std::to_string(search.maxFileSize)) + _T(" ") + Text::toT(search.SizeTypeToString(search.typeFileSize)) : Util::emptyStringT
 	}, 0, index);
 	if(index == -1)
 		index = itemCount;

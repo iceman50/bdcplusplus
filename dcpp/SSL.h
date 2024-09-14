@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2023 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2024 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,12 +63,6 @@ public:
 private:
 	T* t;
 };
-
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
-typedef scoped_handle<::DH, DH_free> DH;
-typedef scoped_handle<::DSA, DSA_free> DSA;
-typedef scoped_handle<::RSA, RSA_free> RSA;
-#endif
 
 typedef scoped_handle<::X509, X509_free> X509;
 typedef scoped_handle<::ASN1_INTEGER, ASN1_INTEGER_free> ASN1_INTEGER;

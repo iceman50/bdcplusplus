@@ -51,7 +51,12 @@ public:
 		static const std::string& getAttrib(StringPairList& attribs, const std::string& name, size_t hint);
 	};
 
-	SimpleXMLReader(CallBack* callback);
+	enum Flags {
+		// Replace invalid UTF-8 data with placeholder characters
+		FLAG_REPLACE_INVALID_UTF8 = 0x01,
+	};
+
+	SimpleXMLReader(CallBack* callback, int aFlags = 0);
 	virtual ~SimpleXMLReader() { }
 
 	void parse(InputStream& is, size_t maxSize = 0);
@@ -188,6 +193,10 @@ private:
 	bool spaceOrError(const char* error);
 
 	bool error(const char* message);
+
+	void decodeString(string& str_);
+
+	const int flags;
 };
 
 

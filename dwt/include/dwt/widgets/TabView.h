@@ -62,6 +62,7 @@ class TabView :
 	typedef std::function<void (const tstring&)> TitleChangedFunction;
 	typedef std::function<bool (const ScreenCoordinate&)> ContextMenuFunction;
 
+	using aspects::Caption<TabView>::setText;
 public:
 	/// Class type
 	typedef TabView ThisType;

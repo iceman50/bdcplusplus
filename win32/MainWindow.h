@@ -162,6 +162,8 @@ private:
 	uint64_t lastUp;
 	uint64_t lastDown;
 	uint64_t lastTick;
+	uint64_t lastGetShare;
+	
 	bool away;
 	bool awayIdle;
 	bool fullSlots;

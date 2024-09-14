@@ -327,36 +327,41 @@ extern int fprintf (FILE *, const char *, ...);
 #define vfprintf libintl_vfprintf
 extern int vfprintf (FILE *, const char *, va_list);
 
-//#undef printf
-//#if defined __NetBSD__ || defined __BEOS__ || defined __CYGWIN__ || defined __MINGW32__
+#undef printf
+#if defined __NetBSD__ || defined __BEOS__ || defined __CYGWIN__ || defined __MINGW32__
 /* Don't break __attribute__((format(printf,M,N))).
    This redefinition is only possible because the libc in NetBSD, Cygwin,
    mingw does not have a function __printf__.  */
-//# define libintl_printf __printf__
-//#endif
-//#define printf libintl_printf
-//extern int printf (const char *, ...);
-//#undef vprintf
-//#define vprintf libintl_vprintf
-//extern int vprintf (const char *, va_list);
+# define libintl_printf __printf__
+#endif
+#define printf libintl_printf
+extern int printf (const char *, ...);
+#undef vprintf
+#define vprintf libintl_vprintf
+extern int vprintf (const char *, va_list);
 
-//#undef sprintf
-//#define sprintf libintl_sprintf
-//extern int sprintf (char *, const char *, ...);
-//#undef vsprintf
-//#define vsprintf libintl_vsprintf
-//extern int vsprintf (char *, const char *, va_list);
+#undef sprintf
+#define sprintf libintl_sprintf
+extern int sprintf (char *, const char *, ...);
+#undef vsprintf
+#define vsprintf libintl_vsprintf
+extern int vsprintf (char *, const char *, va_list);
 
-//#if 1
+#if 1
 
-//#undef snprintf
-//#define snprintf libintl_snprintf
-//extern int snprintf (char *, size_t, const char *, ...);
-//#undef vsnprintf
-//#define vsnprintf libintl_vsnprintf
-//extern int vsnprintf (char *, size_t, const char *, va_list);
+#undef snprintf
+#define snprintf libintl_snprintf
+extern int snprintf (char *, size_t, const char *, ...);
 
-//#endif
+#endif
+
+#if 0
+
+#undef vsnprintf
+#define vsnprintf libintl_vsnprintf
+extern int vsnprintf (char *, size_t, const char *, va_list);
+
+#endif
 
 #if 0
 

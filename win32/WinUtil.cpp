@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2023 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2024 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -288,7 +288,7 @@ void WinUtil::init() {
 				icons.add(*bases[iBase]);
 
 				for(size_t iMod = 0; iMod < modifierCount; ++iMod)
-					if(i & (1 << iMod))
+					if(i & ((size_t)1 << iMod))
 						icons.add(*modifiers[iMod]);
 
 				userImages->add(*dwt::util::merge(icons));
@@ -398,13 +398,13 @@ void WinUtil::initFont() {
 tstring WinUtil::encodeFont(LOGFONT const& font) {
 	tstring res(font.lfFaceName);
 	res += _T(',');
-	res += Text::toT(Util::toString(static_cast<int>(std::floor(static_cast<float>(font.lfHeight) / dwt::util::dpiFactor()))));
+	res += Text::toT(std::to_string(static_cast<int>(std::floor(static_cast<float>(font.lfHeight) / dwt::util::dpiFactor()))));
 	res += _T(',');
-	res += Text::toT(Util::toString(font.lfWeight));
+	res += Text::toT(std::to_string(font.lfWeight));
 	res += _T(',');
-	res += Text::toT(Util::toString(font.lfItalic));
+	res += Text::toT(std::to_string(font.lfItalic));
 	res += _T(',');
-	res += Text::toT(Util::toString(font.lfCharSet));
+	res += Text::toT(std::to_string(font.lfCharSet));
 	return res;
 }
 
@@ -414,7 +414,7 @@ std::string WinUtil::toString(const std::vector<int>& tokens) {
 	for(auto i = start, iend = tokens.cend(); i != iend; ++i) {
 		if(i != start)
 			ret += ',';
-		ret += Util::toString(*i);
+		ret += std::to_string(*i);
 	}
 	return ret;
 }
@@ -585,7 +585,6 @@ static const map<tstring, tstring> cmdMap = {
 	{_T("/netstat, /ns"),							  T_("Displays info about currently running Uploads and Downloads as well as lifetime data stats")},
 	{_T("/diskinfo, /di"),							  T_("Display a list of available [H|S]DD's installed with Free/Total stats as well")},
 	{_T("/diskfree, /df"),							  T_("Display a basic string of Total/Free drive space of your PC")},
-	{_T("/testsudp, /tsudp"),						  T_("Tests current implementation of SUDP to validate encryption/decryption")},
 	{_T("/uptime, /ut"),							  T_("Display current client and system uptime")},
 	{_T("/osinfo, /os"),							  T_("Display current OS info")},
 	{_T("/cinfo, /ci"),								  T_("Display current Client info")},
@@ -605,7 +604,7 @@ tstring WinUtil::getDescriptiveCommands() {
 tstring
 	WinUtil::commands =
 		_T("/refresh, /me <msg>, /slots #, /dslots #, /search <string>, /clear [lines to keep], /dc++, /away <msg>, /back, /d <searchstring>, /g <searchstring>, /imdb <imdbquery>, /rebuild, /log [type], /help [brief], /u <url>, /f <string>, /download [#], /upload [#], /close, /a[bout][:]c[onfig]")
-	    _T(" [/sysinfo | /si], [/netstat | /ni], [/diskinfo | /di], [/diskfree | /df], [/testsudp | /tsudp], [/uptime | /ut], [/osinfo | /os], [/cinfo | /ci], /libs");
+	    _T(" [/sysinfo | /si], [/netstat | /ni], [/diskinfo | /di], [/diskfree | /df], [/uptime | /ut], [/osinfo | /os], [/cinfo | /ci], /libs");
 
 bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstring& status, bool& thirdPerson) {
 	string::size_type i = cmd.find(' ');
@@ -727,8 +726,6 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 		message = BDCWinUtil::diskInfoList();
 	} else if(Util::stricmp(cmd.c_str(), _T("diskfree")) == 0 || Util::stricmp(cmd.c_str(), _T("df")) == 0)  {
 		message = BDCWinUtil::diskSpaceInfo(true);
-	} else if(Util::stricmp(cmd.c_str(), _T("testsudp")) == 0 || Util::stricmp(cmd.c_str(), _T("tsudp")) == 0) {
-		SearchManager::getInstance()->testSUDP();
 	} else if(Util::stricmp(cmd.c_str(), _T("uptime")) == 0 || Util::stricmp(cmd.c_str(), _T("ut")) == 0) {
 		message = BDCWinUtil::getUptime();
 	} else if(Util::stricmp(cmd.c_str(), _T("osinfo")) == 0 || Util::stricmp(cmd.c_str(), _T("os")) == 0) {
@@ -862,7 +859,7 @@ void WinUtil::copyMagnet(const TTHValue& aHash, const tstring& aFile, int64_t si
 string WinUtil::makeMagnet(const TTHValue& aHash, const string& aFile, int64_t size) {
 	string ret = "magnet:?xt=urn:tree:tiger:" + aHash.toBase32();
 	if(size > 0)
-		ret += "&xl=" + Util::toString(size);
+		ret += "&xl=" + std::to_string(size);
 	return ret + "&dn=" + Util::encodeURI(aFile);
 }
 
@@ -1328,10 +1325,10 @@ void WinUtil::setApplicationStartupRegister()
 
 	tstring app = _T("\"") + dwt::Application::instance().getModuleFileName() + _T("\"");
 
-	ret = ::RegSetValueEx(hk, _T("DC++"), 0, REG_SZ, (LPBYTE) app.c_str(), sizeof(TCHAR) * (app.length() + 1));
+	ret = ::RegSetValueEx(hk, _T("BDC++"), 0, REG_SZ, (LPBYTE) app.c_str(), sizeof(TCHAR) * (app.length() + 1));
 	if(ret != ERROR_SUCCESS)
 	{
-		LogManager::getInstance()->message(str(F_("Error registering DC++ for automatic startup (could not set key value)")), LogMessage::TYPE_ERROR, LogMessage::LOG_SYSTEM);
+		LogManager::getInstance()->message(str(F_("Error registering BDC++ for automatic startup (could not set key value)")), LogMessage::TYPE_ERROR, LogMessage::LOG_SYSTEM);
 	}
 
 	::RegCloseKey(hk);
@@ -1357,16 +1354,16 @@ void WinUtil::setApplicationStartupUnregister()
 	DWORD bufLen = sizeof(Buf);
 	DWORD type;
 
-	ret = ::RegQueryValueEx(hk, _T("DC++"), 0, &type, (LPBYTE) Buf, &bufLen);
+	ret = ::RegQueryValueEx(hk, _T("BDC++"), 0, &type, (LPBYTE) Buf, &bufLen);
 	if(ret == ERROR_SUCCESS)
 	{
 		bool bEqualApplications = Util::stricmp(app.c_str(), Buf) == 0;
 		if(bEqualApplications) 
 		{
-			ret = ::RegDeleteValue(hk, _T("DC++"));
+			ret = ::RegDeleteValue(hk, _T("BDC++"));
 			if(ret != ERROR_SUCCESS)
 			{
-				LogManager::getInstance()->message(str(F_("Error unregistering DC++ for automatic startup (could not delete key value)")), LogMessage::TYPE_ERROR, LogMessage::LOG_SYSTEM);
+				LogManager::getInstance()->message(str(F_("Error unregistering BDC++ for automatic startup (could not delete key value)")), LogMessage::TYPE_ERROR, LogMessage::LOG_SYSTEM);
 			}
 		}
 	}
@@ -1415,7 +1412,7 @@ bool WinUtil::parseLink(const tstring& str, bool followExternal) {
 			MagnetDlg(mainWindow, Text::toT(hash), Text::toT(name), Text::toT(key)).run();
 		} else {
 			dwt::MessageBox(mainWindow).show(
-				T_("A MAGNET link was given to DC++, but it didn't contain a valid file hash for use on the Direct Connect network.  No action will be taken."),
+				T_("A MAGNET link was given to BDC++, but it didn't contain a valid file hash for use on the Direct Connect network.  No action will be taken."),
 				T_("MAGNET Link detected"), dwt::MessageBox::BOX_OK, dwt::MessageBox::BOX_ICONEXCLAMATION);
 		}
 		return true;
@@ -1439,7 +1436,7 @@ bool WinUtil::parseLink(const tstring& str, bool followExternal) {
 									T_(
 									"Warning: Allowing content to open a program can be useful, but it can potentially harm your computer. "
 									"Do not allow it unless you trust the source of the content.") + _T("\n\n") +
-									T_("Any program that is launched will have the same access rights as DC++.") + _T("\n\n") +
+									T_("Any program that is launched will have the same access rights as BDC++.") + _T("\n\n") +
 									T_("The requested link is ") + str + _T("\n\n") +
 									T_("Do you still want to allow to open a program on your computer?"),
 									T_("External protocol request"),
@@ -1595,6 +1592,32 @@ void WinUtil::addCopyMenu(Menu* menu, dwt::TablePtr table) {
 		}
 		setClipboard(text);
 	});
+}
+
+void WinUtil::addSearchMenu(Menu* menu, const tstring& searchText, const string& hash) {
+	if (searchText.empty() && hash.empty()) { return; }
+
+	menu->appendSeparator();
+
+	if (!searchText.empty()) {
+		auto disp = dwt::util::escapeMenu(searchText);
+		dwt::util::cutStr(disp, 50);
+		menu->appendItem(str(TF_("Search for \"%1%\"") % disp), [=] { searchAny(searchText.substr(0, MAX_PATH)); });
+	}
+
+	string searchTTH = hash.empty() && checkTTH(searchText) ? Text::fromT(searchText) : hash;
+
+	if (!searchTTH.empty()) {
+		menu->appendItem(T_("Search by TTH"), [=] { searchHash(TTHValue(searchTTH)); });
+	}
+}
+
+void WinUtil::getChatSelText(dwt::TextBoxBase* box, tstring& text, const dwt::ScreenCoordinate& pt) {
+	text = box->getSelection();
+
+	if (text.empty() && box->hasFocus()) {
+		text = box->textUnderCursor(pt);
+	}
 }
 
 int WinUtil::tableSortSetting(int column, bool ascending) {

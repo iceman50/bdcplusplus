@@ -153,8 +153,6 @@ public:
 	static char hexToChar(const string::value_type* pbegin, const string::value_type* pend);
 	static void charToHex(const char& c, string& hex);
 	
-	static const string& genUuid();
-	
 	BDCPP_PCHARMETHOD_WITH_OVERLOADS(streql);
 	BDCPP_PCHARMETHOD_WITH_OVERLOADS(strcmp);
 	BDCPP_PCHARMETHOD_WITH_OVERLOADS(strfnd);

@@ -137,3 +137,23 @@ void TextFrame::handleFontChange() {
 		pad->setFont(new dwt::Font(logFont));
 	}
 }
+
+bool TextFrame::handleMenu(dwt::ScreenCoordinate pt) {
+	if(pt.x() == -1 && pt.y() == -1) {
+		pt = pad->getContextMenuPos();
+	}
+
+	makeMenu(pt)->open(pt);
+
+	return true;
+}
+
+MenuPtr TextFrame::makeMenu(dwt::ScreenCoordinate pt) {
+	auto menu = pad->getMenu();
+
+	tstring searchText;
+	WinUtil::getChatSelText(pad, searchText, pt);
+	WinUtil::addSearchMenu(menu.get(), searchText);
+
+	return menu;
+}

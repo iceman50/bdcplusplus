@@ -68,12 +68,11 @@ protected:
 		t().addAccel(FALT, 'M', [this] { this->message->setFocus(); });
 		t().addAccel(FALT, 'S', [this] { this->sendMessage(); });
 		t().addAccel(0, VK_ESCAPE, [this] { this->handleEscape(); });
-		t().addAccel(FCONTROL, 'F', [this] { this->chat->findTextNew(); });
-		t().addAccel(0, VK_F3, [this] { this->chat->findTextNext(); });
+		t().addAccel(FCONTROL, 'F', [this] { this->findText(false); });
+		t().addAccel(0, VK_F3, [this] { this->findText(true); });
 	}
 
 	virtual ~AspectChat() { }
-
 	/// add a chat message with some formatting and call addedChat.
 	void addChat(const tstring& message) {
 		string tmp;
@@ -317,6 +316,13 @@ private:
 
 		t().enterImpl(s);
 		return true;
+	}
+
+	void findText(bool next) {
+		tstring text;
+		WinUtil::getChatSelText(chat, text, chat->getContextMenuPos());
+
+		next ? chat->findTextNext(text) : chat->findTextNew(text);
 	}
 };
 

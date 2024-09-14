@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2023 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2024 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -57,7 +57,7 @@ string ConnectionManager::makeToken() const {
 	string token;
 
 	Lock l(cs);
-	do { token = Util::toString(Util::rand()); }
+	do { token = std::to_string(Util::rand()); }
 	while(tokens.find(token) != tokens.end());
 
 	return token;
@@ -408,7 +408,7 @@ void ConnectionManager::adcConnect(const OnlineUser& aUser, const string& aPort,
 	}
 
 	try {
-		uc->connect(ConnectivityManager::getInstance()->getConnectivityStatus(true /*V6*/) ? aUser.getIdentity().getIp() : aUser.getIdentity().getIp4(), aPort, localPort, natRole, aUser.getUser());
+		uc->connect(CONNSTATE(INCOMING_CONNECTIONS6) ? aUser.getIdentity().getIp() : aUser.getIdentity().getIp4(), aPort, localPort, natRole, aUser.getUser());
 	} catch(const Exception&) {
 		putConnection(uc);
 		delete uc;
@@ -924,17 +924,19 @@ void ConnectionManager::disconnect(const UserPtr& user, ConnectionType type) {
 	}
 }
 
+void ConnectionManager::disconnectAll() {
+	Lock l(cs);
+	for(auto j: userConnections) {
+		j->disconnect(true);
+	}
+}
+
 void ConnectionManager::shutdown() {
 	TimerManager::getInstance()->removeListener(this);
 
 	shuttingDown = true;
 	disconnect();
-	{
-		Lock l(cs);
-		for(auto j: userConnections) {
-			j->disconnect(true);
-		}
-	}
+	disconnectAll();
 	// Wait until all connections have died out...
 	while(true) {
 		{

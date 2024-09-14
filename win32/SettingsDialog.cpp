@@ -233,49 +233,21 @@ bool SettingsDialog::initDialog() {
 	return false;
 }
 
-namespace {
-//	void addColor(ComboBox* widget) {
-//		// do not apply our custom colors to the combo itself, but apply it to its drop-down and edit controls
-//
-//		//auto listBox = widget->getListBox();
-//		//if(listBox)
-//		//	addColor(listBox);
-//
-//		//auto text = widget->getTextBox();
-//		//if(text)
-//		//	addColor(text);
-//	}
-//
-// 
-
-	//void addColor(dwt::Table* widget) {
-	//	WinUtil::setColor(widget);
-	//}
-	//void addColor(dwt::TextBox* widget) {
-	//	WinUtil::setColor(widget);
-	//}
-	//// do not apply our custom colors to Buttons and Button-derived controls
-	//void addColor(dwt::Button* widget) {
-	//	// empty on purpose
-	//}
-	//template<typename A>
-	//void addColor(dwt::aspects::Colorable<A>* widget) {
-	//	WinUtil::setColor(static_cast<dwt::Control*>(widget));
-	//}
-
-	//// Catch-rest for the above
-	//void addColor(void* w) {
-
-	//}
-} // anon namespace
-
 BOOL CALLBACK SettingsDialog::EnumChildProc(HWND hwnd, LPARAM lParam) {
 	//DiCe Enumerate all Tables / Text Boxes / etc to setColor in WinUtil
-	//
-	//auto widget = dwt::hwnd_cast<Control*>(hwnd);
-	//if(widget) {
-	//	addColor(widget);
+	
+	auto control = dwt::hwnd_cast<Control*>(hwnd);
+
+	if(dynamic_cast<TablePtr>(control) || dynamic_cast<TextBoxPtr>(control) || dynamic_cast<RichTextBoxPtr>(control)) {
+		WinUtil::setColor(control);
+	}
+
+	//auto combo = dynamic_cast<ComboBoxPtr>(control);
+	//if(combo) {		
+	//	WinUtil::setColor(combo->getListBox());
+	//	WinUtil::setColor(combo->getTextBox());
 	//}
+
 	return TRUE;
 }
 

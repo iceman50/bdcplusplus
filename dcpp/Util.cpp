@@ -1053,8 +1053,7 @@ string Util::formatTime(const string &msg, const time_t t) {
 
 uint32_t Util::rand(uint32_t low, uint32_t high) {
 	std::uniform_int_distribution<uint32_t> dist(low, high);
-	auto ret = dist(mt);
-	return ret;
+	return dist(mt);
 }
 
 string Util::getShortTimeString(time_t t) {

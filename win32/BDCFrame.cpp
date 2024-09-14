@@ -26,6 +26,7 @@
 #include <dcpp/SettingsManager.h>
 #include <dcpp/ShareManager.h>
 
+#include <dwt/util/StringUtils.h>
 #include <dwt/widgets/Grid.h>
 
 #include "BDCWinUtil.h"
@@ -113,7 +114,7 @@ BDCFrame::BDCFrame(TabViewPtr parent) :
 	}
 
 	WidgetLogs::Seed cs(WinUtil::Seeds::table);
-	cs.lvStyle |= LVS_EX_SUBITEMIMAGES;
+	cs.lvStyle |= LVS_EX_SUBITEMIMAGES | LVS_EX_GRIDLINES;
 	logTable = grid->addChild(cs);
 	logTable->setSmallImageList(logIcons);
 	logTable->onContextMenu([this](dwt::ScreenCoordinate pt) { return handleContextMenu(pt); });
@@ -130,7 +131,7 @@ BDCFrame::BDCFrame(TabViewPtr parent) :
 
 	clear = addChild(WinUtil::Seeds::button);
 	clear->setText(T_("Clear log"));
-	clear->onClicked([this] () { clearLog(); });
+	clear->onClicked([this] { clearLog(); });
 
 	status->setWidget(STATUS_CLEAR, clear);
 
@@ -179,7 +180,7 @@ bool BDCFrame::handleDblClick(const dwt::MouseEvent& me) {
 	case COLUMN_MESSAGE: {
 		auto first = ui->message.find('<');
 		auto last = ui->message.find('>');
-		const string& link = ui->message.substr(first+1, last - (first+1));
+		const auto& link = Text::fromT(ui->message.substr(first+1, last - (first+1)));
 		if (File::getSize(link) != -1) {
 			openFile(link);
 			return true;
@@ -243,15 +244,15 @@ void BDCFrame::clearLog() {
 }
 
 BDCFrame::LogInfo::LogInfo(const LogMessagePtr& logMessage) :
-message(logMessage->getText()),
+message(Text::toT(logMessage->getText())),
 type(static_cast<uint8_t>(logMessage->getMessageType())),
 level(static_cast<uint8_t>(logMessage->getLogLevel()))
 {
 	columns[COLUMN_TIME]	=	Text::toT(Util::getShortTimeString(logMessage->getTime()));
-	columns[COLUMN_ID]		=	Text::toT(Util::toString(logMessage->getId()));
+	columns[COLUMN_ID]		=	Text::toT(std::to_string(logMessage->getId()));
 	columns[COLUMN_TYPE]	=	Text::toT(Bdcpp::logTypes[type]);
 	columns[COLUMN_LEVEL]	=	Text::toT(Bdcpp::logLevels[level]);
-	columns[COLUMN_MESSAGE] =	Text::toT(message);
+	columns[COLUMN_MESSAGE] =	message;
 }
 
 void BDCFrame::on(Message, const LogMessagePtr& logMsg) noexcept {

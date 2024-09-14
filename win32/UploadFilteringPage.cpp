@@ -43,7 +43,7 @@ using dwt::Label;
 using dwt::Spinner;
 
 UploadFilteringPage::UploadFilteringPage(dwt::Widget* parent) :
-PropPage(parent, 6, 1),
+PropPage(parent, 7, 1),
 minSizeControl(0),
 maxSizeControl(0),
 modifyRegExButton(0),
@@ -51,6 +51,8 @@ modifyExtensionsButton(0),
 modifyPathsButton(0)
 {
 	grid->column(0).mode = GridInfo::FILL;
+	grid->row(5).mode = GridInfo::FILL;
+	grid->row(5).align = GridInfo::STRETCH;
 
 	{
 		auto optionsGroup = grid->addChild(GroupBox::Seed(T_("Options")));
@@ -91,7 +93,7 @@ modifyPathsButton(0)
 		modifyRegExButton = regexGrid->addChild(Button::Seed(T_("M&odify")));
 		modifyRegExButton->onClicked([this] { handleModButtonClicked(T_("Regular expressions"), regexTextBox); });
 
-		regexGrid->addChild(Label::Seed(T_("Use semicolon to separate multiple regular expressions.")));
+		regexGrid->addChild(Label::Seed(T_("Use semicolons to separate multiple regular expressions.")));
 	}
 
 	{
@@ -106,7 +108,7 @@ modifyPathsButton(0)
 		modifyExtensionsButton = extensionsGrid->addChild(Button::Seed(T_("M&odify")));
 		modifyExtensionsButton->onClicked([this] { handleModButtonClicked(T_("File extensions"), extensionsTextBox); });
 
-		extensionsGrid->addChild(Label::Seed(T_("Use semicolon to separate multiple extensions.")));
+		extensionsGrid->addChild(Label::Seed(T_("Use semicolons to separate multiple extensions.")));
 	}
 
 	{
@@ -121,7 +123,15 @@ modifyPathsButton(0)
 		modifyPathsButton = pathsGrid->addChild(Button::Seed(T_("M&odify")));
 		modifyPathsButton->onClicked([this] { handleModButtonClicked(T_("Paths"), pathsTextBox); });
 
-		pathsGrid->addChild(Label::Seed(T_("Use semicolon to separate multiple paths.")));
+		pathsGrid->addChild(Label::Seed(T_("Use semicolons to separate multiple paths.")));
+	}
+
+	{
+		grid->addChild(Grid::Seed(1, 1));
+	}
+
+	{
+		grid->addChild(Label::Seed(T_("Changes to your shared files will be applied when you close the Settings dialog.")));
 	}
 
 	PropPage::read(items);
@@ -143,8 +153,9 @@ void UploadFilteringPage::write()
 		ShareManager::getInstance()->updateFilterCache();
 
 		ShareManager::getInstance()->setDirty();
-		ShareManager::getInstance()->refresh(true, false, true);
 	}
+
+	ShareManager::getInstance()->refresh(isModified());
 }
 
 void UploadFilteringPage::addItem(dwt::Grid* parent, dwt::Control*& control, const tstring& text, int setting, PropPage::Type t, const tstring& text2) {

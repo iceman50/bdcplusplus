@@ -32,6 +32,8 @@
 #include "SimpleXML.h"
 #include "UserCommand.h"
 
+#include "BDCManager.h"
+
 namespace dcpp {
 
 ClientManager::ClientManager() : udp(Socket::TYPE_UDP) {
@@ -454,24 +456,25 @@ void ClientManager::sendUDP(AdcCommand& cmd, const OnlineUser& user, const strin
 		cmd.setTo(user.getIdentity().getSID());
 		const_cast<Client&>(user.getClient()).send(cmd);
 	} else {
-		auto v6Status = ConnectivityManager::getInstance()->getConnectivityStatus(true);
-		sendUDP(v6Status ? user.getIdentity().getIp() : user.getIdentity().getIp4(), v6Status ? user.getIdentity().getUdpPort() : user.getIdentity().getUdp4Port(), cmd.toString(getMe()->getCID()), aKey);
+		auto state = CONNSTATE(INCOMING_CONNECTIONS6);
+		sendUDP(state ? user.getIdentity().getIp() : user.getIdentity().getIp4(), state ? user.getIdentity().getUdpPort() : user.getIdentity().getUdp4Port(), cmd.toString(getMe()->getCID()), aKey);
 	}
 }
-
 
 void ClientManager::sendUDP(const string& ip, const string& port, const string& data, const string& aKey) {
 	if(PluginManager::getInstance()->onUDP(true, ip, port, data))
 		return;
 
-	if(!aKey.empty() && Encoder::isBase32(aKey.c_str())) {
+	string encryptedData;
+
+	if(SETTING(ENABLE_SUDP) && !aKey.empty() && Encoder::isBase32(aKey.c_str())) {
 		uint8_t keyChar[16];
 		Encoder::fromBase32(aKey.c_str(), keyChar, 16);
-		SearchManager::encryptSUDP(keyChar, data);
+		encryptedData = CryptoManager::getInstance()->encryptSUDP(keyChar, data);
 	}
 
 	try {
-		udp.writeTo(ip, port, data);
+		udp.writeTo(ip, port, encryptedData.empty() ? data : encryptedData);
 	} catch(const SocketException&) {
 		dcdebug("Socket exception when sending UDP data to %s:%s\n", ip.c_str(), port.c_str());
 	}

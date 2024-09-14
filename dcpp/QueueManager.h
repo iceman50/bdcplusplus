@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2023 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2024 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,6 @@
 
 #include <boost/lockfree/queue.hpp>
 
-#include "BundleItem.h"
 #include "ClientManagerListener.h"
 #include "CriticalSection.h"
 #include "DirectoryListing.h"
@@ -87,8 +86,7 @@ public:
 
 	/** Add a file to the queue. */
 	void add(const string& aTarget, int64_t aSize, const TTHValue& root, const HintedUser& aUser,
-		int aFlags = 0, bool addBad = true, const BundlePtr &bundle = BundlePtr());
-	void add(const string& aRoot, const BundlePtr& bundle, const HintedUser& aUser, int aFlags = 0);
+		int aFlags = 0, bool addBad = true);
 
 	/** Add a user's filelist to the queue. */
 	void addList(const HintedUser& HintedUser, int aFlags, const string& aInitialDir = Util::emptyString);
@@ -136,6 +134,11 @@ public:
 
 	string getListPath(const HintedUser& user);
 	void noDeleteFileList(const string& path);
+
+	bool hasRunning(void) const {
+		Lock l(cs);
+		return !userQueue.isEmpty();
+	};
 
 	GETSET(uint64_t, lastSave, LastSave);
 	GETSET(string, queueFile, QueueFile);
@@ -216,7 +219,7 @@ private:
 		bool isRunning(const UserPtr& aUser) const {
 			return (running.find(aUser) != running.end());
 		}
-
+		bool isEmpty(void) const { return running.empty(); }
 		pair<size_t, int64_t> getQueued(const UserPtr& aUser) const;
 	private:
 		/** QueueItems by priority and user (this is where the download order is determined) */
@@ -233,8 +236,6 @@ private:
 
 	mutable CriticalSection cs;
 
-	/** Bundles queued for download */
-	map<TTHValue, BundleItem> bundles;
 	/** QueueItems by target */
 	FileQueue fileQueue;
 	/** QueueItems by user */
