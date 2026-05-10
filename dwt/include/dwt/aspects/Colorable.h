@@ -51,6 +51,7 @@ class Colorable {
 public:
 	void setColor(COLORREF text, COLORREF background) {
 		W().setColorImpl(text, background);
+		W().setColorState(text, background);
 	}
 
 protected:

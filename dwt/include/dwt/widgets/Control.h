@@ -85,6 +85,7 @@ public:
 	*/
 	void addAccel(BYTE fVirt, WORD key, const CommandDispatcher::F& f);
 	void initAccels();
+	void setColorState(COLORREF text, COLORREF background);
 
 	virtual bool handleMessage(const MSG& msg, LRESULT& retVal);
 
@@ -105,9 +106,14 @@ private:
 
 	std::vector<ACCEL> accels;
 	HACCEL accel;
+	bool hasCustomColors;
+	COLORREF customTextColor;
+	COLORREF customBackgroundColor;
 	static const unsigned id_offset = 100; // better play safe and avoid 0-based ids...
 
 	bool filter(MSG& msg);
+	void colorChild(HWND child);
+	void colorChildren();
 };
 
 typedef Control CommonControl;

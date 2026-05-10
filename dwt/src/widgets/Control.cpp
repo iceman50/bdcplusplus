@@ -45,8 +45,11 @@ BaseType::Seed(style | WS_VISIBLE, exStyle, caption)
 }
 
 Control::Control(Widget* parent, Dispatcher& dispatcher) :
-BaseType(parent, dispatcher),
-accel(0)
+	BaseType(parent, dispatcher),
+	accel(0),
+	hasCustomColors(false),
+	customTextColor(0),
+	customBackgroundColor(0)
 {
 }
 
@@ -62,6 +65,16 @@ void Control::initAccels() {
 	accel = ::CreateAcceleratorTable(&accels[0], accels.size());
 	if(!accel) {
 		throw Win32Exception("Control::initAccels: CreateAcceleratorTable failed");
+	}
+}
+
+void Control::setColorState(COLORREF text, COLORREF background) {
+	hasCustomColors = true;
+	customTextColor = text;
+	customBackgroundColor = background;
+
+	if(handle()) {
+		colorChildren();
 	}
 }
 
@@ -107,6 +120,14 @@ bool Control::handleMessage(const MSG& msg, LRESULT& retVal) {
 
 	switch(msg.message)
 	{
+	case WM_PARENTNOTIFY:
+		{
+			if(hasCustomColors && LOWORD(msg.wParam) == WM_CREATE) {
+				colorChild(reinterpret_cast<HWND>(msg.lParam));
+			}
+			break;
+		}
+
 		/* messages that allow Windows controls to owner-draw are sent as notifications to the
 		parent; therefore, we catch them here assuming that the parent of an owner-drawn control
 		will have this class as a base. they are then forwarded to the relevant control for further
@@ -141,6 +162,20 @@ bool Control::handleMessage(const MSG& msg, LRESULT& retVal) {
 	}
 
 	return handled;
+}
+
+void Control::colorChild(HWND child) {
+	auto control = hwnd_cast<Control*>(child);
+	if(control) {
+		control->setColor(customTextColor, customBackgroundColor);
+		control->redraw();
+	}
+}
+
+void Control::colorChildren() {
+	for(HWND child = ::FindWindowEx(handle(), NULL, NULL, NULL); child; child = ::FindWindowEx(handle(), child, NULL, NULL)) {
+		colorChild(child);
+	}
 }
 
 }

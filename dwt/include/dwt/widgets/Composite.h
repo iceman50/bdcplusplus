@@ -62,6 +62,16 @@ protected:
 	};
 
 	Composite(Widget* parent, Dispatcher& dispatcher) : BaseType(parent, dispatcher) { };
+
+	void setColorImpl(COLORREF text, COLORREF background) override {
+		BaseType::setColorImpl(text, background);
+
+		BrushPtr brush { new Brush { background } };
+		onEraseBackground([this, brush](Canvas& canvas) {
+			canvas.fill(Rectangle(getClientSize()), *brush);
+			return true;
+		});
+	}
 };
 
 inline Composite::Seed::Seed(const tstring& caption, DWORD style, DWORD exStyle) :
